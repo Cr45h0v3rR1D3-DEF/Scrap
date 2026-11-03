@@ -245,7 +245,7 @@ function tower(s, u, v, ang, w, d, h, o = {}) {
     for (const sg of [-1, 1]) { fbox(g, tw, 1, 0.4, 0, y + 0.5, sg * (td / 2 - 0.2), trim); fbox(g, 0.4, 1, td, sg * (tw / 2 - 0.2), y + 0.5, 0, trim); s.boxCol(M, tw, 1, 0.4, 0, y + 0.5, sg * (td / 2 - 0.2)); s.boxCol(M, 0.4, 1, td, sg * (tw / 2 - 0.2), y + 0.5, 0); }
   }
   s.put(g, M); s.put(gl, M, true);
-  structAdd(s, mk, M, parts, { wall: body, top: trim, low: o.lobby ?? 0x3c4650 });
+  structAdd(s, mk, M, parts, { wall: body });
   return { M, top: y };
 }
 function trafficLight(s, u, v, ang) {

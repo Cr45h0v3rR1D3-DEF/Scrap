@@ -164,7 +164,7 @@ function building(site, u, v, ang, w, d, h, opt = {}) {
   winRows(gl, gl, w, d, h, floors, wall, opt.lit ?? 0.35, rng);
   site.put(g, M); site.put(gl, M, true);
   // it can be knocked down (wreck.js)
-  structAdd(site, mk, M, [{ w, h, d, x: 0, y: h / 2, z: 0 }], { wall, top: opt.roof === 'gable' ? wall : (opt.trim ?? 0x8a8f93), roof: opt.roof === 'gable' ? { rh: opt.rh || Math.min(w, d) * 0.35, col: opt.roofCol ?? COLS.roof } : null });
+  structAdd(site, mk, M, [{ w, h, d, x: 0, y: h / 2, z: 0 }], { wall, roof: opt.roof === 'gable' ? { rh: opt.rh || Math.min(w, d) * 0.35, col: opt.roofCol ?? COLS.roof } : null });
   return M;
 }
 function tree(site, u, v, s = 1) {
