@@ -319,13 +319,12 @@ function setupWorld() {
   const fwd = new V3().copy(best.t1).multiplyScalar(Math.cos(best.seaAng)).addScaledVector(best.t2, Math.sin(best.seaAng)).normalize();
   WORLD.padFwd.copy(fwd);
   WORLD.padRight.crossVectors(up, fwd).normalize();
-  // sun behind the default camera, high in the sky
-  WORLD.sunDir.copy(up).multiplyScalar(0.74).addScaledVector(fwd, -0.48).addScaledVector(WORLD.padRight, 0.47).normalize();
-  // moon rising low over the sea direction
-  const e1 = new V3().copy(up).multiplyScalar(0.33).addScaledVector(fwd, 0.94).normalize();
-  const nrm = new V3().copy(WORLD.padRight).addScaledVector(up, 0.25).normalize();
-  const e2 = new V3().crossVectors(nrm, e1).normalize();
-  MOON.orbitRef = e1.clone(); MOON.orbitPlaneN = new V3().crossVectors(e1, e2).normalize();
+  // Terra stands upright: its poles lie along the pad's back-and-forward line (so the pad is on the equator), and the Sun,
+  // the planets' orbits and the Moon's all lie in its equator's plane. The game starts mid-morning: the Sun high in the east
+  // (to the pad's right), the Moon low in the west.
+  WORLD.sunDir.copy(up).multiplyScalar(0.74).addScaledVector(WORLD.padRight, 0.67).normalize();
+  const e1 = new V3().copy(up).multiplyScalar(0.33).addScaledVector(WORLD.padRight, -0.94).normalize();
+  MOON.orbitRef = e1.clone(); MOON.orbitPlaneN = fwd.clone().negate();
   // highlands: flattest high spot near the tallest sampled peak
   let hl = best.mtDir.clone(), hlScore = -1e9;
   { const tt1 = new V3(), tt2 = new V3(); tangentBasis(best.mtDir.x, best.mtDir.y, best.mtDir.z, tt1, tt2);

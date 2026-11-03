@@ -143,7 +143,7 @@ class Body {
     // gyros, logic blocks and parts that act once per key press (each listens to its own keys)
     this.gyros = []; this.logic = []; this.acts = [];
     this.balloons = []; this.magnets = []; this.guns = []; this.horns = [];
-    this.hovers = []; this.drills = []; this.couplers = []; this.lightbars = [];
+    this.hovers = []; this.drills = []; this.couplers = []; this.lightbars = []; this.bogies = [];
     let gyro = 0, rcs = 0, power = 0, nDriven = 0, rad = 0, drad = 0;
     const gid = new Map();
     this.fgroups = partComponents(this.parts.filter(p => p.def.kind !== 'decoupler')).map((c, i) => { for (const p of c) gid.set(p, i); return { tanks: c.filter(p => p.def.fuel), dem: 0, sc: 0 }; });
@@ -157,8 +157,23 @@ class Body {
       const at = (k) => new V3(A[0] + colY[0] * k, A[1] + colY[1] * k, A[2] + colY[2] * k);
       switch (d.kind) {
         case 'wheel': {
-          if (Math.abs(colY[1]) > 0.5) break;
           const Wd = d.wheel;
+          if (Wd.bogie) {
+            // a rail bogie hangs under the deck (its own +Y points down): four wheels, axles across it
+            const dn = new V3(colY[0], colY[1], colY[2]), ax = new V3(colX[0], colX[1], colX[2]), mid = at(Wd.hubY);
+            for (const [tx, tz] of Wd.bogie.xs) {
+              const hub = mid.clone().addScaledVector(ax, tx).add(new V3(colZ[0] * tz, colZ[1] * tz, colZ[2] * tz));
+              const w = makeWheel(p, hub, ax.clone(), dn.clone(), Wd.r, Wd.L);
+              w.vmax = Wd.vmax; w.mu = Wd.grip; w.stiff = Wd.stiff; w.pw = cfgGet(p, 'power') / 100; w.vlim = Math.min(Wd.vmax, cfgGet(p, 'speed') / 3.6);
+              w.brkK = cfgGet(p, 'brake') / 100; w.inv = cfgGet(p, 'inv') ? -1 : 1; w.steerMode = 0; w.rail = true;
+              let reach = 0; for (const cc of p.cells) reach = Math.max(reach, (cc[0] * CELL - hub.x) * dn.x + (cc[1] * CELL - hub.y) * dn.y + (cc[2] * CELL - hub.z) * dn.z); w.reach = reach + CELL / 2;
+              this.wheels.push(w); nDriven++; rad = Math.max(rad, hub.distanceTo(c) + Wd.r);
+            }
+            this.bogies.push({ p, pos: mid, lat: ax, fwd: new V3(colZ[0], colZ[1], colZ[2]), on: false, off: 0, over: 0 });
+            power += Wd.power;
+            break;
+          }
+          if (Math.abs(colY[1]) > 0.5) break;
           // the wheel presses toward its local -Z: down for a car, sideways or up to grip a wall or a truss
           const dn = new V3(-colZ[0], -colZ[1], -colZ[2]);
           // a track is a row of road wheels along its length, all sprung and driven together
@@ -347,7 +362,7 @@ class Body {
         if (d.type === 'text') base.multiply(new THREE.Matrix4().makeScale(def.text.w, 1, def.text.h));
         const vo = { mesh, base, p, d, ang: Math.random() * TAU, up: null, glow };
         switch (d.type) {
-          case 'wheel': vo.we = this.wheels.filter(w => w.p === p)[d.wi || 0] || null; vo.rot = rotOnly(p.m); vo.up = visWheel; break;
+          case 'wheel': vo.we = this.wheels.filter(w => w.p === p)[d.wi || 0] || null; vo.rot = rotOnly(p.m); if (def.wheel && def.wheel.bogie) vo.rot.multiply(new THREE.Matrix4().makeRotationZ(Math.PI / 2)); vo.up = visWheel; break;
           case 'flag': vo.up = visFlag; break;
           case 'drill': vo.dr = this.drills.find(e => e.p === p) || null; vo.up = visDrill; break;
           case 'flashA': case 'flashB': case 'dimA': case 'dimB': vo.up = visFlash; break;
@@ -551,6 +566,61 @@ class Body {
     if (this.drills.length) this.drillStep(dt);
     if (sc) this.water(sc); else { this.wasWet = false; this.lava = 0; }
     if (this.wheels.length) this.wheelForces(dt);
+    if (this.bogies.length) this.bogieForces(dt);
+  }
+  /* rail bogies: find the railway under each one and pull it sideways onto the line (two bogies also turn the vehicle
+     along it). Past about 0.7 g sideways, or knocked half a metre off the line, it jumps the rails */
+  bogieForces(dt) {
+    const ws = PLANET.ws; if (!ws || !ws.on) return;
+    for (const w of this.wheels) if (w.rail) w.railOn = this.bogies.some(b => b.on && b.p === w.p);
+    const R = PLANET.R, on = this.bogies.filter(b => b.on).length || 1, m = this.mass / Math.max(on, this.bogies.length > 1 ? 2 : 1);
+    for (const bg of this.bogies) {
+      if (!bg.p.alive) { bg.on = false; continue; }
+      this.toWorld(bg.pos.x, bg.pos.y, bg.pos.z, _p);
+      const lp = toSpin(PLANET, _bgA.subVectors(_p, PLANET.center), _bgA), r = lp.length();
+      if (r - R > 1200) { bg.on = false; continue; }
+      const ux = lp.x / r, uy = lp.y / r, uz = lp.z / r;
+      const list = ws.grid.get(wsKey(ws, ux, uy, uz));
+      let best = null, bd = 1.6;
+      if (list) for (const it of list) {
+        if (!it.rail) continue;
+        let t = ((ux - it.x0) * it.ex + (uy - it.y0) * it.ey + (uz - it.z0) * it.ez) / it.l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+        const h = it.h0 + (it.h1 - it.h0) * t + RAIL_TOP, cx = it.x0 + it.ex * t, cy = it.y0 + it.ey * t, cz = it.z0 + it.ez * t, cl = Math.hypot(cx, cy, cz);
+        const px = cx / cl * (R + h), py = cy / cl * (R + h), pz = cz / cl * (R + h);
+        const up = r - (R + h);   // the hubs ride a wheel's radius over the rail tops
+        if (up < -0.3 || up > 1.6) continue;
+        const dx = lp.x - px, dy = lp.y - py, dz = lp.z - pz, rad = dx * ux + dy * uy + dz * uz;
+        const lat = Math.hypot(dx - rad * ux, dy - rad * uy, dz - rad * uz);
+        if (lat < bd) { bd = lat; best = { it, px, py, pz }; }
+      }
+      if (bg.off > 0) { bg.off -= dt; if (bg.off > 0 || bd > 0.25) { bg.on = false; continue; } }
+      if (!best) { if (bg.on && bd >= 1.6) bg.on = false; continue; }
+      // the line's sideways direction here, in the world's own frame
+      const it = best.it, tl = Math.sqrt(it.l2);
+      _bgT.set(it.ex / tl, it.ey / tl, it.ez / tl); _bgU.set(ux, uy, uz);
+      _bgS.crossVectors(_bgT, _bgU).normalize();
+      const e = (lp.x - best.px) * _bgS.x + (lp.y - best.py) * _bgS.y + (lp.z - best.pz) * _bgS.z;
+      // sideways speed against the ground
+      this.velAt(_p, _bgV).sub(surfaceVel(PLANET, _p, _bgW)); toSpin(PLANET, _bgV, _bgV);
+      const vl = _bgV.dot(_bgS), w = 10, F = -(m * w * w * e + 2 * m * w * vl);
+      if (!bg.on && Math.abs(e) > 0.25) continue;   // lowered onto the track: it has to come down close to the line
+      // how hard the bend pulls sideways at this speed (v² × the line's curvature here): past RAIL_LAT it jumps the rails
+      // (about twice what the timetabled trains allow themselves, and before a tall engine would tip over)
+      const P = it.rail.pts, i1 = Math.min(it.ri + 1, P.length - 2), i0 = Math.max(0, i1 - 1);
+      _bgV.subVectors(P[i1].d, P[i0].d); _bgW.subVectors(P[i1 + 1].d, P[i1].d);
+      const kk = Math.acos(clamp(_bgV.dot(_bgW) / (_bgV.length() * _bgW.length() || 1), -1, 1)) / (_bgV.length() * R || 1);
+      this.velAt(_p, _bgV).sub(surfaceVel(PLANET, _p, _bgW)); const vv = _bgV.lengthSq();
+      if (vv * kk > RAIL_LAT || Math.abs(e) > 0.6) bg.over += dt; else bg.over = Math.max(0, bg.over - dt);
+      if (bg.over > 0.25) {
+        bg.on = false; bg.off = 2; bg.over = 0;
+        if (this === G.player || (G.player && machineOf(G.player).includes(this))) { toast('Derailed! Too fast for that bend', 1800); SND.at('crash', _p, 0.5); }
+        continue;
+      }
+      bg.on = true; bg.line = it.rail; bg.ri = it.ri; bg.tdir = Math.sign(_bgV.copy(this.v).sub(surfaceVel(PLANET, _p, _bgW)).dot(fromSpin(PLANET, _bgT, _bgW))) || 1;
+      const Fc = clamp(F, -m * 12, m * 12);
+      fromSpin(PLANET, _bgS, _bgW);
+      this.addForceAt(_bgW.x * Fc, _bgW.y * Fc, _bgW.z * Fc, _p);
+    }
   }
   /* hover pads: a spring of air between each pad and the ground or water below it, up to HOVER_H away */
   hoverForces(sea) {
@@ -654,7 +724,7 @@ class Body {
       const half = w.L * 0.5, maxT = w.L + w.r;
       _q.set(_p.x + ux * half, _p.y + uy * half, _p.z + uz * half);
       _a.set(-ux, -uy, -uz);
-      let hit = groundRay(_q, _a, maxT), x = hit ? maxT - hit.t : 0, onB = null, lat = false;
+      let hit = groundRay(_q, _a, maxT, w.rail), x = hit ? maxT - hit.t : 0, onB = null, lat = false;
       // other vehicles and towers: wheels ride on them too, and clamp onto trusses
       if (others && !w.gear) {
         const reachT = w.leg ? maxT : Math.max(maxT, half + w.reach + 0.3);
@@ -696,7 +766,8 @@ class Body {
         const sx = n.y * fz - n.z * fy, sy = n.z * fx - n.x * fz, sz = n.x * fy - n.y * fx;
         const vlong = _u.x * fx + _u.y * fy + _u.z * fz, vlat = _u.x * sx + _u.y * sy + _u.z * sz;
         const mu = w.leg ? 0.9 : lat ? 2.0 : w.mu || 1.05, lim = mu * Fs;
-        let Flat = -clamp(vlat / (lat ? 0.8 : 0.6), -1, 1) * lim * (w.track ? 0.55 : 1), Flong = 0;
+        // a rail wheel locked onto the track leaves the sideways work to its bogie (the flanges): its tyre does not fight the bend
+        let Flat = -clamp(vlat / (lat ? 0.8 : 0.6), -1, 1) * lim * (w.track ? 0.55 : w.railOn ? 0.04 : 1), Flong = 0;
         if (w.leg) Flong = -clamp(vlong / 0.35, -1, 1) * lim;
         else if (lat) {
           // clamped on a truss
@@ -822,6 +893,8 @@ function makeWheel(p, hub, axle, dn, r, L) {
     // inputs (set each frame for the machine you drive) and settings
     thr: 0, brk: 0, st: 0, rev: false, pw: 1, vlim: 0, brkK: 1, inv: 1, steerMode: 1 };
 }
+const RAIL_LAT = 3.4;
+const _bgA = new V3(), _bgT = new V3(), _bgU = new V3(), _bgS = new V3(), _bgV = new V3(), _bgW = new V3();
 /* ---------- part visual animators ---------- */
 const _m3 = new THREE.Matrix4();
 function visWheel(vo, b, dt) {
@@ -976,7 +1049,8 @@ function rayCel(cel, ox, oy, oz, d, maxT) {
   }
   return lo + (hi - lo) * flo / (flo - fhi);
 }
-function groundRay(o, d, maxT) {
+/* flanged (rail) wheels: a rail's sloping sides do not push them off it, their flanges hold them on */
+function groundRay(o, d, maxT, flanged) {
   let bt = 1e9, bc = null, bp = null;
   for (const cel of ROCKY) {
     const ox = o.x - cel.center.x, oy = o.y - cel.center.y, oz = o.z - cel.center.z;
@@ -1008,6 +1082,7 @@ function groundRay(o, d, maxT) {
     const r = Math.hypot(px, py, pz), ux = px / r, uy = py / r, uz = pz / r;
     surfaceNormal(bc, ux, uy, uz, bc.height(ux, uy, uz), _hit.n);
   }
+  if (flanged && bp && bp.tag === 'rail') _hit.n.set(o.x + d.x * bt - bp.cel.center.x, o.y + d.y * bt - bp.cel.center.y, o.z + d.z * bt - bp.cel.center.z).normalize();
   surfaceVel(bc || bp.cel, _pd.set(o.x + d.x * bt, o.y + d.y * bt, o.z + d.z * bt), _hit.sv);
   if (bp && bp.mover) _hit.sv.add(fromSpin(bp.cel, moverVel(bp, _hit.lp, _pd), _pd));
   _hit.mover = bp && bp.mover ? bp : null;

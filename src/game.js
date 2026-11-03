@@ -3,6 +3,8 @@
 let renderer, stage, scene, camera, sunLight, sun2, moonL, hemi, ambient, sky, raycaster;
 const RO = new V3(); // render origin: the scene is drawn shifted by -RO so the GPU only sees small numbers
 const KEYS = new Set();
+/* a touchscreen first (an iPad): words say tap, not click */
+const COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 const G = {
   mode: 'build', player: null, seatUid: null, spawnLoc: 'pad', warp: 1, map: false, chase: true, shake: 0, initialParts: 1,
   throttle: 0, reversing: false, noSeat: false, wrecked: false, budget: 4.5, hudT: 0, mapYaw: 0.4, mapPitch: 0.55, mapZoom: 1, keysMin: false, fuelWarned: false, predT: 0,
@@ -192,7 +194,7 @@ function makeProps() {
 }
 
 /* ---------------- map objects ---------------- */
-const MAP = { segs: [], ghosts: [], rings: [], celLabels: [], pred: null };
+const MAP = { segs: [], ghosts: [], rings: [], celLabels: [], pred: null, focus: null, pan: new V3(), tr: null, pick: [] };
 const SEG_N = 2400, SEG_COLS = [0xf0a32b, 0x7fd0ff, 0xd99cff];
 function lineObj(n, color, opacity = 1) {
   const pos = new Float32Array(n * 3);
@@ -231,6 +233,7 @@ function initMapObjects() {
   for (const c of CELS) { const l = document.createElement('div'); l.className = 'mapLabel'; l.dataset.kind = c.kind === 'star' ? 'star' : c.parent && c.parent.kind === 'star' ? 'planet' : 'moon'; l.hidden = true; MAP.labels.appendChild(l); MAP.celLabels.push({ c, l }); }
   mapPlaces();
   MAP.dip = dotSprite(gtex, 0xf0a32b, 0.034);
+  MAP.tgt = dotSprite(gtex, 0xff6fd8, 0.05);
   // winch cables
   MAP.ropes = [];
   for (const g of MAP.ghosts) { g.label = document.createElement('div'); g.label.className = 'mapLabel'; g.label.dataset.kind = 'ghost'; g.label.hidden = true; MAP.labels.appendChild(g.label); }
@@ -332,13 +335,13 @@ function updateMapLabels() {
   for (const o of MAP.celLabels) {
     o.l.hidden = true;
     const sp = screenOf(o.c.center, w, h); if (!sp) continue;
-    vis.push({ el: o.l, x: sp.x, y: sp.y, k: o.l.dataset.kind, name: o.c.name, d: me.distanceTo(o.c.center) - o.c.R });
+    vis.push({ el: o.l, x: sp.x, y: sp.y, k: o.l.dataset.kind, name: o.c.name, d: me.distanceTo(o.c.center) - o.c.R, obj: { cel: o.c }, tg: !!(SAS.target && SAS.target.cel === o.c) });
   }
   for (const g of MAP.ghosts) {
     g.label.hidden = true;
     if (!g.on) continue;
     const sp = screenOf(g.s.position, w, h); if (!sp) continue;
-    vis.push({ el: g.label, x: sp.x, y: sp.y, k: 'ghost', txt: g.txt });
+    vis.push({ el: g.label, x: sp.x, y: sp.y, k: 'ghost', txt: g.txt, obj: { cel: g.cel } });
   }
   // places on Terra: only from fairly near, and only on the side facing the camera
   const nearT = camera.position.distanceTo(PLANET.center) < PLANET.R * 7;
@@ -353,19 +356,25 @@ function updateMapLabels() {
     s.label.hidden = true;
     if (!s.body || !s.dot.visible) continue;
     const sp = screenOf(s.body.x, w, h); if (!sp) continue;
-    vis.push({ el: s.label, x: sp.x, y: sp.y, k: bodyKind(s.body), name: s.body.name, d: me.distanceTo(s.body.x) });
+    vis.push({ el: s.label, x: sp.x, y: sp.y, k: bodyKind(s.body), name: s.body.name, d: me.distanceTo(s.body.x), obj: { body: s.body }, tg: !!(SAS.target && SAS.target.body === s.body) });
   }
-  vis.sort((a, b) => rank[a.k] - rank[b.k] || (a.d || 0) - (b.d || 0));
+  baseLabels(vis, w, h, me);
+  vis.sort((a, b) => (b.tg ? 1 : 0) - (a.tg ? 1 : 0) || rank[a.k] - rank[b.k] || (a.d || 0) - (b.d || 0));
+  // your own vehicle can be clicked too (its dot has no label)
+  if (G.player && !G.player.dead) { const sp = screenOf(G.player.x, w, h); if (sp) vis.push({ x: sp.x, y: sp.y, obj: { body: G.player }, k: 'me' }); }
+  MAP.pick = vis;
   const shown = [];
   for (const v of vis) {
     const near = shown.find(o => Math.abs(o.x - v.x) < 26 && Math.abs(o.y - v.y) < 16);
+    if (v.k === 'me') continue;
     if (near) { near.extra++; continue; }
     v.extra = 0; shown.push(v);
   }
   for (const v of shown) {
-    const txt = (v.txt || `${v.name} · ${fmtDist(v.d)}`) + (v.extra ? ` · +${v.extra} more` : '');
+    const txt = (v.txt || (v.d < 200 ? v.name : `${v.name} · ${fmtDist(v.d)}`)) + (v.extra ? ` · +${v.extra} more` : '');
     const L = v.el;
     if (L.textContent !== txt) L.textContent = txt;
+    if (L.classList.contains('tgt') !== !!v.tg) L.classList.toggle('tgt', !!v.tg);
     L.style.transform = `translate(${(v.x + 9).toFixed(1)}px, ${(v.y - 9).toFixed(1)}px)`;
     L.hidden = false;
   }
@@ -403,7 +412,8 @@ function predDominant(px, py, pz) {
 function predictOrbit(b, draw = true) {
   const segs = MAP.segs; for (const sg of segs) { sg.n = 0; sg.cel = null; }
   for (const g of MAP.ghosts) g.on = false;
-  const pred = { enc: [], impact: null, segs: 0 };
+  const pred = { enc: [], impact: null, segs: 0, tgt: null };
+  const tgi = SAS.target && SAS.target.cel ? CELS.indexOf(SAS.target.cel) : -1; if (tgi >= 0) pred.tgt = { min: Infinity, t: 0 };
   let px = b.x.x, py = b.x.y, pz = b.x.z, vx = b.v.x, vy = b.v.y, vz = b.v.z, t = W.time;
   celPositions(t);
   let ci = predDominant(px, py, pz), si = 0, seg = segs[0]; seg.cel = CELS[ci];
@@ -423,6 +433,7 @@ function predictOrbit(b, draw = true) {
     for (let i = 0; i < NCEL; i++) {
       const c = CELS[i], k = i * 3, d = Math.hypot(px - CPOS[k], py - CPOS[k + 1], pz - CPOS[k + 2]);
       const lim = c.kind === 'star' ? (c.hole ? c.R * 2.2 : c.heatEnd) : c.R + (c.kind === 'gas' ? -c.R * 0.05 : 0);
+      if (i === tgi && d - c.R < pred.tgt.min) { pred.tgt.min = d - c.R; pred.tgt.t = t - W.time; }
       if (d < lim) { hitI = i; break; }
       if (enc && i === enc.i) enc.min = Math.min(enc.min, d - c.R);
     }
@@ -466,6 +477,8 @@ function placeMapLines() {
   for (const sg of MAP.segs) { sg.line.visible = G.map && sg.n > 1 && !!sg.cel; if (sg.cel) sg.line.position.copy(sg.cel.center); }
   for (const g of MAP.ghosts) { g.s.visible = G.map && g.on; if (g.on) g.s.position.copy(g.anchor.center).add(g.rel); }
   for (const r of MAP.rings) { r.line.visible = G.map; r.line.position.copy(r.cel.parent.center); }
+  // the target: a pink ring round it
+  const tp = G.map ? sasTargetPos() : null; MAP.tgt.visible = !!tp; if (tp) MAP.tgt.position.copy(tp);
   // in flight: a ring where the next skyhook dip happens, for anything carrying a docking port
   const dp = HOOKPRED.ok && G.mode === 'drive' && HOOKPRED.cel ? HOOKPRED : null;
   MAP.dip.visible = !!dp;
@@ -678,6 +691,8 @@ function spawnAtLocation(b, key) {
     else {
       const S = c.kind === 'star' ? (c === SUN ? null : SUN) : rootStar(c);
       up = S ? new V3().subVectors(S.center, c.center).normalize() : SOLAR.e1.clone(); hint = new V3().crossVectors(SOLAR.n, up);
+      // round the black hole the orbit is tipped a little out of the disk's plane, so you see the disk from just above it
+      if (c === MAW) { const n = sky.hole.lensMat.uniforms.nrm.value; up.addScaledVector(n, -up.dot(n)).normalize().multiplyScalar(Math.cos(0.26)).addScaledVector(n, Math.sin(0.26)); hint = new V3().crossVectors(n, up); }
     }
     const fr = frameAt(up, hint);
     const r = c.R + L.alt, pos = c.center.clone().addScaledVector(fr.up, r);
@@ -711,6 +726,31 @@ function spawnAtLocation(b, key) {
   const h = key === 'pad' ? WORLD.padH : L.hAbs !== undefined ? L.hAbs : groundHeightUnder(PLANET, PLANET.center.clone().addScaledVector(up, PLANET.R), fr, Math.min(b.radius, 30));
   placeBody(b, fr, PLANET.center.clone().addScaledVector(up, PLANET.R + (L.hAbs !== undefined ? h : Math.max(h, 0))), PLANET.vel, 0.35, PLANET);
   if (key !== 'pad') warmTerrain(PLANET, b.x);
+  return railSnap(b) || fr;
+}
+/* a vehicle on rail bogies spawned near a railway is set down on the track, lined up with it, clear of the trains */
+function railSnap(b) {
+  if (!machineOf(b).some(o => o.bogies && o.bogies.length) || !GLOBE.rails.length) return null;
+  const lp = toSpin(PLANET, new V3().subVectors(b.x, PLANET.center), new V3()).normalize(), R = PLANET.R;
+  const trains = TRAIN.list.flatMap(tr => tr.cars.map(c => c.base));
+  let best = null, bd = 160;
+  for (const L of GLOBE.rails) {
+    const P = L.pts;
+    for (let i = 1; i < P.length - 1; i++) {
+      const d = P[i].d.distanceTo(lp) * R; if (d >= bd || P[i].cross) continue;
+      const at = P[i].d.clone().multiplyScalar(R + P[i].h);
+      if (trains.some(t => t.distanceTo(at) < 45)) continue;
+      bd = d; best = { L, i };
+    }
+  }
+  if (!best) return null;
+  const P = best.L.pts, p = P[best.i];
+  // facing the longer way along the line, not into the buffers at the end of it
+  const ahead = best.i < P.length / 2 ? 1 : -1;
+  const up = fromSpin(PLANET, p.d, new V3()).normalize(), f = fromSpin(PLANET, new V3().subVectors(P[best.i + ahead].d, P[best.i - ahead].d), new V3());
+  const fr = frameAt(up, f);
+  placeBody(b, fr, PLANET.center.clone().addScaledVector(up, R + p.h + RAIL_TOP), PLANET.vel, 0.08, PLANET);
+  ensureBuiltNear(b.x);
   return fr;
 }
 function spawnPlayer(respawn) {
@@ -878,6 +918,7 @@ function flipUpright() {
 /* ---------------- modes ---------------- */
 /* B back to the builder removes the vehicle you were driving; Park & build leaves it out in the world */
 function setMode(m, force, board, park) {
+  if (BASES.mode) exitBaseMode();
   if (m === G.mode && !force && !board) return;
   G.mode = m;
   document.body.classList.toggle('mode-build', m === 'build');
@@ -912,11 +953,13 @@ function setMode(m, force, board, park) {
   $('view').focus();
 }
 function setMapVisible(v) {
+  if (v && BASES.mode) exitBaseMode();
   G.map = v; MAP.objT = 0;
+  if (v) { MAP.focus = null; MAP.pan.set(0, 0, 0); MAP.tr = null; MAP.lastClick = null; }
   if (!v) updateMapTracks(0);
   document.body.classList.toggle('map', v);
   if (v && G.player && !G.player.dead) predictOrbit(G.player);
-  placeMapLines();
+  placeMapLines(); renderMapBar();
 }
 /* highest time warp allowed right now, and why */
 function warpLimit() {
@@ -1041,7 +1084,7 @@ function driveControls(dt = 1 / 60) {
   // under warp, turning keeps its real-time feel
   const rs = 1 / Math.max(1, Math.min(G.warp, 100));
   for (const o of mach) o.ctl.rs = rs;
-  applyInputs(mach, live, dt, dt * G.warp);
+  applyInputs(mach, live && !BASES.mode, dt, dt * G.warp);
   if (live) {
     const jk = id => anyDown(actKeys(id)) ? 1 : 0;
     const hk = jk('hinge_a') - jk('hinge_b'), rk = jk('rotor_r') - jk('rotor_l'), pk = jk('piston_out') - jk('piston_in');
@@ -1079,6 +1122,11 @@ function onKey(code, e) {
   // Shift pressed after the key: count it as the Shift+ key
   if (code === 'ShiftLeft' || code === 'ShiftRight') { for (const k of IN.shifted) if (KEYS.has(k)) onKey(k, { shiftKey: true }); return; }
   const A = id => isAct(id, code, shift);
+  if (BASES.mode) {
+    if (A('build')) { exitBaseMode(); return; }
+    if (isAct('b_rot', code, shift)) { baseTurn(); return; }
+    if (A('map')) exitBaseMode(); else return;
+  }
   if (A('build')) {
     if (G.mode === 'build') setMode('drive');
     else { if (B.pasting) cancelPaste(); setMode('build'); }
@@ -1098,7 +1146,7 @@ function onKey(code, e) {
   if (A('map')) { setMapVisible(!G.map); return; }
   if (A('warp_up')) { changeWarp(1); return; }
   if (A('warp_dn')) { changeWarp(-1); return; }
-  if (A('keys')) { G.keysMin = !G.keysMin; $('keys').classList.toggle('min', G.keysMin); return; }
+  if (A('keys')) { toggleKeys(); return; }
   if (A('map_out')) { if (G.map) G.mapZoom = clamp(G.mapZoom * 1.8, 0.15, 4000); return; }
   if (A('map_in')) { if (G.map) G.mapZoom = clamp(G.mapZoom / 1.8, 0.15, 4000); return; }
   if (ok) {
@@ -1112,6 +1160,8 @@ function bindInput() {
   window.addEventListener('keydown', e => {
     SND.unlock();
     if (captureKeydown(e)) return;
+    if (!$('title').hidden && titleKey(e)) return;
+    if (e.key === 'Escape' && $('modalWrap').hidden && G.mode === 'drive' && !BASES.mode && !(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))) { e.preventDefault(); openMenu(); return; }
     const tg = e.target;
     if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT')) { if (e.key === 'Escape' || e.key === 'Enter') tg.blur(); return; }
     if (!$('modalWrap').hidden) { if (e.key === 'Escape') closeModal(); return; }
@@ -1149,7 +1199,7 @@ function bindInput() {
     setNdc(e);
     // in drive mode a click is the Mouse0 key: a quick click fires once, holding without dragging keeps it down
     clearTimeout(PTR.fireT);
-    if (G.mode === 'drive' && e.button === 0 && !G.map) PTR.fireT = setTimeout(() => { if (PTR.down && !PTR.dragged && !PTR.multi) KEYS.add('Mouse0'); }, 150);
+    if (G.mode === 'drive' && e.button === 0 && !G.map && !BASES.mode) PTR.fireT = setTimeout(() => { if (PTR.down && !PTR.dragged && !PTR.multi) KEYS.add('Mouse0'); }, 150);
   });
   const setNdc = e => { const r = cv.getBoundingClientRect(); B.ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); B.hoverOK = true; };
   cv.addEventListener('pointermove', e => {
@@ -1160,7 +1210,11 @@ function bindInput() {
       if (G.mode === 'build') {
         bPan(now.x - pinch.x, now.y - pinch.y);
         if (pinch.d > 10 && now.d > 10) B.cam.dist = clamp(B.cam.dist * pinch.d / now.d, 2.5, Math.max(120, (B.size || 0) * 2));
-      }
+      } else if (G.map) {
+        // on the map: two fingers move it and pinch zooms
+        mapPan(now.x - pinch.x, now.y - pinch.y);
+        if (pinch.d > 10 && now.d > 10) G.mapZoom = clamp(G.mapZoom * pinch.d / now.d, 0.15, 4000);
+      } else if (pinch.d > 10 && now.d > 10) DC.dist = clamp(DC.dist * pinch.d / now.d, 3, 600);
       pinch = now; return;
     }
     if (PTR.multi) return;
@@ -1168,8 +1222,9 @@ function bindInput() {
     if (PTR.down) {
       const dx = e.clientX - PTR.x, dy = e.clientY - PTR.y; PTR.x = e.clientX; PTR.y = e.clientY;
       if (!PTR.dragged && Math.hypot(e.clientX - PTR.x0, e.clientY - PTR.y0) > 5) { PTR.dragged = true; KEYS.delete('Mouse0'); }
-      if (PTR.dragged) { if (PTR.box) showBox(e.clientX, e.clientY); else if (PTR.pan && G.mode === 'build') bPan(dx, dy); else orbitDrag(dx, dy); }
+      if (PTR.dragged) { if (PTR.box) showBox(e.clientX, e.clientY); else if (PTR.pan && G.mode === 'build') bPan(dx, dy); else if (PTR.pan && G.map) mapPan(dx, dy); else orbitDrag(dx, dy); }
     } else B.needsHover = true;
+    if (BASES.mode && !PTR.down) { BASES.lastXY = [e.clientX, e.clientY]; if (performance.now() - (BASES.hoverT || 0) > 60) { BASES.hoverT = performance.now(); baseHover(e.clientX, e.clientY); } }
   });
   const lift = e => {
     TOUCH.delete(e.pointerId);
@@ -1183,6 +1238,8 @@ function bindInput() {
     const held = KEYS.has('Mouse0'); clearTimeout(PTR.fireT); KEYS.delete('Mouse0');
     if (PTR.box && PTR.dragged) { box.hidden = true; bBoxSelect(PTR.x0, PTR.y0, e.clientX, e.clientY, PTR.shift); }
     else if (!PTR.dragged && G.mode === 'build') { bHover(); bClick(PTR.btn, PTR.shift); }
+    else if (!PTR.dragged && BASES.mode) baseClick(e.clientX, e.clientY, PTR.btn);
+    else if (!PTR.dragged && G.map && PTR.btn === 0) mapClick(e.clientX, e.clientY);
     else if (!PTR.dragged && !held && G.mode === 'drive' && PTR.btn === 0 && !G.map) TAPS.add('Mouse0');
     PTR.box = false; box.hidden = true;
     DC.dragging = false; DC.lastDrag = performance.now(); B.needsHover = true;
@@ -1241,25 +1298,72 @@ function driveCamera(dt) {
   let gh = cel.height ? cel.R + cel.height(cr.x, cr.y, cr.z) + 1.0 : 0;
   if (cel.sea && focus.distanceTo(cel.center) > cel.R + 0.5) gh = Math.max(gh, cel.R + 0.6);
   if (crl < gh) camera.position.copy(cel.center).addScaledVector(cr, gh);
+  camBlock(cel, focus);
   if (G.shake > 0.01) { const s = G.shake * 0.45; camera.position.x += (Math.random() - 0.5) * s; camera.position.y += (Math.random() - 0.5) * s; camera.position.z += (Math.random() - 0.5) * s; }
   camera.up.copy(up); camera.lookAt(focus);
 }
-const _mf = new V3();
+/* keep the chase camera on the near side of walls, roofs and the ground over tunnels: if something solid lies between
+   the vehicle and the camera, the camera comes in to just short of it */
+const _cbA = new V3(), _cbB = new V3();
+function camBlock(cel, focus) {
+  const dist = camera.position.distanceTo(focus); if (dist < 1 || dist > 140 || !cel.spinQ) return;
+  toSpin(cel, _cbA.subVectors(focus, cel.center), _cbA); toSpin(cel, _cbB.subVectors(camera.position, cel.center), _cbB);
+  const dx = _cbB.x - _cbA.x, dy = _cbB.y - _cbA.y, dz = _cbB.z - _cbA.z;
+  let best = 1;
+  pgQuery(cel, _cbA.clone().lerp(_cbB, 0.5), dist / 2 + 2, pr => {
+    if (!pr.planes || pr.loose) return;
+    let t0 = 0, t1 = 1, inside0 = true;
+    for (const p of pr.planes) {
+      const den = p.nx * dx + p.ny * dy + p.nz * dz, num = p.d - (p.nx * _cbA.x + p.ny * _cbA.y + p.nz * _cbA.z);
+      if (num < 0) inside0 = false;
+      if (Math.abs(den) < 1e-9) { if (num < 0) return; continue; }
+      const t = num / den;
+      if (den > 0) { if (t < t1) t1 = t; } else if (t > t0) t0 = t;
+      if (t0 > t1) return;
+    }
+    if (inside0 || t0 <= 0) return;   // the vehicle itself is in or on it
+    if (t0 < best) best = t0;
+  });
+  if (best < 1) camera.position.lerp(focus, 1 - Math.max(0.05, best - 0.6 / dist));
+}
+const _mf = new V3(), _mfT = new V3(), _mR = new V3(), _mU = new V3();
 function mapBase(cel, b) {
   if (cel.kind === 'star' && !cel.parent) return b ? Math.max(cel === SUN ? 4e6 : 3e6, b.x.distanceTo(cel.center) * 1.6) : cel.sysR || 6e7;
   if (cel.kind === 'star') return cel.R * 9;
   return cel.R * (cel.parent.kind === 'star' ? 6.2 : 7.3);
 }
-function mapCamera() {
-  const b = G.player && !G.player.dead ? G.player : null, cel = b ? dominantCel(b.x) : PLANET;
-  const d = mapBase(cel, b) * G.mapZoom;
-  // zooming out drifts the view from your world to its parent and on to its star
-  const f = _mf.copy(cel.center);
-  for (let c = cel; c.parent; c = c.parent) {
-    const t = smooth(Math.log(c.soi * 1.2), Math.log(c.a * 1.1), Math.log(d));
-    if (t <= 0) break;
-    f.lerp(c.parent.center, t);
+/* what the map is looking at: something you clicked, else the world you are at. Zooming only moves the camera in and out:
+   the view stays on it (it no longer slides over to the Sun) */
+function mapFocusObj() {
+  const f = MAP.focus;
+  if (f && f.body && !f.body.dead) return f;
+  if (f && f.cel) return f;
+  const b = G.player && !G.player.dead ? G.player : null;
+  return { cel: b ? dominantCel(b.x) : PLANET, home: true };
+}
+function mapFocusName(f = mapFocusObj()) { return f.body ? (f.body === G.player ? 'Your vehicle' : f.body.name) : f.cel.name; }
+function mapFocusPos(out) {
+  const f = mapFocusObj(), b = G.player && !G.player.dead ? G.player : null;
+  if (f.body) { out.copy(f.body.x); return Math.max(400, f.body.radius * 30); }
+  out.copy(f.cel.center);
+  return mapBase(f.cel, b && dominantCel(b.x) === f.cel ? b : null);
+}
+function mapSetFocus(obj) {
+  MAP.tr = { t: 0, f0: (MAP.lastF || camera.position).clone(), d0: MAP.lastD || 1e5 };
+  MAP.focus = obj; MAP.pan.set(0, 0, 0); G.mapZoom = 1;
+  renderMapBar();
+}
+function mapCamera(dt = 0.016) {
+  const d1 = mapFocusPos(_mfT) * G.mapZoom;
+  _mfT.add(MAP.pan);
+  const f = _mf.copy(_mfT); let d = d1;
+  // a short glide to a newly picked focus
+  if (MAP.tr) {
+    const tr = MAP.tr; tr.t = Math.min(1, tr.t + dt / 0.7); const e = tr.t * tr.t * (3 - 2 * tr.t);
+    f.copy(tr.f0).lerp(_mfT, e); d = Math.exp(lerp(Math.log(tr.d0), Math.log(d1), e));
+    if (tr.t >= 1) MAP.tr = null;
   }
+  (MAP.lastF || (MAP.lastF = new V3())).copy(f); MAP.lastD = d;
   const cp = Math.cos(G.mapPitch);
   camera.position.copy(f)
     .addScaledVector(SOLAR.e2, Math.sin(G.mapYaw) * cp * d)
@@ -1267,15 +1371,79 @@ function mapCamera() {
     .addScaledVector(SOLAR.e1, Math.cos(G.mapYaw) * cp * d);
   camera.up.copy(SOLAR.n);
   camera.lookAt(f);
-  if (b) { MAP.marker.position.copy(b.x); }
+  const b = G.player && !G.player.dead ? G.player : null;
+  if (b) MAP.marker.position.copy(b.x);
   // zoomed right out, the view reaches across the galaxy
   const far = Math.max(1e9, d * 8);
   if (camera.far !== far) { camera.far = far; camera.updateProjectionMatrix(); }
+}
+/* slide the map sideways (Shift+drag, middle drag, or two fingers) */
+function mapPan(dx, dy) {
+  camera.updateMatrixWorld();
+  _mR.setFromMatrixColumn(camera.matrixWorld, 0); _mU.setFromMatrixColumn(camera.matrixWorld, 1);
+  const k = (MAP.lastD || 1e5) * 2 * Math.tan(camera.fov * Math.PI / 360) / window.innerHeight;
+  MAP.pan.addScaledVector(_mR, -dx * k).addScaledVector(_mU, dy * k);
+  renderMapBar();
+}
+/* what is under a click on the map: a label, a dot, or a world's disc */
+function mapPick(x, y) {
+  let best = null, bd = 1e9;
+  for (const p of MAP.pick || []) {
+    if (!p.obj) continue;
+    let d = Math.hypot(p.x - x, p.y - y);
+    if (p.el && !p.el.hidden) { const r = p.el.getBoundingClientRect(); if (x >= r.left - 3 && x <= r.right + 3 && y >= r.top - 3 && y <= r.bottom + 3) d = Math.min(d, 2); }
+    if (d < 30 && d < bd) { bd = d; best = p; }
+  }
+  if (best) return best;
+  // a world big on screen: anywhere on its disc
+  const h = window.innerHeight, f = h / 2 / Math.tan(camera.fov * Math.PI / 360);
+  let cd = Infinity;
+  for (const c of CELS) {
+    const sp = screenOf(c.center, window.innerWidth, h); if (!sp) continue;
+    const dist = camera.position.distanceTo(c.center), rp = c.R / dist * f;
+    if (rp > 8 && Math.hypot(sp.x - x, sp.y - y) < rp && dist < cd) { cd = dist; best = { obj: { cel: c }, key: c.name }; }
+  }
+  return best;
+}
+/* one click (or tap) focuses on it; a second one straight after makes it the target */
+function mapClick(x, y) {
+  const now = performance.now(), lc = MAP.lastClick;
+  if (lc && now - lc.t < 450 && Math.hypot(lc.x - x, lc.y - y) < 24) { MAP.lastClick = null; setTarget(lc.obj); return; }
+  const hit = mapPick(x, y);
+  MAP.lastClick = hit ? { t: now, x, y, obj: hit.obj } : null;
+  if (hit) mapSetFocus(hit.obj);
+}
+/* the target: what SAS Target mode points at, and what the map and the orbit panel measure to */
+function setTarget(obj) {
+  const b = G.player && !G.player.dead ? G.player : null;
+  if (!obj) { SAS.target = null; if (SAS.mode === 'target') SAS.mode = 'hold'; toast('Target cleared', 1200); }
+  else if (obj.body) {
+    if (b && machineOf(b).includes(obj.body)) { toast("That's your own vehicle: pick something else to target", 2000); return; }
+    SAS.target = { body: obj.body, name: obj.body.name }; toast(`Target: ${obj.body.name}`, 1400);
+  } else { SAS.target = { cel: obj.cel, name: celCall(obj.cel) }; toast(`Target: ${celTitle(obj.cel)}`, 1400); }
+  G.predT = 0;
+  SND.play('beep'); renderSAS(); renderMapBar();
+}
+/* the strip at the top of the map: what it is centred on, the target, and how to move about */
+function renderMapBar() {
+  const el = $('mapBar'); if (!el) return;
+  el.hidden = !G.map; if (!G.map) return;
+  const f = mapFocusObj(), b = G.player && !G.player.dead ? G.player : null;
+  const t = SAS.target && sasTargetPos() ? SAS.target : null;
+  const homeCel = b ? dominantCel(b.x) : PLANET;
+  const panned = MAP.pan.lengthSq() > 1;
+  el.innerHTML = `<div class="mbrow"><span class="lab">Focus</span><b>${esc(mapFocusName(f))}</b>`
+    + (b && f.body !== b ? `<button type="button" class="btn" data-mb="me">Your vehicle</button>` : '')
+    + (!f.home || panned ? `<button type="button" class="btn" data-mb="home">${esc(homeCel.name)}</button>` : '')
+    + `</div><div class="mbrow"><span class="lab">Target</span><b class="tg">${t ? esc(t.body ? t.name : celTitle(t.cel)) : 'none'}</b>`
+    + (t ? `<button type="button" class="btn" data-mb="clear">Clear</button>` : `<button type="button" class="btn" data-mb="pick">Pick</button>`)
+    + `</div><div class="mbhint">${COARSE ? 'Tap to focus · double-tap to target · two fingers to move' : 'Click to focus · double-click to target · Shift+drag to move'}</div>`;
 }
 function nearFar() { if (camera.far !== 1e9) { camera.far = 1e9; camera.updateProjectionMatrix(); } }
 
 /* ---------------- HUD ---------------- */
 /* the key list shows only what this vehicle can use, with your own key settings */
+function toggleKeys() { G.keysMin = !G.keysMin; $('keys').classList.toggle('min', G.keysMin); }
 function renderKeys() {
   const kinds = new Set(), custom = [], seen = new Set();
   if (G.player && !G.player.dead) for (const o of machineOf(G.player)) for (const p of o.parts) {
@@ -1315,33 +1483,43 @@ function renderKeys() {
   if (has('chute')) rows.push([K1('chute'), 'Parachute open, cut']);
   if (has('gear')) rows.push([K1('gear'), 'Landing gear up, down']);
   rows.push(...custom.slice(0, 8));
-  rows.push([K1('flip'), 'Flip upright'], [K1('respawn'), 'Respawn'], [K2('camera', 'map'), 'Camera mode, map'], [K2('warp_dn', 'warp_up'), 'Time warp, up to ×10,000 (×1,000,000 between stars)'], [K1('keys'), 'Hide this list'], [K1('build'), 'Back to build (clears this vehicle)']);
-  $('keys').innerHTML = rows.map(r => `<span>${r[0]}</span><span>${r[1]}</span>`).join('');
+  rows.push([K1('flip'), 'Flip upright'], [K1('respawn'), 'Respawn'], [K2('camera', 'map'), 'Camera mode, map'], [K2('warp_dn', 'warp_up'), 'Time warp'], [K1('keys'), 'Hide this list'], [K1('build'), 'Back to build (clears this vehicle)']);
+  // folded away (after the first drive) it is one line saying how to bring it back
+  $('keys').innerHTML = rows.map(r => `<span>${r[0]}</span><span>${r[1]}</span>`).join('') + `<span class="kmin">${K1('keys')}</span><span class="kmin">Show the keys</span>`;
 }
 /* SAS buttons under the gauges */
 const SAS_SHORT = { hold: 'Hold', pro: 'Pro', retro: 'Retro', norm: 'Norm', anti: 'Anti', rout: 'Rad +', rin: 'Rad −', target: 'Target', level: 'Level' };
+const _tgv = new V3(), _tgv2 = new V3(), _rk1 = new V3(), _rk2 = new V3();
 function renderSAS() {
   const el = $('sasRow'), b = G.player;
   const can = G.mode === 'drive' && b && !b.dead && machineOf(b).some(sasCapable);
   el.hidden = !can; if (!can) return;
   const tn = SAS.mode === 'target' && SAS.target ? ` · ${esc(SAS.target.name)}` : '';
   el.innerHTML = `<button type="button" class="sasbtn main${SAS.on ? ' on' : ''}" data-sas="toggle" title="SAS on, off (${esc(keyName(actKeys('sas')[0]))})">SAS ${SAS.on ? 'on' : 'off'}${SAS.on ? tn : ''}</button>`
-    + SAS_MODES.map(([m, nm]) => `<button type="button" class="sasbtn${SAS.on && SAS.mode === m ? ' on' : ''}" data-sas="${m}" title="${nm}">${SAS_SHORT[m]}</button>`).join('');
+    + SAS_MODES.filter(([m]) => SAS.space || !ORBIT_ONLY.has(m) || (SAS.on && SAS.mode === m))
+      .map(([m, nm]) => `<button type="button" class="sasbtn${SAS.on && SAS.mode === m ? ' on' : ''}" data-sas="${m}" title="${nm}">${SAS_SHORT[m]}</button>`).join('');
 }
-function openTargetPicker() {
+/* normal, anti-normal and radial only mean something in orbit: down in the air the row is just hold, pro, retro, target and level */
+const ORBIT_ONLY = new Set(['norm', 'anti', 'rout', 'rin']);
+function openTargetPicker(forSAS) {
   const b = G.player; if (!b || b.dead) return;
   const mine = new Set(machineOf(b));
   const veh = vehicleList().filter(v => !mine.has(v));
   const d = p => fmtDist(Math.max(0, b.x.distanceTo(p)));
   const rows = [...veh.map((v, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(v.name)}</span><span class="meta">${d(v.x)} away</span></div><button type="button" class="btn primary" data-v="${i}">Target</button></div>`),
-    ...CELS.map((c, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(celTitle(c))}</span><span class="meta">${d(c.center)} to its centre</span></div><button type="button" class="btn" data-c="${i}">Target</button></div>`)].join('');
-  openModal(`<h2>Pick a target</h2><p>SAS Target mode points the craft at it. Its rockets' thrust points that way, or the nose if it has none.</p><div class="mlist">${rows}</div><div class="mfoot"><button type="button" class="btn" data-close="1">Close</button></div>`);
+    // worlds nearest first
+    ...CELS.map((c, i) => [c, i]).sort((A, B) => b.x.distanceTo(A[0].center) - b.x.distanceTo(B[0].center))
+      .map(([c, i]) => `<div class="mrow"><div class="grow"><span class="nm">${esc(celTitle(c))}</span><span class="meta">${d(c.center)} to its centre</span></div><button type="button" class="btn" data-c="${i}">Target</button></div>`)].join('');
+  const cur = SAS.target && sasTargetPos() ? `<div class="mrow"><div class="grow"><span class="nm">Now: ${esc(SAS.target.body ? SAS.target.name : celTitle(SAS.target.cel))}</span><span class="meta">the pink ring on the map</span></div><button type="button" class="btn danger" data-clear="1">Clear target</button></div>` : '';
+  openModal(`<h2>Pick a target</h2><p>The orbit panel and the map measure to your target, and SAS Target mode points the craft at it. On the map you can also double-${COARSE ? 'tap' : 'click'} something to target it.</p>${cur}<div class="mlist">${rows}</div><div class="mfoot"><button type="button" class="btn" data-close="1">Close</button></div>`);
   $('modal').onclick = e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.close) return closeModal();
-    if (t.dataset.v !== undefined) { const v = veh[+t.dataset.v]; SAS.target = { body: v, name: v.name }; }
-    if (t.dataset.c !== undefined) { const c = CELS[+t.dataset.c]; SAS.target = { cel: c, name: celCall(c) }; }
-    closeModal(); if (SAS.target) setSASMode('target');
+    if (t.dataset.clear) { closeModal(); setTarget(null); return; }
+    if (t.dataset.v !== undefined) setTarget({ body: veh[+t.dataset.v] });
+    if (t.dataset.c !== undefined) setTarget({ cel: CELS[+t.dataset.c] });
+    closeModal();
+    if (forSAS && sasTargetPos()) setSASMode('target');
   };
 }
 /* spotlights: two real lights follow the player's lamps when it gets dark */
@@ -1417,14 +1595,38 @@ function updateHUD() {
   if (mach.some(o => o.dock || o.carrying)) chips.push(`<span class="chip on">Linked · ${esc(keyName(actKeys('undock')[0]))} undocks, ${esc(keyName(actKeys('grab')[0]))} lets go</span>`);
   if (mach.some(o => o.wheels.some(w => w.gear))) chips.push(`<span class="chip">${mach.some(o => o.gearUp) ? 'Gear up' : 'Gear down'}</span>`);
   chips.push(`<span class="chip">${G.map ? 'Map view' : G.chase ? 'Chase cam' : 'Free cam'}</span>`);
+  // on rail bogies: say so, and how fast the bends just ahead can be taken
+  const bogs = mach.flatMap(o => o.bogies || []), onb = bogs.find(g => g.on);
+  if (onb) {
+    const P = onb.line.pts, dir = onb.tdir; let kmax = 0;
+    for (let k = 0, i = onb.ri; k < 30; k++, i += dir) {
+      if (i < 1 || i >= P.length - 1) break;
+      const a = _rk1.subVectors(P[i].d, P[i - 1].d), c = _rk2.subVectors(P[i + 1].d, P[i].d);
+      kmax = Math.max(kmax, Math.acos(clamp(a.dot(c) / (a.length() * c.length() || 1), -1, 1)) / (a.length() * PLANET.R || 1));
+    }
+    const lim = kmax > 1e-5 ? Math.sqrt(RAIL_LAT * 0.85 / kmax) : 99;
+    chips.push(lim < 40 ? `<span class="chip ${spd > lim ? 'warn' : 'on'}">Bend ahead · ${Math.round(lim * 3.6)} km/h</span>` : '<span class="chip on">On rails</span>');
+  } else if (bogs.length) chips.push('<span class="chip">Bogies off the track</span>');
   $('hChips').innerHTML = chips.join('');
+  { const sp = inSpace(b); if (SAS.space !== sp) { SAS.space = sp; renderSAS(); } }
+  // Base mode: offered once you have landed and stopped with crates aboard (or beside a base of yours)
+  if (BASES.mode && (!canBaseMode(b) || BASES.mode.cel !== b.groundCel)) exitBaseMode();
+  const bm = !BASES.mode && canBaseMode(b), br = $('baseRow');
+  if (br.hidden === bm) br.hidden = !bm;
+  if (bm) { const n = cratesAboard(b), t = n ? `Base mode · ${n} crates aboard` : 'Base mode · take pieces back'; if ($('btnBase').textContent !== t) $('btnBase').textContent = t; }
+  document.body.classList.toggle('basemode', !!BASES.mode);
   const ob = $('orbitBox');
   const onTower = b.anchored || mach.some(o => o.onTower);
-  if (!onTower && (alt > 1500 || spd > 120 || G.map || !b.airCel)) {
+  // the orbit panel: up high, going fast, in the map, or off the ground on a world with no air (not while you sit on it)
+  const landed = b.groundCel && spd < 30;
+  if (!onTower && (alt > 1500 || spd > 120 || G.map || (!b.airCel && !landed))) {
     const oi = orbitInfo(b, cel);
     const nm = celCall(cel);
-    let html = `<div class="ttl">${oi.escape ? 'Escaping ' + nm : (oi.pe > 0 ? 'Orbiting ' + nm : 'Suborbital · ' + nm)}</div>`;
-    if (oi.escape) html += `<div class="row"><span>Eccentricity</span><b>${oi.e.toFixed(2)}</b></div>`;
+    // sitting on the ground (looking at the map): no orbit to speak of, just where you are and what is round you
+    const sitting = landed && alt < 1500;
+    let html = `<div class="ttl">${sitting ? 'Landed · ' + nm : oi.escape ? 'Escaping ' + nm : (oi.pe > 0 ? 'Orbiting ' + nm : 'Suborbital · ' + nm)}</div>`;
+    if (sitting) { }
+    else if (oi.escape) html += `<div class="row"><span>Eccentricity</span><b>${oi.e.toFixed(2)}</b></div>`;
     else {
       html += `<div class="row"><span>Apoapsis</span><b>${fmtDist(oi.ap)}</b></div>`;
       html += `<div class="row"><span>Periapsis</span><b>${oi.pe < 0 ? (cel.kind === 'gas' ? 'in the clouds' : 'below surface') : fmtDist(oi.pe)}</b></div>`;
@@ -1438,8 +1640,17 @@ function updateHUD() {
     let nb = null, nd = Infinity;
     const home = rootStar(cel);
     for (const c of ORBITERS) { if (c === cel || c.kind === 'star' || rootStar(c) !== home) continue; const d = b.x.distanceTo(c.center) - c.R; if (d < nd) { nd = d; nb = c; } }
-    if (nb) html += `<div class="row"><span>Nearest · ${nb.name}</span><b>${fmtDist(nd)}</b></div>`;
     const pr = MAP.pred;
+    // the target: how far, how fast you are closing, and the closest your path comes
+    const tp = sasTargetPos();
+    if (nb && !(tp && SAS.target && SAS.target.cel === nb)) html += `<div class="row"><span>Nearest · ${nb.name}</span><b>${fmtDist(Math.max(0, nd))}</b></div>`;
+    if (tp && SAS.target) {
+      const T = SAS.target, tv = T.body ? T.body.v : T.cel.vel, dist = b.x.distanceTo(tp) - (T.cel ? T.cel.R : 0);
+      const rel = _tgv.subVectors(b.v, tv), close = -rel.dot(_tgv2.subVectors(tp, b.x).normalize());
+      html += `<div class="row tg"><span>Target · ${esc(T.body ? T.name : T.cel.name)}</span><b>${fmtDist(Math.max(0, dist))}</b></div>`;
+      html += `<div class="row tg"><span>${close >= 0 ? 'Closing at' : 'Moving away at'}</span><b>${Math.abs(close) < 1000 ? Math.abs(close).toFixed(1) + ' m/s' : (Math.abs(close) / 1000).toFixed(2) + ' km/s'}</b></div>`;
+      if (pr && pr.tgt && pr.tgt.min < Infinity) html += `<div class="row tg"><span>Closest approach</span><b>${pr.tgt.min < 0 ? 'impact' : fmtDist(pr.tgt.min)} · ${fmtTime(pr.tgt.t)}</b></div>`;
+    }
     if (pr && pr.enc.length) { const e = pr.enc[0]; html += `<div class="row hi"><span>${e.cel.name} encounter</span><b>${fmtTime(e.t)}</b></div>`; }
     if (pr && pr.impact && pr.impact.cel !== cel && !(pr.enc[0] && pr.enc[0].cel === pr.impact.cel)) html += `<div class="row warn"><span>${pr.impact.cel.kind === 'star' ? 'Into ' + celCall(pr.impact.cel) : 'Impact · ' + pr.impact.cel.name}</span><b>${fmtTime(pr.impact.t)}</b></div>`;
     ob.innerHTML = html; ob.hidden = false;
@@ -1488,7 +1699,7 @@ function updateTint() {
 }
 
 /* ---------------- vehicles in the world ---------------- */
-function vehicleList() { return W.bodies.filter(b => !b.dead && !b.debris && b.seat && !b.seat.broken); }
+function vehicleList() { return W.bodies.filter(b => !b.dead && !b.debris && !b.diorama && b.seat && !b.seat.broken); }
 function vehicleWhere(b) {
   const mach = machineOf(b), rider = mach.find(o => o.dock && (o.dock.kind === 'grapple' || o.dock.kind === 'dock'));
   if (rider) return rider.dock.kind === 'grapple' ? 'Hanging from a skyhook' : `Docked to ${rider.dock.carrier.name}`;
@@ -1509,7 +1720,7 @@ function openVehicles() {
   const list = vehicleList();
   const pc = b => machineOf(b).reduce((s, o) => s + o.parts.length, 0);
   const rows = list.length ? list.map((b, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(b.name)}${b === G.player ? ' · driving' : ''}</span><span class="meta">${esc(vehicleWhere(b))} · ${pc(b)} parts</span></div>${b === G.player ? '' : `<button type="button" class="btn primary" data-board="${i}">Drive</button>`}<button type="button" class="btn danger" data-rm="${i}">Remove</button></div>`).join('')
-    : `<p>No vehicles out in the world yet. Build one and press ${esc(keyName(actKeys('build')[0]))} to drive it. Park &amp; build leaves it out in the world for later.</p>`;
+    : `<p>No vehicles out in the world yet. Build one and ${COARSE ? 'tap Drive it' : `press ${esc(keyName(actKeys('build')[0]))}`} to drive it. Park &amp; build leaves it out in the world for later.</p>`;
   openModal(`<h2>Vehicles in the world</h2>
     <p>Everything you leave behind stays where it is, even after you close the page. Pick one to take the controls again.</p>
     <div class="mlist">${rows}</div>
@@ -1728,7 +1939,7 @@ function uiStats() {
   if (!s.hasSeat && s.count) w.push('No seat: this vehicle won\'t respond to controls.');
   if (s.loose) w.push(`${s.loose} part${s.loose > 1 ? 's are' : ' is'} not attached to the ${s.hasSeat ? 'seat' : 'main body'} and will fall off.`);
   if (s.rocket && !s.fuel) w.push('Rocket engines need fuel tanks.');
-  if (B.design.parts.some(p => PD[p.t].kind === 'wheel' && Math.abs(p.m[4]) > 0.5)) w.push('A wheel is mounted flat and won\'t roll. Put wheels on side faces.');
+  if (B.design.parts.some(p => PD[p.t].kind === 'wheel' && !PD[p.t].wheel.bogie && Math.abs(p.m[4]) > 0.5)) w.push('A wheel is mounted flat and won\'t roll. Put wheels on side faces.');
   if (s.rocket && s.twr > 0 && s.twr < 1) w.push('Rockets are too weak to lift off the planet.');
   const JN = { piston: 'piston', hinge: 'hinge', rotor: 'rotor', susp: 'suspension' };
   for (const [, why, type] of B.locked || []) {
@@ -1795,7 +2006,7 @@ function renderCtx() {
       <div class="actgrid"><button type="button" class="btn" data-a="rotclip">Turn</button><button type="button" class="btn" data-a="cancel">${B.moving ? 'Put back' : 'Stop'}</button></div>`;
   } else if (T === 'build') {
     const d = PD[B.sel];
-    h = `<span class="lab">Build · ${esc(d.name)}</span><p class="hintp">Click a face to place it, right-click a part to delete it. ${kbd(actKeys('b_rot')[0])} rotates${d.attach === 'all' ? `, ${kbd(actKeys('b_tilt')[0])} tilts` : ''}. With Mirror on, a twin goes on the other side.</p><span class="lab">Colour for new parts</span>${swatchHTML()}`;
+    h = `<span class="lab">Build · ${esc(d.name)}</span><p class="hintp">${COARSE ? 'Tap a face to place it; to take parts off, pick them with Select and press Delete.' : 'Click a face to place it, right-click a part to delete it.'} ${kbd(actKeys('b_rot')[0])} rotates${d.attach === 'all' ? `, ${kbd(actKeys('b_tilt')[0])} tilts` : ''}. With Mirror on, a twin goes on the other side.</p><span class="lab">Colour for new parts</span>${swatchHTML()}`;
   } else if (T === 'paint') {
     h = `<span class="lab">Paint</span><p class="hintp">Pick a colour, then click parts. With Mirror on, both sides change.</p>${swatchHTML()}`;
   } else if (!idx.length) {
@@ -1871,18 +2082,25 @@ function openModal(html, wide) {
 function closeModal() { CAPTURE = null; $('modalWrap').hidden = true; $('view').focus(); }
 function savedList() { const l = LS.get('scrapline.saves', []); return Array.isArray(l) ? l : []; }
 function openLibrary(spawnMode) {
+  // catch up with the cloud when the library opens (then show it again with what came down)
+  if (!spawnMode && CLOUD.api && !CLOUD.busy && Date.now() - Math.max(CLOUD.last, CLOUD.tried || 0) > 15000) {
+    CLOUD.tried = Date.now();
+    cloudSync().then(ok => { if (ok && !$('modalWrap').hidden && document.querySelector('#modal .cloudslot')) openLibrary(false); });
+  }
   const ex = EXAMPLES.map((e, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(e.d.name)}</span><span class="meta">${e.d.parts.length} parts · ${esc(keyText(e.blurb))}</span></div><button type="button" class="btn${spawnMode ? '' : ' primary'}" data-ex="${i}">${spawnMode ? 'Spawn' : 'Load'}</button></div>`).join('');
   const sv = savedList();
   const svh = sv.length ? sv.map((d, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(d.name)}</span><span class="meta">${d.parts.length} parts</span></div><button type="button" class="btn${spawnMode ? '' : ' primary'}" data-sv="${i}">${spawnMode ? 'Spawn' : 'Load'}</button>${spawnMode ? '' : `<button type="button" class="btn danger" data-del="${i}">Delete</button>`}</div>`).join('')
     : '<p>No saved vehicles yet. Use Save in the builder to keep one here.</p>';
   openModal(`<h2>${spawnMode ? 'Spawn a vehicle to crash into' : 'Vehicle library'}</h2>
     ${spawnMode ? '<p>It appears in front of you with its brakes on.</p>' : ''}
+    ${spawnMode ? '' : '<div class="cloudslot">' + cloudLine() + '</div>'}
     <span class="lab">Your vehicles</span><div class="mlist">${svh}</div>
     <span class="lab">Examples</span><div class="mlist">${ex}</div>
     <div class="mfoot">${spawnMode ? `<button type="button" class="btn danger" data-clear="1">Remove spawned vehicles</button><button type="button" class="btn" data-current="1">Spawn ${esc(B.design.name)}</button>` : '<button type="button" class="btn" data-export="1">Export</button><button type="button" class="btn" data-import="1">Import</button><span class="grow"></span>'}<button type="button" class="btn" data-close="1">Close</button></div>`);
   $('modal').onclick = e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.close) return closeModal();
+    if (t.dataset.cloud) return cloudAction(t.dataset.cloud);
     if (t.dataset.export) return openExport();
     if (t.dataset.import) return openImport();
     if (t.dataset.clear) { const l = W.bodies.filter(b => !b.player && (b.spawned || b.debris) && !b.parts.some(p => p.uid === G.seatUid)); for (const b of l) removeBody(b); closeModal(); toast(`Removed ${l.length} spawned vehicle${l.length === 1 ? '' : 's'} and wreckage`); return; }
@@ -1890,11 +2108,16 @@ function openLibrary(spawnMode) {
     if (t.dataset.ex !== undefined) d = EXAMPLES[+t.dataset.ex].d;
     if (t.dataset.sv !== undefined) d = sanitizeDesign(sv[+t.dataset.sv]);
     if (t.dataset.current) d = B.design;
-    if (t.dataset.del !== undefined) { const l = savedList(); const nm = l[+t.dataset.del].name; l.splice(+t.dataset.del, 1); LS.set('scrapline.saves', l); toast(`Deleted ${nm}`); openLibrary(spawnMode); return; }
+    if (t.dataset.del !== undefined) { const l = savedList(); const nm = l[+t.dataset.del].name; noteDeleted(l[+t.dataset.del]); l.splice(+t.dataset.del, 1); LS.set('scrapline.saves', l); toast(`Deleted ${nm}`); openLibrary(spawnMode); return; }
     if (!d) return;
     closeModal();
     if (spawnMode) spawnOther(d);
-    else { const prev = snap(); bLoad(d); B.undo.push(prev); syncUndo(); toast(`Loaded ${d.name}. Undo brings back what you had`); }
+    else {
+      const prev = snap(); bLoad(d); B.undo.push(prev); syncUndo();
+      // from the title or the paused menu, loading a vehicle means you want it now: into the builder with it
+      if (TITLE.on) leaveTitle(); else if (TITLE.pause) { closeMenu(); if (G.mode !== 'build') setMode('build'); }
+      toast(`Loaded ${d.name}. Undo brings back what you had`);
+    }
   };
 }
 /* ---------- moving saved vehicles between browsers (or from one copy of the game to another) ----------
@@ -1964,9 +2187,10 @@ function openImport() {
       // the same vehicle already here (under any name) is not added again
       if (all.some(h => JSON.stringify((sanitizeDesign(h) || h).parts) === js)) { same++; continue; }
       let nm = d.name, k = 2; while (all.some(h => h.name === nm)) nm = `${d.name.slice(0, 36)} ${k++}`;
-      d.name = nm; fresh.push(d);
+      d.name = nm; noteSaved(d); fresh.push(d);
     }
     if (fresh.length && !LS.set('scrapline.saves', [...fresh, ...have])) return toast('This browser blocked saving');
+    if (fresh.length) cloudChanged();
     openLibrary(false);
     toast(fresh.length ? `Imported ${fresh.length} vehicle${fresh.length === 1 ? '' : 's'}${same ? ` (${same} you already had)` : ''}` : 'You already have all of those');
   };
@@ -1979,7 +2203,11 @@ function openImport() {
   };
 }
 function openSave() {
-  openModal(`<h2>Save vehicle</h2><p>Saved vehicles live in this browser. Load them from the library or spawn them in drive mode; Export in the library moves them to another browser.</p>
+  const where = CLOUD.kind === 'claude' ? 'Saved vehicles go to your Claude account, so they are on any device you sign in on.'
+    : CLOUD.kind === 'code' ? 'Saved vehicles go to the cloud under your save code, so they are on any device you type it on.'
+    : CLOUD.siteReady ? 'Saved vehicles stay on this device. To have them on your other devices too, turn on cloud saves in the library.'
+    : 'Saved vehicles stay on this device. Export in the library moves them to another.';
+  openModal(`<h2>Save vehicle</h2><p>${where} Load them from the library, or spawn them while driving.</p>
     <input type="text" id="saveName" maxlength="40" value="${esc(B.design.name)}" aria-label="Vehicle name">
     <div class="mfoot"><button type="button" class="btn" data-close="1">Cancel</button><button type="button" class="btn primary" data-save="1">Save</button></div>`);
   const doSave = () => {
@@ -1987,8 +2215,10 @@ function openSave() {
     B.design.name = nm; $('designName').value = nm;
     const l = savedList(); const i = l.findIndex(d => d.name === nm);
     const copy = cloneDesign(B.design);
+    if (i >= 0) copy.id = l[i].id;
+    noteSaved(copy);
     if (i >= 0) l[i] = copy; else l.unshift(copy);
-    if (LS.set('scrapline.saves', l)) toast(i >= 0 ? `Updated ${nm}` : `Saved ${nm}`); else toast('This browser blocked saving');
+    if (LS.set('scrapline.saves', l)) { toast(i >= 0 ? `Updated ${nm}` : `Saved ${nm}`); cloudChanged(); } else toast('This browser blocked saving');
     saveCurrent(); closeModal();
   };
   $('modal').onclick = e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.close) closeModal(); if (t.dataset.save) doSave(); };
@@ -2000,10 +2230,12 @@ function openNew() {
     <div class="mfoot"><button type="button" class="btn" data-close="1">Keep building</button><button type="button" class="btn primary" data-new="1">Start new</button></div>`);
   $('modal').onclick = e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.close) closeModal(); if (t.dataset.new) { bNew(); closeModal(); } };
 }
-function openHelp() {
+function openHelp(tab) {
   const kb = (a, b) => `<span>${a}</span><span>${b}</span>`, K = id => actKbd(id), K2 = (x, y) => kbd(actKeys(x)[0] || '') + kbd(actKeys(y)[0] || '');
-  openModal(`<h2>How to play</h2>
-  <div class="cols">
+  const click = COARSE ? 'tap' : 'click', Click = COARSE ? 'Tap' : 'Click';
+  const TABS = [['keys', 'Keys'], ['build', 'Building'], ['terra', 'Terra'], ['space', 'Space'], ['bases', 'Bases'], ['saves', 'Saving']];
+  const P = {
+    keys: `<div class="cols">
     <div><span class="lab">Build</span><div class="ctlgrid">
       ${kb(K('b_build'), 'Build: click a face to place the part, right-click deletes')}
       ${kb(K('b_select'), 'Select: click, Shift-click, drag a box, double-click a branch')}
@@ -2016,7 +2248,7 @@ function openHelp() {
       ${kb(K('b_forces') + K('b_air') + K('b_keys'), 'Forces, air drag and part keys views')}
       ${kb('<kbd>Drag</kbd> <kbd>Right-drag</kbd>', 'Turn the camera')}${kb('<kbd>Shift</kbd>+<kbd>Drag</kbd>', 'Slide the view (two fingers on a touchscreen)')}
       ${kb('<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <kbd>Q</kbd><kbd>E</kbd>', 'Move and turn the camera')}${kb('<kbd>Scroll</kbd>', 'Zoom')}${kb(K('b_focus'), 'Refocus')}
-      ${kb(K('build'), 'Drive it')}
+      ${kb(K('build'), 'Drive it')}${kb('<kbd>Esc</kbd>', 'Menu (or the Menu button, top left)')}
     </div></div>
     <div><span class="lab">Drive</span><div class="ctlgrid">
       ${kb(K('fwd'), 'Drive forward, plane and boat thrust')}${kb(K('back'), 'Brake, keep holding to reverse')}
@@ -2025,56 +2257,74 @@ function openHelp() {
       ${kb(K('sas'), 'SAS on, off; the buttons under the gauges point it')}${kb(K('rcs'), 'RCS translate: the steering keys slide the craft')}
       ${kb(K2('hinge_a', 'hinge_b'), 'Swing hinges')}${kb(K2('rotor_l', 'rotor_r'), 'Turn rotors')}${kb(K2('piston_out', 'piston_in'), 'Extend, retract pistons')}
       ${kb(K2('winch_in', 'winch_out'), 'Winch in, out')}${kb(K('grab'), 'Claws and hooks grab, let go')}${kb(K('chute'), 'Parachutes open, cut')}${kb(K('gear'), 'Landing gear up, down')}
-      ${kb(K('undock'), 'Undock, let go of a skyhook, ground anchor')}${kb(K('fire') , 'Fire weapons (a click on the view works too)')}
+      ${kb(K('undock'), 'Undock, let go of a skyhook, ground anchor')}${kb(K('fire'), 'Fire weapons')}
       ${kb(K('boost'), 'Afterburners')}${kb(K2('fwd', 'descend'), 'Helicopter rotors climb, sink; let go to hover')}${kb(K('horn'), 'Horn')}
       ${kb(K('detach'), 'Detachers let go')}${kb(K('spin'), 'Spinners on, off')}${kb(K('lights'), 'Light bars on, off')}
       ${kb(K('flip'), 'Flip upright')}${kb(K('respawn'), 'Respawn')}${kb(K('keys'), 'Show or hide the key list')}
       ${kb(K('camera'), 'Chase or free camera')}${kb(K('map'), 'Map and orbit line')}${kb(K2('map_out', 'map_in'), 'Zoom the map')}
-      ${kb(K2('warp_dn', 'warp_up'), 'Time warp: ×5 near worlds, ×100 thrusting, ×10,000 coasting, ×1,000,000 between the stars')}${kb(K('build'), 'Back to the builder')}
+      ${kb(K2('warp_dn', 'warp_up'), 'Time warp slower, faster')}${kb(K('build'), 'Back to the builder')}
     </div></div>
   </div>
-  <div class="mfoot" style="justify-content:flex-start"><button type="button" class="btn" data-keys="1">Change keys</button></div>
-  <span class="lab">Building like Trailmakers</span>
-  <p>Pick a part on the left and click a face to stick it on. The tool strip next to the right panel switches tools and building views. Select grabs groups of parts: drag a box around them, Shift-click to add, or double-click a part to take it with everything built onto it. Then move it, turn it, copy it, mirror it to the other side, paint it or delete it. Undo and redo go back and forth through every change.</p>
+  <div class="mfoot" style="justify-content:flex-start"><button type="button" class="btn" data-keys="1">Change keys</button></div>`,
+    build: `<p>Pick a part on the left and ${click} a face of your vehicle to stick it on. The tool strip next to the right panel switches tools and building views. Select grabs groups of parts: drag a box around them, Shift-click to add, or double-click a part to take it with everything built onto it. Then move it, turn it, copy it, mirror it to the other side, paint it or delete it. Undo and redo go back and forth through every change.</p>
   <p>Configure is where each part gets its own keys and settings, like in Trailmakers: wheel power, top speed and steering, engine power, flap swing, hinge angle limits and speed, piston stroke, which key fires each rocket or decoupler, and more. A grey key follows your Controls settings; set one of its own and it turns orange. The Keys view labels every part with the keys it answers to.</p>
   <p>Forces shows the centre of mass (orange), centre of thrust with its push (red), centre of lift (blue) and of buoyancy (teal), and warns when they would make the craft turn or flip. Air drag paints every face the wind hits head-on red and tells you the drag at 100 km/h.</p>
-  <p>Logic blocks press keys for you. A Sensor watches height, speed, climb, tilt, distance ahead or fuel and presses a key while the reading is past your value. A Timer waits and then presses a key for a while, a Logic Gate combines two keys, and a Toggle Switch latches on and off. They can press real keys or channels (Ch 1 to Ch 8) that only parts and other logic blocks hear: set a parachute to Ch 1 and a sensor to press Ch 1 when below 300 m, and it opens by itself.</p>
-  <span class="lab">All over Terra</span>
-  <p>Highways run out from the launch pad to the city of Grand Metro, three towns, villages and farms all round the planet, over long bridges and through tunnels; two towns sit on islands of their own. Three railway lines link eight stations, and a train runs on each by itself, stopping at every station. Drive up a station's ramp onto the platform and onto a flat car, or pick a ride under Spawn at, Railways: whatever stands on a train is carried along. Under Landmarks, Summit Station sits on the highest peak and the Deep Sea Base on the deepest sea floor. The wider world is built as you come near it, so far-off places appear as you travel.</p>
-  <span class="lab">Places</span>
-  <p>Roads run from the launch pad to two towns, an airport, a race and stunt park and a harbor, with tunnels through the hills. Pick a place under Spawn at. The race track times your laps: drive through the start line, then every orange gate. The stunt park has jumps, a half-pipe, a quarter pipe and a loop: line up on its blue run-up and go flat out. Buildings are solid, but cones, barrels and crates go flying, and crates break. The Moon has a base on the side that faces Terra.</p>
-  <span class="lab">New blocks</span>
-  <p>Shapes has wedges, corners, cones, balls, panels, pipe elbows and glass windows. Air has a Thruster that works in water too, a Small Jet, an Afterburner Jet (${K('boost')}), a Helicopter Rotor that holds its height and stays level by itself, Balloons, a Delta Wing, Wing Tips and a Big Flap. Gadgets has a Magnet (${K('grab')}), a Horn (${K('horn')}) and a bouncy Bumper; Moving has a Servo that turns to an angle and springs back; Land has Racing Wheels. Weapons has a Cannon, a Machine Gun, a homing Missile Launcher, a Bomb Rack and Armor Plate: they fire from their top face with ${K('fire')} or a click, and their shots fly through your own vehicle. The Tank, Racer and Chopper in the library show them off.</p>
-  <p>Version 13 adds Tracks that turn a vehicle on the spot, Tiny, Offroad and Giant Wheels, Hover Pads that float over land and water, an Outboard Motor that steers, a Big Boat Propeller, a Big Helicopter Rotor and a Plasma Thruster that works even in space. Moving has a Detacher (${K('detach')}), a Ball Joint that swivels every way, a Coupler that hitches two vehicles together (${K('undock')} lets go), a Drill (${K('fire')}), a Big Hinge, Long and Small Pistons, a Big Rotor and a Spinner (${K('spin')}). Gadgets has a Big Grabber. Decor has a Number Plate and a Sign with your own words (set them with Configure), a Flag, a Coloured Light in its paint colour and a flashing Light Bar (${K('lights')}). Control has a Racing Seat, a Saddle and a Cabin. Try the Tank, Hovercraft, Truck and Digger.</p>
-  <p>Version 15 adds the Star Drive (Space): a slow, frugal engine for crossing between the stars. The Starfarer in the library carries one on top of a big booster.</p>
-  <span class="lab">Other stars</span>
-  <p>Four more stars lie far beyond the Sun, each with worlds to land on. Ruby is a dim red dwarf; its world Iris always shows it the same face, scorched in the middle of the day side, frozen on the night side, with a ring of purple life in between. Duet is two suns circling each other, so the desert world Mirage gets two shadows and two sunsets; Pebble is its moon. Sapphire is a blazing blue-white giant with Lagoon, a world of islands and palms, and Crown, a ringed giant with the moon Spindle. Maw is a black hole: its glowing disk is the only light on dark Gloom and its fields of crystal. Get too close to Maw and it pulls you apart.</p>
-  <p>To get there, break free of the Sun (about 750 m/s more than leaving Terra) and coast out past the edge of its system. Out between the stars time warp goes all the way to ×1,000,000, and it drops back by itself at the edge of the next system. Every new world is also under Spawn at, and Deep space starts you on the way to Ruby.</p>
-  <p>Graphics: Balanced and Sharp have a painted sky with sunsets, waves and shallows on the sea, trees and bushes, finer ground detail and sky reflections on vehicles and windows; Sharp reaches furthest and adds tree shadows. Drive into a tree fast and it falls over. Fast keeps things light for Chromebooks.</p>
-  <span class="lab">SAS</span>
-  <p>${K('sas')} turns SAS on. It uses gyroscopes, RCS blocks and control flaps to hold the craft where you leave it. The buttons under the gauges point it instead: prograde (where you're going), retrograde (for braking burns), normal and anti-normal (to tilt an orbit), radial out and in, at a target, or level with the ground. Steering keys still work while it's on.</p>
-  <span class="lab">Field notes</span>
-  <p>Terra is 10 km in radius and its air thins out by 5 km. Above that only rockets work. Low orbit needs about 260 m/s sideways; watch the periapsis in the top-right panel climb above 5 km. The Moon orbits 42 km out with one-sixth gravity, so landing legs help.</p>
-  <p>The Sun is about 6,800 km away, and seven more worlds circle it: lava-flooded Cinder, desert Dune, jungle Mire, icy Frost, tiny Shard, and the gas giants Tempest and Azure, with ten more moons between them. From low orbit, about 150 m/s more breaks free of Terra. Open the map, zoom out, and burn until your path reaches another world's orbit. Time warp works with engines firing too: up to ×5 in air or near the ground and ×100 in space; coasting in space it goes on to ×10,000.</p>
-  <p>Every world spins. Terra turns once every 10 minutes and carries you east at about 105 m/s: launch east for a head start into orbit.</p>
-  <p>The Space Elevator in the library is 50 Sky Trusses standing on a Ground Anchor, reaching geostationary height, 10.75 km up. ${K('stage')} lets the climber go, then hold ${K('fwd')} to drive up. At the top, ${K('stage')} again drops the climber and the rocket floats beside the tower, already in orbit. Skyhooks are builds too: spawn the Skyhook at Skyhook orbit and catch its grapple with the Skylark's docking port.</p>
-  <p>Moving parts split a vehicle into pieces joined at the hinge, rotor, piston or spring: whatever you build on the part's top face moves. If it also touches the rest of the vehicle the part is stuck, and the builder shows it glowing red. ${K('build')} takes you back to the builder and clears away the vehicle you were driving; Park &amp; build leaves it out in the world. Hard hits knock parts loose; fuel tanks and explosives blow up.</p>
+  <span class="lab">Parts</span>
+  <p>Blocks and Shapes make the frame, from small wedges to 215 m Sky Trusses. Land has wheels from Tiny to Giant, Tracks that turn on the spot, Hover Pads, an Engine, Landing Gear and Rail Bogies. Air has propellers, jets, wings, flaps, helicopter rotors that hold their height, balloons and parachutes. Sea has floats, hulls, propellers, a rudder and an Outboard Motor. Space has rocket engines, tanks, decouplers, docking ports, RCS, the Plasma Thruster, the Star Drive and Storage Modules. Gadgets has claws, a winch, a magnet, a horn and a bumper. Weapons fire from their top face with ${K('fire')}, and their shots fly through your own vehicle. Decor has number plates, signs, flags and lights; Control has seats, a cabin and headlights.</p>
+  <p>Moving has hinges, rotors, pistons, servos, ball joints, couplers, detachers, drills and spinners. They split a vehicle into pieces: whatever you build on a moving part's top face moves. If it also touches the rest of the vehicle the part is stuck, and the builder shows it glowing red.</p>
+  <p>Logic blocks press keys for you. A Sensor watches height, speed, climb, tilt, distance ahead or fuel and presses a key while the reading is past your value. A Timer waits and then presses a key for a while, a Logic Gate combines two keys, and a Toggle Switch latches on and off. They can press real keys or channels (Ch 1 to Ch 8) that only parts and other logic blocks hear: set a parachute to Ch 1 and a sensor to press Ch 1 when below 300 m, and it opens by itself. The Auto Rocket in the library shows how.</p>
+  <span class="lab">Driving</span>
+  <p>${K('build')} or Drive takes you from the builder to the world, at the place picked under Spawn at, and back again; going back clears away the vehicle you were driving. Park &amp; build leaves it out in the world instead, and Vehicles lists everything you have left out so you can drive it again. Hard hits knock parts loose; fuel tanks and explosives blow up.</p>`,
+    terra: `<p>Terra is 10 km in radius and turns once every 10 minutes. Highways run out from the launch pad to the city of Grand Metro and to towns, villages and farms all round the planet, over long bridges and through tunnels with the hills over them. Near the pad are Liftoff and Rocket City, an airport, a harbor, a race track that times your laps (drive through the start line, then every orange gate) and a stunt park with jumps, a half-pipe and a loop. Buildings are solid, but cones, barrels and crates go flying. Under Landmarks, Summit Station sits on the highest peak and the Deep Sea Base on the deepest sea floor. The wider world is built as you come near it, so far-off places appear as you travel.</p>
+  <span class="lab">Railways</span>
+  <p>Three railway lines link eight stations, and a train runs on each by itself, stopping at every station. Drive up a station's ramp onto a flat car, or pick a ride under Spawn at, Railways: whatever stands on a train is carried along. The rails stand up from the ground, so crossing them is a bump.</p>
+  <p>Build your own train with Rail Bogies (Land). Drive one from a station (pick it under Spawn at, Railways) and it is set down on the nearest track; Powered Rail Bogies pull it and plain ones just roll. Take a bend too fast and it comes off the rails: a chip under the gauges warns of bends ahead and the speed to take them at. ${K('respawn')} puts it back. The Locomotive in the library is one to start from.</p>
+  <span class="lab">Graphics</span>
+  <p>Balanced and Sharp have a painted sky with sunsets, waves on the sea, trees, finer ground and reflections on vehicles; Sharp reaches furthest and adds tree shadows. Drive into a tree fast and it falls over. Fast keeps things light for Chromebooks. Settings changes it.</p>`,
+    space: `<p>Terra's air thins out by 5 km; above that only rockets work. Low orbit needs about 260 m/s sideways: watch the periapsis in the orbit panel climb above 5 km. Launch east, because Terra's spin carries you east at about 105 m/s. The Moon circles 42 km out over Terra's equator, with one-sixth gravity, so landing legs help.</p>
+  <p>${K('sas')} turns SAS on. It uses gyroscopes, RCS blocks and control flaps to hold the craft where you leave it. The buttons under the gauges point it instead: prograde (where you're going), retrograde (for braking burns), normal and anti-normal (to tilt an orbit), radial out and in, at your target, or level with the ground. Steering keys still work while it's on.</p>
+  <span class="lab">Map and targets</span>
+  <p>${K('map')} opens the map with your orbit line. ${Click} a world, a moon or a vehicle to centre the map on it, and the map stays on it as you zoom out. Double-${click} one to make it your target: the orbit panel then shows how close you will pass, and SAS can point at it. Drag to turn the map, Shift-drag (or two fingers) to move it, and the buttons at its top take you back to your vehicle or clear the target.</p>
+  <span class="lab">Further out</span>
+  <p>Time warp (${K2('warp_dn', 'warp_up')}) goes up to ×5 in air or near the ground, ×100 with engines firing in space, ×10,000 coasting, and ×1,000,000 out between the stars.</p>
+  <p>The Sun is about 6,800 km away, and seven more worlds circle it: lava-flooded Cinder, desert Dune, jungle Mire, icy Frost, tiny Shard, and the gas giants Tempest and Azure, with ten more moons between them. From low orbit about 150 m/s more breaks free of Terra; open the map, zoom out, and burn until your path reaches another world's orbit.</p>
+  <p>Four more stars lie far beyond the Sun. Ruby is a dim red dwarf; its world Iris always shows it the same face, scorched on the day side, frozen on the night side, with a ring of purple life in between. Duet is two suns circling each other, so the desert world Mirage gets two shadows. Sapphire is a blazing blue giant with Lagoon, a world of islands and palms, and Crown, a ringed giant. Maw is a black hole: its glowing disk bends round it and is the only light on dark Gloom. Get too close and it pulls you apart. To get there, break free of the Sun (about 750 m/s more than leaving Terra) and coast out past the edge of its system, or take the Starfarer. Every world is also under Spawn at.</p>
+  <p>The Space Elevator in the library is 50 Sky Trusses on a Ground Anchor, reaching 10.75 km up. ${K('stage')} lets the climber go, then hold ${K('fwd')} to drive up; at the top ${K('stage')} again lets the rocket float free, already in orbit. For a Skyhook, spawn it at Skyhook orbit and catch its grapple with the Skylark's docking port.</p>`,
+    bases: `<p>Storage Modules (Space) carry crates of base parts: 12 in a Storage Module, 40 in a Big Storage Module. Build them onto a truck, a lander or a rocket and take them anywhere: the Moon, Iris, Gloom.</p>
+  <p>Land, stop, and Base mode appears under the gauges. Pick a piece along the bottom and ${click} the ground to set it down; each one uses up crates. Turn spins the piece, and Take back picks one up again, its crates going back aboard. The pieces are a Habitat, a Greenhouse, Corridors, a Solar Array, a Landing Pad, a Hangar, a Fuel Tank, a Comms Mast, a Light Mast, a Supply Depot and Walls.</p>
+  <p>A base with a habitat, a greenhouse and solar power becomes a colony. Every base is under Spawn at, Your bases (on its landing pad if it has one) and shows on the map. The Base Hauler in the library is a truck with 24 crates to start with.</p>`,
+    saves: `<p>Save in the builder keeps the vehicle you are working on, and the library holds your saved vehicles beside the examples. Vehicles you leave out in the world and your bases stay where they are when you close the game.</p>
+  <p>Cloud saves: played here in Claude while you are signed in, your saved vehicles and bases go to your Claude account, so they are there on any device where you open Scrapline signed in. On the Scrapline website, turn on cloud saves in the library to get a save code, and type that code on your other devices.</p>
+  <p>Export and Import in the library move vehicles as a block of text you can paste anywhere, to a friend or to another copy of the game.</p>`
+  };
+  const t = P[tab] ? tab : 'keys';
+  openModal(`<h2>How to play</h2>
+  <div class="seg htabs" role="tablist">${TABS.map(([k, l]) => `<button type="button" role="tab" data-ht="${k}" class="${k === t ? 'on' : ''}">${l}</button>`).join('')}</div>
+  <div class="hpane">${P[t]}</div>
   <div class="mfoot"><button type="button" class="btn primary" data-close="1">Got it</button></div>`, true);
-  $('modal').onclick = e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.close) closeModal(); if (t.dataset.keys) openControls(); };
+  $('modal').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.close) closeModal(); if (b.dataset.keys) openControls(); if (b.dataset.ht) openHelp(b.dataset.ht); };
 }
 function openSettings() {
   const s = G.settings;
   const seg = (k, opts) => `<div class="seg" data-set="${k}">${opts.map(o => `<button type="button" data-v="${o[0]}" class="${s[k] === o[0] ? 'on' : ''}">${o[1]}</button>`).join('')}</div>`;
   openModal(`<h2>Settings</h2>
     <div class="setrow"><span>Graphics</span>${seg('quality', [['low', 'Fast'], ['balanced', 'Balanced'], ['high', 'Sharp']])}</div>
-    <p style="font-size:13px">Fast turns shadows off, keeps trees close by only, and leaves the sea, the ground and vehicles plain. Use it if a Chromebook stutters. Sharp shows trees furthest out and gives them shadows.</p>
+    <p style="font-size:13px" id="setQNote"></p>
     <label class="toggle"><input type="checkbox" id="setShadows" ${s.shadows ? 'checked' : ''}> Shadows</label>
     <div class="setrow"><span>Sound</span><span class="rng"><input type="range" id="setVol" min="0" max="1" step="0.05" value="${s.volume}" aria-label="Volume"><b id="setVolT">${Math.round(s.volume * 100)}%</b></span></div>
     <label class="toggle"><input type="checkbox" id="setMute" ${s.mute ? 'checked' : ''}> Mute</label>
     <label class="toggle"><input type="checkbox" id="setInvert" ${s.invertPitch ? 'checked' : ''}> Invert pitch (nose-down and nose-up keys swap)</label>
     <div class="setrow"><span>Keys</span><button type="button" class="btn" data-keys="1">Change keys</button></div>
     <div class="mfoot"><button type="button" class="btn primary" data-close="1">Done</button></div>`);
-  const save = () => { LS.set('scrapline.settings', G.settings); applyQuality(); SND.applyVolume(); };
+  // what each Graphics setting does; Fast has no shadows at all, so the Shadows box is greyed out with it
+  const qNote = () => {
+    const q = G.settings.quality, sh = $('setShadows');
+    $('setQNote').textContent = q === 'low' ? 'Fast: no shadows, trees close by only, a plain sea, ground and vehicles, and a simple black hole. Use it if a Chromebook stutters.'
+      : q === 'high' ? 'Sharp: the most detail. Trees reach furthest and cast shadows, shadows are crisper, and the black hole is drawn with the finest light-bending.'
+      : 'Balanced: a painted sky, waves, trees, shiny vehicles and a black hole that bends light, at a speed most computers keep up with.';
+    sh.disabled = q === 'low'; sh.closest('label').classList.toggle('dim', q === 'low');
+  };
+  const save = () => { LS.set('scrapline.settings', G.settings); applyQuality(); SND.applyVolume(); qNote(); };
   $('modal').onclick = e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.close) return closeModal();
@@ -2082,6 +2332,7 @@ function openSettings() {
     const sg = t.closest('[data-set]');
     if (sg) { G.settings[sg.dataset.set] = t.dataset.v; for (const b of sg.querySelectorAll('button')) b.classList.toggle('on', b === t); save(); }
   };
+  qNote();
   $('setShadows').onchange = e => { G.settings.shadows = e.target.checked; save(); };
   $('setInvert').onchange = e => { G.settings.invertPitch = e.target.checked; save(); bindsChanged(false); renderKeys(); };
   $('setMute').onchange = e => { G.settings.mute = e.target.checked; SND.unlock(); save(); };
@@ -2131,7 +2382,7 @@ function setWaterStyle(fancy) {
 }
 function applyQuality() {
   const q = G.settings.quality;
-  setWaterStyle(q !== 'low'); setGroundDetail(q === 'low' ? 0 : q === 'high' ? 2 : 1); setFloraQuality(q); setShine(q);
+  setWaterStyle(q !== 'low'); setGroundDetail(q === 'low' ? 0 : q === 'high' ? 2 : 1); setFloraQuality(q); setShine(q); sky.hole.setQuality(q);
   renderer.setPixelRatio(q === 'low' ? 1 : Math.min(window.devicePixelRatio || 1, q === 'high' ? 1.75 : 1.25));
   const sh = G.settings.shadows && q !== 'low', stype = q === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   if (renderer.shadowMap.enabled !== sh || renderer.shadowMap.type !== stype) {
@@ -2170,6 +2421,15 @@ function buildUI() {
     else if (b.id === 'tbUndo') bUndo(); else if (b.id === 'tbRedo') bRedo();
   };
   ctxEvents();
+  $('btnBase').onclick = e => { e.currentTarget.blur(); enterBaseMode(); };
+  $('mapBar').onclick = e => {
+    const t = e.target.closest('button'); if (!t) return; t.blur();
+    const a = t.dataset.mb;
+    if (a === 'me' && G.player && !G.player.dead) mapSetFocus({ body: G.player });
+    else if (a === 'home') mapSetFocus(null);
+    else if (a === 'clear') setTarget(null);
+    else if (a === 'pick') openTargetPicker();
+  };
   $('sasRow').onclick = e => { const b = e.target.closest('button'); if (!b) return; b.blur(); if (b.dataset.sas === 'toggle') toggleSAS(); else setSASMode(b.dataset.sas); SND.play(SAS.on ? 'beep' : 'boop'); };
   $('designName').oninput = e => { B.design.name = e.target.value.slice(0, 40) || 'Vehicle'; saveCurrent(); };
   $('btnNew').onclick = openNew; $('btnSave').onclick = openSave; $('btnLibrary').onclick = () => openLibrary(false);
@@ -2179,19 +2439,28 @@ function buildUI() {
   $('btnSpawnVeh').onclick = () => openLibrary(true);
   $('btnVehicles').onclick = openVehicles;
   $('btnPark').onclick = () => { if (G.mode === 'drive') setMode('build', false, null, true); };
-  $('btnHelp').onclick = openHelp; $('btnSettings').onclick = openSettings;
+  // Settings and How to play live in the Menu (top left)
+  $('keys').onclick = toggleKeys;
+  // the top bar wraps onto two rows on narrow screens: the panels under it follow its real height
+  { const tb = $('topbar'), setH = () => document.documentElement.style.setProperty('--topH', Math.round(tb.getBoundingClientRect().height) + 'px');
+    setH(); if (window.ResizeObserver) new ResizeObserver(setH).observe(tb); else window.addEventListener('resize', setH); }
   $('toolsToggle').onclick = () => $('toolsPanel').classList.toggle('open');
   $('modalWrap').addEventListener('pointerdown', e => { if (e.target === $('modalWrap')) { CAPTURE = null; closeModal(); } });
   const sel = $('spawnSel');
-  const groups = {};
-  for (const [k, v] of Object.entries(WORLD.locs)) (groups[v.group] = groups[v.group] || []).push(`<option value="${k}">${esc(v.name)}</option>`);
-  sel.innerHTML = Object.entries(groups).map(([g, o]) => `<optgroup label="${g}">${o.join('')}</optgroup>`).join('');
-  sel.value = G.spawnLoc;
+  fillSpawnSel();
   sel.onchange = () => { G.spawnLoc = sel.value; sel.blur(); if (G.mode === 'drive') { spawnPlayer(true); toast(`Spawned at ${WORLD.locs[G.spawnLoc].name}`); } };
   // what the menu shows is always where you spawn
   sel.addEventListener('focus', () => { sel.value = G.spawnLoc; });
   window.addEventListener('resize', onResize);
   syncTools();
+}
+/* the Spawn at list, grouped (your own bases appear in it as you build them) */
+function fillSpawnSel() {
+  const sel = $('spawnSel'), groups = {};
+  for (const [k, v] of Object.entries(WORLD.locs)) (groups[v.group] = groups[v.group] || []).push(`<option value="${k}">${esc(v.name)}</option>`);
+  sel.innerHTML = Object.entries(groups).map(([g, o]) => `<optgroup label="${esc(g)}">${o.join('')}</optgroup>`).join('');
+  if (!WORLD.locs[G.spawnLoc]) G.spawnLoc = 'pad';
+  sel.value = G.spawnLoc;
 }
 /* ---------------- main loop ---------------- */
 let last = 0, acc = 0;
@@ -2221,7 +2490,8 @@ function frame(now) {
   requestAnimationFrame(frame);
   let dt = (now - last) / 1000; last = now;
   if (!(dt > 0)) dt = 0.016; if (dt > 0.1) dt = 0.1;
-  if (G.mode === 'drive') {
+  if (TITLE.on) titleStep(dt);
+  else if (G.mode === 'drive' && !TITLE.pause) {
     driveControls(dt);
     if (G.warp > 1) {
       const [lim, why] = warpLimit();
@@ -2245,12 +2515,13 @@ function frame(now) {
   for (const b of W.bodies) {
     b.updateVisual(dt);
     // keep the garage clear: parked vehicles near the pad are hidden while you build
-    b.group.visible = !(G.mode === 'build' && b.x.distanceTo(B.padPoint) < 30 + b.radius) && !(b.loose && b.x.distanceTo(camera.position) > 450);
+    b.group.visible = !(G.mode === 'build' && !TITLE.on && b.x.distanceTo(B.padPoint) < 30 + b.radius) && !(b.loose && b.x.distanceTo(camera.position) > 450);
   }
   for (const pr of W.props) if (pr.mesh) { fromSpin(pr.cel, pr.c, pr.mesh.position).add(pr.cel.center); pr.mesh.quaternion.copy(pr.cel.spinQ); }
   updateSites(dt); updateRace();
-  if (G.mode === 'build') { nearFar(); bCamera(dt); }
-  else if (G.map) mapCamera();
+  if (TITLE.on) { }
+  else if (G.mode === 'build') { nearFar(); bCamera(dt); }
+  else if (G.map) mapCamera(dt);
   else { nearFar(); driveCamera(dt); }
   G.shake *= Math.exp(-dt * 5);
   const focus = G.map && G.player && !G.player.dead ? G.player.x : camera.position;
@@ -2258,7 +2529,7 @@ function frame(now) {
   sky.update(camera.position, stage, stage.fog, sunLight, ambient, G.map);
   if (G.mode === 'build' && sunLight.intensity < 0.7) ambient.intensity = Math.max(ambient.intensity, 1.0 - sunLight.intensity * 0.8);
   updateLights();
-  const st = G.mode === 'drive' && G.player && !G.player.dead ? G.player.x : B.group.position;
+  const st = TITLE.on && TITLE.focus && !TITLE.focus.dead ? TITLE.focus.x : G.mode === 'drive' && G.player && !G.player.dead ? G.player.x : B.group.position;
   sunLight.target.position.copy(st); sunLight.position.copy(st).addScaledVector(SUN_DIR, 160);
   // the sky's own light (from above) and moonlight
   { const ss = sky.state; hemi.intensity = ss.hemi; hemi.position.copy(ss.up); hemi.color.copy(sky.domeU.zen.value).lerp(_wh, 0.45); hemi.groundColor.copy(sky.fogCol).multiplyScalar(0.42);
@@ -2269,7 +2540,7 @@ function frame(now) {
   if (want2) { sun2.intensity = s2; sun2.color.setHex(sky.state.light2Col); sun2.target.position.copy(st); sun2.position.copy(st).addScaledVector(SUN2_DIR, 160); }
   FX.frame(camera.position);
   FX.update(dt);
-  if (G.mode === 'build' && B.needsHover) bHover();
+  if (G.mode === 'build' && B.needsHover && !TITLE.on) bHover();
   G.hudT -= dt;
   if (G.mode === 'drive' && G.hudT <= 0) { G.hudT = 0.1; updateHUD(); }
   if (G.mode === 'drive' && G.player && !G.player.dead) {
@@ -2350,7 +2621,7 @@ async function init() {
     for (const k of ['veh', 'hl', 'paint', 'move', 'sel', 'locked']) { shine(MAT[k], 'veh', 0.2); MAT[k].userData.glossy = true; }
     shine(MAT.glass, 'glass', 0.85, { glass: true }); shine(MAT.strut, 'strut', 0.3);
     initLights();
-    buildWorld();
+    buildWorld(); initBases();
     FX.init();
     initMapObjects();
     applyQuality();
@@ -2390,14 +2661,28 @@ function start(data) {
   G.spawnLoc = 'pad'; $('spawnSel').value = 'pad';
   setMode('build', true);
   uiRot();
+  initTitle(); showTitle();
   $('loading').hidden = true;
   last = performance.now();
   requestAnimationFrame(frame);
-  if (restored) setTimeout(() => toast(`Welcome back: ${restored} vehicle${restored === 1 ? ' is' : 's are'} still out in the world. Open Vehicles to drive one.`, 4200), 700);
-  setInterval(() => { if (G.mode === 'drive') worldSave(); }, 10000);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) worldSave(); });
-  window.addEventListener('pagehide', worldSave);
-  if (!LS.get('scrapline.seenHelp', false)) { LS.set('scrapline.seenHelp', true); setTimeout(() => toast(`Pick a part on the left, click the vehicle to attach it, then press ${keyName(actKeys('build')[0])} to drive`, 5200), 600); }
-  else if (!LS.get('scrapline.seenV15', false)) { for (const v of ['V11', 'V12', 'V13', 'V15']) LS.set('scrapline.seen' + v, true); setTimeout(() => toast('New: four more stars to fly to: a red dwarf, twin suns, a blue giant and a black hole, each with worlds to land on (Spawn at, or fly the Starfarer). Between the stars time warp goes to ×1,000,000. Plus a painted sky, waves, trees and shinier vehicles. Help has more.', 8000), 800); }
+  cloudInit();
+  TITLE.after = () => afterTitle(restored);
+}
+/* the first things said once you leave the title screen */
+function afterTitle(restored) {
+  let wait = 600;
+  if (restored) { setTimeout(() => toast(`Welcome back: ${restored} vehicle${restored === 1 ? ' is' : 's are'} still out in the world. Open Vehicles to drive one.`, 4200), wait); wait += 4600; }
+  if (TITLE.saving) return; TITLE.saving = true;
+  setInterval(() => { if (G.mode === 'drive' && !TITLE.on) worldSave(); }, 10000);
+  document.addEventListener('visibilitychange', () => { if (document.hidden && !TITLE.on) worldSave(); });
+  window.addEventListener('pagehide', () => { if (!TITLE.on) worldSave(); });
+  const touch = COARSE;
+  if (!LS.get('scrapline.seenHelp', false)) {
+    for (const v of ['Help', 'V11', 'V12', 'V13', 'V15', 'V16']) LS.set('scrapline.seen' + v, true);
+    setTimeout(() => toast(touch ? 'Pick a part, tap the vehicle to attach it, then tap Drive' : `Pick a part, click the vehicle to attach it, then press ${keyName(actKeys('build')[0])} to drive`, 5200), wait);
+  } else if (!LS.get('scrapline.seenV16', false)) {
+    for (const v of ['V11', 'V12', 'V13', 'V15', 'V16']) LS.set('scrapline.seen' + v, true);
+    setTimeout(() => toast('New: trains you build with rail bogies, bases you build from crates wherever you land, and your vehicles on every device with cloud saves. Help has more.', 7000), wait);
+  }
 }
 init();

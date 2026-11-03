@@ -902,7 +902,7 @@ function planRails() {
     all = [...stub(first, sgn[0]).reverse(), ...all, ...stub(last, -sgn[sts.length - 1])];
     L.pts = all;
     L.stations = sts;
-    for (let i = 0; i < all.length - 1; i++) { const a = all[i], b = all[i + 1]; a.seg = wsSeg(PLANET.ws, a.d, b.d, a.h, b.h, 3.6, 10, a.bridge && b.bridge, RAIL_COL); }
+    for (let i = 0; i < all.length - 1; i++) { const a = all[i], b = all[i + 1]; a.seg = wsSeg(PLANET.ws, a.d, b.d, a.h, b.h, 3.6, 10, a.bridge && b.bridge, RAIL_COL); a.seg.rail = L; a.seg.ri = i; }
     markRoad(mark, L, 4); ridxAdd(L);
     L.rail = true;
     GLOBE.rails.push(L);

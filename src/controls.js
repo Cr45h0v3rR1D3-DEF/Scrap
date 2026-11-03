@@ -582,7 +582,8 @@ function toggleSAS(on = !SAS.on) {
   if (typeof renderSAS === 'function') renderSAS();
 }
 function setSASMode(m) {
-  if (m === 'target' && !sasTargetPos()) { openTargetPicker(); return; }
+  // Target with nothing targeted, or pressed again while already pointing at the target: pick (or change) the target
+  if (m === 'target' && (!sasTargetPos() || (SAS.on && SAS.mode === 'target'))) { openTargetPicker(true); return; }
   SAS.mode = m;
   if (!SAS.on) toggleSAS(true); else { for (const o of machineOf(G.player)) o.sasHold = null; renderSAS(); }
 }

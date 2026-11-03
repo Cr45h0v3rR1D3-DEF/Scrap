@@ -8,6 +8,7 @@ class PartInst {
     const def = this.def = PD[t];
     this.t = t; this.a = a; this.m = m; this.c = c; this.uid = uid || ++PUID; this.cfg = cfg || null;
     this.hp = def.hp; this.alive = true; this.body = null; this.mass = def.mass; this.broken = false; this.fuel = def.fuel || 0;
+    if (def.storage) this.crates = def.storage;
     this.cells = footprint(def, a, m);
     this.keys = this.cells.map(c => ckey(c[0], c[1], c[2]));
     let sx = 0, sy = 0, sz = 0; for (const c of this.cells) { sx += c[0]; sy += c[1]; sz += c[2]; }
@@ -133,7 +134,7 @@ function designStats(design) {
     const d = p.def; dry += d.mass; if (d.fuel) fuel += d.fuel;
     // power and thrust limits from each part's settings
     const pk = d.kind === 'rocket' || d.kind === 'jet' || d.kind === 'prop' || d.kind === 'boatprop' || d.kind === 'engine' || d.kind === 'wheel' || d.kind === 'gyro' ? cfgGet(p, 'power') / 100 : 1;
-    if (d.kind === 'wheel' && Math.abs(mapply(p.m, [0, 1, 0])[1]) < 0.5) { nWheels++; if (d.wheel.track) nTracks++; power += d.wheel.power * pk; }
+    if (d.kind === 'wheel' && (d.wheel.bogie || Math.abs(mapply(p.m, [0, 1, 0])[1]) < 0.5)) { nWheels++; if (d.wheel.track) nTracks++; power += d.wheel.power * pk; }
     if (d.kind === 'hover') hover++;
     if (d.kind === 'engine') power += d.power * pk;
     if (d.kind === 'rocket' && !nozzleBlocked(p, grid) && !d.ion) { rocket += d.thrust * pk; veSum += d.thrust * pk * (d.ve || VE); }
@@ -184,7 +185,7 @@ function ex(name, list) {
     const def = PD[t]; if (!def) { console.warn('unknown part', t); continue; }
     // wheels: a number turns them from pressing down, 's-x' and friends name the way they press
     let ks;
-    if (def.kind === 'wheel') {
+    if (def.kind === 'wheel' && !def.wheel.bogie) {
       if (typeof k === 'string' && k[0] === 's') { const kk = wheelSpringK(NV[n], NV[k.slice(1)]); if (kk < 0) console.warn('wheel cannot press that way', name, e); ks = [Math.max(0, kk)]; }
       else ks = [((k | 0) + wheelDownK(NV[n])) % 4];
     } else ks = k === 'auto' ? [0, 1, 2, 3] : [k];
@@ -429,15 +430,49 @@ function exDigger() {
   L.push(['drill', 0, -1, 9, '+z', 0, 0, 4]);
   return ex('Digger', L);
 }
+/* a truck carrying two Storage Modules of base parts: drive it anywhere, stop, and build a base */
+function exHauler() {
+  const L = [['seat_cabin', 0, 0, 3, '+y', 0, 0, 3], ['block', -1, 0, 3, '+y', 0, 0, 3], ['block', 1, 0, 3, '+y', 0, 0, 3], ['lightbar', 0, 1, 3, '+y', 0, 0, 2]];
+  for (let x = -1; x <= 1; x++) for (let z = -4; z <= 4; z++) L.push(['block', x, -1, z, '+y', 0, 0, x ? 4 : 3]);
+  for (let x = -1; x <= 1; x++) L.push(['wedge', x, 0, 4, '+y', 0, 0, 3]);
+  L.push(['engine', 0, 0, 2], ['heavy_block', -1, 0, 2, '+y', 0, 0, 4], ['heavy_block', 1, 0, 2, '+y', 0, 0, 4], ['light', -1, -1, 5, '+z'], ['light', 1, -1, 5, '+z']);
+  L.push(['storage', 0, 0, 0, '+y', 0, 0, 5], ['storage', 0, 0, -3, '+y', 0, 0, 5]);
+  L.push(['wheel_l_steer', 2, -1, 3, '+x', 0, 0, 1], ['wheel_l_steer', -2, -1, 3, '-x', 0, 0, 1], ['wheel_l', 2, -1, -3, '+x', 0, 0, 1], ['wheel_l', -2, -1, -3, '-x', 0, 0, 1]);
+  return ex('Base Hauler', L);
+}
+/* a little diesel locomotive on two Powered Rail Bogies, with a coupler at each end to pull wagons */
+function exLoco() {
+  const L = [];
+  // the frame: a deck 2.5 m wide and 7.5 m long, with a bogie under each end
+  for (let x = -2; x <= 2; x++) for (let z = -7; z <= 7; z++) L.push([Math.abs(x) === 2 ? 'block' : 'heavy_block', x, 0, z, '+y', 0, 0, 4]);
+  L.push(['bogie_drive', 0, -1, -4, '-y', 0, 0, 4], ['bogie_drive', 0, -1, 4, '-y', 0, 0, 4]);
+  // the cab at the front
+  L.push(['seat_cabin', 0, 1, 5, '+y', 0, 0, 2]);
+  for (const x of [-2, -1, 1, 2]) for (let z = 4; z <= 6; z++) L.push(['block', x, 1, z, '+y', 0, 0, 2]);
+  for (const x of [-2, 2]) for (let z = 4; z <= 6; z++) L.push(['window', x, 2, z, '+y', 0, 0, 8]);
+  for (let x = -1; x <= 1; x++) L.push(['window', x, 2, 7, '+y', 0, 0, 8]);
+  for (let x = -2; x <= 2; x++) L.push(['block', x, 1, 7, '+y', 0, 0, 2]);
+  for (const x of [-2, -1, 0, 1, 2]) for (let z = 4; z <= 7; z++) L.push(['slab', x, 3, z, '+y', 0, 0, 5]);
+  // the long hood with the engines in it, and a horn on top
+  for (let x = -1; x <= 1; x++) for (let z = -6; z <= 3; z++) L.push([x === 0 && (z === -3 || z === 0) ? 'engine' : 'block', x, 1, z, '+y', 0, 0, 2]);
+  for (let x = -1; x <= 1; x++) for (let z = -6; z <= 3; z++) L.push(['slab', x, 2, z, '+y', 0, 0, x ? 2 : 4]);
+  L.push(['horn', 0, 3, -1, '+y', 0, 0, 4]);
+  // lights front and back, couplers at both ends
+  L.push(['light', -1, 0, 8, '+z'], ['light', 1, 0, 8, '+z'], ['light_color', -2, 0, -8, '-z', 0, 0, 2], ['light_color', 2, 0, -8, '-z', 0, 0, 2]);
+  L.push(['coupler', 0, 0, 8, '+z', 0, 0, 4], ['coupler', 0, 0, -8, '-z', 0, 0, 4]);
+  return ex('Locomotive', L);
+}
 let EXAMPLES = [];
 function buildExamples() {
   EXAMPLES = [
     { d: exRover(), blurb: 'Four-wheel starter car.' },
     { d: exBruiser(), blurb: 'Monster truck. 2.3 t, built for ramming.' },
     { d: exRacer(), blurb: 'Race car on Racing Wheels. Fast enough for the stunt park loop: spawn at Stunt park and floor it.' },
-    { d: exTank(), blurb: 'Tank on tracks. {left} {right} turn it on the spot. {fire} or a click fires the cannon and machine gun, {rotor_l} and {rotor_r} turn the turret, {horn} honks.' },
+    { d: exTank(), blurb: 'Tank on tracks. {left} {right} turn it on the spot. {fire} fires the cannon and machine gun, {rotor_l} and {rotor_r} turn the turret, {horn} honks.' },
     { d: exChopper(), blurb: 'Helicopter. Hold {fwd} to climb, {descend} to sink, let go to hover. {pitch_dn} {pitch_up} {roll_l} {roll_r} tilt it, {left} {right} turn.' },
     { d: exHover(), blurb: 'Hovercraft on four Hover Pads: it floats over land and sea alike. {fwd} drives the fans, {left} {right} turn.' },
+    { d: exHauler(), blurb: 'Truck carrying two Storage Modules: 24 crates of base parts. Drive it somewhere, stop, and tap Base mode to build a base. Try it on the Moon or Iris too.' },
+    { d: exLoco(), blurb: 'Locomotive on two Powered Rail Bogies. Spawn it at a railway station (Spawn at, Railways) and it sits on the track: {fwd} drives, {back} brakes, {horn} honks. Take bends gently or it derails.' },
     { d: exTruck(), blurb: 'Truck towing a trailer on a Coupler. {undock} unhitches it, {lights} flashes the light bar. Back a coupler into another to hitch up.' },
     { d: exDigger(), blurb: 'Digger on tracks. {hinge_a} and {hinge_b} raise the arm, hold {fire} to spin the drill, {lights} for the light bar.' },
     { d: exKestrel(), blurb: 'Jet plane. Hold {fwd}, it lifts off near 110 km/h.' },

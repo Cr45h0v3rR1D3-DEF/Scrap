@@ -139,7 +139,7 @@ function placementTarget(cell, n, faceOK) {
   const anchor = [cell[0] + n[0], cell[1] + n[1], cell[2] + n[2]];
   const def = PD[B.sel];
   // wheels: rotation 0 presses down, each R turns the press direction a quarter about the axle
-  const M = def.kind === 'wheel' && Math.abs(n[1]) < 0.5 ? orient(n, (B.rotK + wheelDownK(n)) % 4) : orient(n, B.rotK, def.attach === 'all' ? B.tilt : 0);
+  const M = def.kind === 'wheel' && !def.wheel.bogie && Math.abs(n[1]) < 0.5 ? orient(n, (B.rotK + wheelDownK(n)) % 4) : orient(n, B.rotK, def.attach === 'all' ? B.tilt : 0);
   const fp = footprint(def, anchor, M);
   const free = fp.every(c => !B.occ.has(ckey(c[0], c[1], c[2])));
   let valid = faceOK && free, mir = null, reason = !faceOK ? 'face' : !free ? 'blocked' : '';
@@ -693,7 +693,7 @@ function rotLabel() {
   const def = PD[B.sel];
   if (isStamping()) return `${B.moving ? 'Carrying' : 'Stamping'} ${B.clip.parts.length} part${B.clip.parts.length > 1 ? 's' : ''} · Turn ${B.rotK * 90}° (${keyName(actKeys('b_rot')[0])}) · Click a face · Esc ${B.moving ? 'puts it back' : 'stops'}`;
   let rot = `Rotation ${B.rotK * 90}° (${keyName(actKeys('b_rot')[0])})`;
-  if (def.kind === 'wheel') { const t = B.target; rot = `Presses ${t && t.M ? dirName(mapply(t.M, WHEEL_DN)) : B.rotK === 0 ? 'down' : B.rotK === 2 ? 'up' : 'sideways'} (${keyName(actKeys('b_rot')[0])} turns it)`; }
+  if (def.kind === 'wheel' && !def.wheel.bogie) { const t = B.target; rot = `Presses ${t && t.M ? dirName(mapply(t.M, WHEEL_DN)) : B.rotK === 0 ? 'down' : B.rotK === 2 ? 'up' : 'sideways'} (${keyName(actKeys('b_rot')[0])} turns it)`; }
   const parts = [def.name, rot];
   if (def.attach === 'all') parts.push(`Tilt ${B.tilt * 90}° (${keyName(actKeys('b_tilt')[0])})`);
   return parts.join(' · ');

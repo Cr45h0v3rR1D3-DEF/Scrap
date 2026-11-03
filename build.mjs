@@ -2,7 +2,7 @@
 //   public/index.html   the whole game as a standalone web page (what Vercel serves)
 //   dist/scrapline.html the same page without its outer <html>/<head> wrapper (for the Claude artifact)
 import fs from 'fs';
-const order = ['core', 'solar', 'world', 'globe', 'terrain', 'parts', 'designs', 'physics', 'weapons', 'sites', 'towns', 'flora', 'controls', 'sound', 'builder', 'game'];
+const order = ['core', 'solar', 'world', 'globe', 'terrain', 'parts', 'designs', 'physics', 'weapons', 'sites', 'towns', 'flora', 'bases', 'controls', 'sound', 'cloud', 'builder', 'title', 'game'];
 const js = order.map(f => `/* ---- ${f}.js ---- */\n` + fs.readFileSync(`src/${f}.js`, 'utf8').replace(/^'use strict';\n/, '')).join('\n');
 fs.mkdirSync('dist', { recursive: true });
 fs.writeFileSync('dist/all.js', "'use strict';\n" + js);

@@ -18,6 +18,20 @@ That writes `public/index.html` (the site) and `dist/scrapline.html` (the same p
 
 Three.js r128 loads from cdnjs, and the fonts from Google Fonts.
 
-## Saved vehicles
+## Saved vehicles and cloud saves
 
-Saved vehicles live in each browser's own storage, so a vehicle saved on one site or device does not appear on another. To move them, open the vehicle library and use **Export** (it copies a code) on the old copy, then **Import** (paste the code) on the new one.
+Saved vehicles (and the bases you build) are kept in each browser, and can follow you to other devices:
+
+- **In the Claude version** they are saved to your Claude account automatically. Open Scrapline signed in on any device and they are there.
+- **On this website** they use a save code. Open the vehicle library and press **Turn on** under Cloud saves to get a code (like `river-comet-oak-42`), then on another device press **I have a code** and type it.
+
+The website's cloud saves need a small database, set up once:
+
+1. In the Vercel dashboard, open this project and go to **Storage**.
+2. Press **Create Database**, pick **Upstash for Redis** (the free plan is plenty), and create it.
+3. Connect it to this project (all environments). Vercel adds the `KV_REST_API_URL` and `KV_REST_API_TOKEN` settings by itself.
+4. Redeploy (Deployments, the newest one, Redeploy) so the site picks them up.
+
+The server side is `api/cloud.js`. Until a database is connected the library simply does not offer cloud saves.
+
+Export and Import in the library still work too: Export copies a code with all your vehicles in it, Import pastes one.

@@ -52,6 +52,8 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .seg{display:inline-flex;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
 .seg button{background:none;border:0;border-radius:6px;padding:6px 14px;cursor:pointer;color:var(--muted);font-weight:600;font-family:var(--f-cond);letter-spacing:.04em}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
+.htabs{display:flex;flex-wrap:wrap;margin:0 0 14px}.htabs button{flex:1 1 auto;min-height:34px}
+.hpane{display:flex;flex-direction:column;gap:10px}.hpane p{max-width:76ch}.hpane .lab{margin-top:6px}
 .lab{font-family:var(--f-cond);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 
 /* loading */
@@ -69,10 +71,10 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .brand span{color:var(--accent)}
 .top-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .field{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px 4px 3px 10px}
-.field select{background:var(--panel-hi);border:1px solid var(--line-hi);border-radius:6px;padding:4px 6px}
+.field select{background:var(--panel-hi);border:1px solid var(--line-hi);border-radius:6px;padding:4px 6px;max-width:230px;text-overflow:ellipsis}
 
 /* build: parts rail */
-#partsPanel{position:absolute;left:16px;top:68px;bottom:16px;width:292px;z-index:5;display:flex;flex-direction:column;overflow:hidden}
+#partsPanel{position:absolute;left:16px;top:calc(var(--topH,58px) + 10px);bottom:16px;width:292px;z-index:5;display:flex;flex-direction:column;overflow:hidden}
 #catTabs{display:flex;flex-wrap:wrap;gap:0;padding:6px 6px 0}
 #catTabs button{flex:1 1 30%;min-width:0;background:none;border:0;border-bottom:2px solid transparent;padding:6px 2px 7px;cursor:pointer;font-family:var(--f-cond);font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:0;white-space:nowrap}
 #catTabs button.on{color:var(--text);border-bottom-color:var(--accent)}
@@ -88,7 +90,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 #partInfo p{margin:0;font-size:13px;line-height:1.4;color:#c3d0d5}
 
 /* build: tools rail */
-#toolsPanel{position:absolute;right:16px;top:68px;width:286px;max-height:calc(100% - 84px);overflow-y:auto;z-index:5;display:flex;flex-direction:column}
+#toolsPanel{position:absolute;right:16px;top:calc(var(--topH,58px) + 10px);width:286px;max-height:calc(100% - var(--topH,58px) - 26px);overflow-y:auto;z-index:5;display:flex;flex-direction:column}
 #toolsPanel section{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
 #toolsPanel section+section{border-top:1px solid var(--line)}
 #toolsPanel .seg{width:100%}
@@ -96,6 +98,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
 .toggle input{accent-color:var(--accent);width:16px;height:16px;margin:0}
 .toggle kbd{margin-left:auto}
+.toggle.dim{opacity:.45;cursor:default}
 .swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .sw{aspect-ratio:1;border-radius:6px;border:2px solid rgba(255,255,255,.12);cursor:pointer;padding:0;position:relative}
 .sw.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(240,163,43,.25)}
@@ -112,7 +115,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 
 
 /* build: tool strip (Trailmakers-style tools and building views) */
-#toolbar{position:absolute;right:312px;top:68px;z-index:5;display:flex;flex-direction:column;gap:2px;padding:5px;width:70px;max-height:calc(100% - 84px);overflow-y:auto}
+#toolbar{position:absolute;right:312px;top:calc(var(--topH,58px) + 10px);z-index:5;display:flex;flex-direction:column;gap:2px;padding:5px;width:70px;max-height:calc(100% - var(--topH,58px) - 26px);overflow-y:auto}
 #toolbar button{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:1px solid transparent;border-radius:8px;padding:6px 1px 5px;cursor:pointer;color:#c3d0d5;font-family:var(--f-cond);font-size:11px;font-weight:600;letter-spacing:0}
 #toolbar button:hover{background:rgba(255,255,255,.06)}
 #toolbar button.on{background:rgba(240,163,43,.16);border-color:rgba(240,163,43,.6);color:#ffd08a}
@@ -164,7 +167,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .mini{background:none;border:1px solid var(--line-hi);border-radius:5px;color:var(--muted);cursor:pointer;padding:2px 6px}
 #hint{position:absolute;left:calc(50% - 44px);transform:translateX(-50%);bottom:16px;z-index:4;display:flex;gap:6px 14px;flex-wrap:wrap;justify-content:center;padding:8px 14px;max-width:min(760px,calc(100% - 700px));font-size:12.5px;color:#cbd6da}
 #hint span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-#rotInfo{position:absolute;left:calc(50% - 44px);transform:translateX(-50%);top:68px;max-width:calc(100% - 700px);text-align:center;z-index:4;padding:6px 12px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+#rotInfo{position:absolute;left:calc(50% - 44px);transform:translateX(-50%);top:calc(var(--topH,58px) + 10px);max-width:calc(100% - 700px);text-align:center;z-index:4;padding:6px 12px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 
 /* drive HUD */
 #hud{position:absolute;inset:0;z-index:4;pointer-events:none}
@@ -187,7 +190,8 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-family:var(--f-cond);font-weight:600;font-size:12px;letter-spacing:.04em;padding:3px 8px;border-radius:999px;border:1px solid var(--line-hi);color:var(--muted)}
 .chip.on{background:rgba(240,163,43,.16);border-color:rgba(240,163,43,.55);color:#ffd08a}
-#orbitBox{position:absolute;right:16px;top:68px;padding:12px 14px;min-width:230px;display:flex;flex-direction:column;gap:6px}
+.chip.warn{background:rgba(255,106,78,.2);border-color:rgba(255,106,78,.7);color:#ffc2b4}
+#orbitBox{position:absolute;right:16px;top:calc(var(--topH,58px) + 10px);padding:12px 14px;min-width:230px;display:flex;flex-direction:column;gap:6px}
 #orbitBox .row{display:flex;justify-content:space-between;gap:14px;font-size:13px}
 #orbitBox .row b{font-family:var(--f-mono);font-weight:500;font-variant-numeric:tabular-nums}
 #orbitBox .ttl{font-family:var(--f-cond);font-weight:700;font-size:15px}
@@ -198,8 +202,9 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 #keys{position:absolute;right:16px;bottom:16px;padding:9px 12px;display:grid;grid-template-columns:auto auto;gap:3px 10px;font-size:12px;align-items:center;max-width:calc(100% - 360px)}
 #keys span:nth-child(odd){display:flex;gap:3px;justify-content:flex-end;flex-wrap:wrap}
 #keys span:nth-child(even){color:#c3d0d5}
-#keys.min{grid-template-columns:auto auto}
-#keys.min span:nth-child(n+3){display:none}
+#keys{cursor:pointer;pointer-events:auto}
+#keys span.kmin,#keys.min span{display:none}
+#keys.min span.kmin{display:flex}
 #mapLabels{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .mapLabel{position:absolute;left:0;top:0;font-family:var(--f-mono);font-size:11.5px;line-height:1;white-space:nowrap;padding:3px 6px;border-radius:5px;background:rgba(8,14,19,.72);border:1px solid rgba(127,208,255,.35);color:#cfeaff;will-change:transform}
 .mapLabel[data-kind="stage"]{border-color:rgba(185,166,255,.4);color:#e2dbff}
@@ -214,8 +219,67 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 #hookRow span{color:#ffd08a}
 #hookRow b{font-family:var(--f-mono);font-weight:500;font-size:12px;text-align:right}
 .mapLabel[data-kind="ghost"]{border-style:dashed;border-color:rgba(255,255,255,.5);color:#fff}
-#raceBox{position:absolute;left:50%;top:68px;transform:translateX(-50%);display:flex;gap:18px;padding:8px 16px;font-family:var(--f-cond);font-size:15px;font-weight:600;white-space:nowrap}
+#raceBox{position:absolute;left:50%;top:calc(var(--topH,58px) + 10px);transform:translateX(-50%);display:flex;gap:18px;padding:8px 16px;font-family:var(--f-cond);font-size:15px;font-weight:600;white-space:nowrap}
 #raceBox b{font-family:var(--f-mono);font-weight:500;color:#ffd08a;margin-left:4px}
+/* map: what it is centred on, the target, how to move */
+#mapBar{position:absolute;left:50%;top:calc(var(--topH,58px) + 10px);transform:translateX(-50%);z-index:5;pointer-events:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px;padding:8px 14px;max-width:min(720px,calc(100% - 32px))}
+#mapBar .mbrow{display:flex;align-items:center;gap:8px;font-size:14px}
+#mapBar .mbrow b{font-family:var(--f-cond);font-weight:700;font-size:15px}
+#mapBar .mbrow b.tg{color:#ff9fe6}
+#mapBar .btn{padding:6px 11px;font-size:13px}
+#mapBar .mbhint{flex-basis:100%;text-align:center;font-size:12px;color:var(--muted)}
+body.map #banner{top:156px}
+.mapLabel.tgt{border-color:#ff6fd8;color:#ffd6f4;background:rgba(60,8,48,.75)}
+.mapLabel.tgt::before{content:'◎ ';color:#ff6fd8}
+#orbitBox .row.tg span,#orbitBox .row.tg b{color:#ff9fe6}
+/* Base mode: the palette of pieces along the bottom */
+#basePanel{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:6;pointer-events:auto;width:min(860px,calc(100% - 32px));padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+#basePanel .bphead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#basePanel .bphead b{font-family:var(--f-cond);font-size:17px;font-weight:700}
+#basePanel .crates{font-family:var(--f-mono);font-size:12.5px;color:#ffd08a;padding:3px 8px;border-radius:999px;background:rgba(240,163,43,.14)}
+#basePanel .grow{flex:1}
+#basePanel .btn.on{border-color:#ffa040;background:rgba(255,160,64,.2)}
+.bplist{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+.bpc{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 9px;border-radius:8px;border:1px solid var(--line-hi);background:rgba(255,255,255,.04);cursor:pointer;min-height:44px;text-align:left}
+.bpc span{font-family:var(--f-cond);font-weight:600;font-size:14px}
+.bpc em{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.bpc.on{border-color:var(--good);background:rgba(111,207,161,.16)}
+.bpc.poor{opacity:.5}
+.bphint{font-size:13px;color:#cbd6da;min-height:18px}
+#baseRow{pointer-events:auto}
+#baseRow .btn{width:100%;border-color:rgba(111,207,161,.6);background:rgba(111,207,161,.14)}
+body.basemode #keys,body.basemode #hint,body.basemode .cluster,body.basemode #orbitBox{display:none}
+body.basemode #toast{bottom:250px}
+.mapLabel[data-kind="base"]{background:rgba(8,30,20,.7);border-color:rgba(111,207,161,.6);color:#c8f5dc}
+/* title screen and menu */
+#title{position:absolute;inset:0;z-index:20;display:flex;align-items:stretch;padding:calc(24px + env(safe-area-inset-top,0px)) 24px 24px;background:linear-gradient(90deg,rgba(6,11,15,.82) 0%,rgba(6,11,15,.55) 34%,rgba(6,11,15,0) 62%)}
+#title.paused{background:rgba(5,9,12,.62);align-items:center;justify-content:center}
+.tmenu{align-self:center;display:flex;flex-direction:column;gap:14px;padding:26px 26px 22px;width:min(380px,100%);background:rgba(10,17,23,.78)}
+.tmark{font-family:var(--f-mark);font-size:clamp(40px,6vw,64px);letter-spacing:.06em;line-height:1}
+.tmark span{color:var(--accent)}
+.ttag{margin:0;color:#c3d0d5;font-size:15px;line-height:1.4}
+.tbtns{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.tbtn{font-family:var(--f-cond);font-weight:700;font-size:20px;letter-spacing:.02em;text-align:left;padding:12px 18px;border-radius:10px;border:1px solid var(--line-hi);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;min-height:50px}
+.tbtn:hover,.tbtn:focus-visible{border-color:var(--accent);background:rgba(240,163,43,.12);outline:none}
+.tbtn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-size:24px}
+.tbtn.primary:hover,.tbtn.primary:focus-visible{background:#ffb64a;box-shadow:0 0 0 3px rgba(240,163,43,.35)}
+.tnote{margin:0;font-size:12.5px;color:var(--muted)}
+.tcap{position:absolute;right:24px;bottom:calc(20px + env(safe-area-inset-bottom,0px));font-family:var(--f-cond);font-weight:600;font-size:15px;letter-spacing:.04em;color:#e7edef;text-shadow:0 1px 6px rgba(0,0,0,.8);padding:6px 12px;border-radius:8px;background:rgba(6,11,15,.45)}
+#title.paused .tcap{display:none}
+#titleFade{position:absolute;inset:0;z-index:19;background:#05090c;opacity:0;pointer-events:none;transition:opacity .6s}
+body.title #topbar,body.title #hud,body.title .build-only,body.title #toast{visibility:hidden}
+.menubtn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px}
+.menubtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+@media (max-width:760px){.menubtn span{display:none}#title{padding:16px;background:rgba(6,11,15,.6)}.tmenu{align-self:flex-end}}
+@media (orientation:portrait) and (min-width:761px){#title:not(.paused){background:linear-gradient(0deg,rgba(6,11,15,.85) 0%,rgba(6,11,15,.5) 36%,rgba(6,11,15,0) 60%)}#title:not(.paused) .tmenu{align-self:flex-end}}
+/* cloud saves line in the vehicle library */
+.cloudrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(127,208,255,.35);border-radius:9px;background:rgba(127,208,255,.07);flex-wrap:wrap}
+.cloudrow .grow{flex:1;min-width:180px;display:flex;flex-direction:column;gap:2px}
+.cloudrow b{font-family:var(--f-cond);font-weight:700;font-size:15px}
+.cloudrow code{font-family:var(--f-mono);font-size:13px;color:#cfeaff;user-select:all;-webkit-user-select:all}
+.cloudrow .meta{font-size:12.5px;color:var(--muted)}
+.cloudic{font-size:22px;color:#9fd4ff}
+.cloudslot:empty{display:none}
 #crosshairNote{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:12px;color:var(--muted);padding:6px 12px}
 
 /* modal + toast */
@@ -248,7 +312,9 @@ body.map #keys,body.map .cluster{opacity:.85}
 
 @media (max-width:1180px){
   #hint{display:none}
-  #raceBox{top:108px}
+}
+@media (max-width:1000px){
+  #mapBar{left:16px;transform:none;max-width:calc(100% - 290px)}
 }
 @media (max-width:980px){
   #keys{display:none}
@@ -270,7 +336,9 @@ body.map #keys,body.map .cluster{opacity:.85}
   #toolsToggle{display:inline-block}
   #rotInfo{display:none}
   .cluster{left:8px;right:8px;bottom:8px;min-width:0}
-  #orbitBox{right:8px;top:112px}
+  #orbitBox{right:8px}
+  #mapBar{left:8px;max-width:calc(100% - 16px)}
+  body.map #orbitBox{top:calc(var(--topH,58px) + 96px)}
   #cols2{grid-template-columns:1fr}
   .cols{grid-template-columns:1fr}
 }
@@ -287,6 +355,7 @@ body.map #keys,body.map .cluster{opacity:.85}
   </div>
 
   <header id="topbar">
+    <button id="btnMenu" type="button" class="btn menubtn" title="Menu (Esc)" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
     <div class="brand">SCRAP<span>LINE</span></div>
     <div class="seg" id="modeSeg" role="tablist" aria-label="Mode">
       <button id="btnBuild" class="on" type="button" role="tab" title="Build mode (B)">Build</button>
@@ -298,8 +367,6 @@ body.map #keys,body.map .cluster{opacity:.85}
       <button id="btnVehicles" type="button" class="btn">Vehicles</button>
       <button id="btnSpawnVeh" type="button" class="btn drive-only">Spawn vehicle</button>
       <button id="toolsToggle" type="button" class="btn build-only">Tools</button>
-      <button id="btnSettings" type="button" class="btn">Settings</button>
-      <button id="btnHelp" type="button" class="btn">Help</button>
     </div>
   </header>
 
@@ -363,13 +430,18 @@ body.map #keys,body.map .cluster{opacity:.85}
       <div id="hookRow" hidden></div>
       <div class="chips" id="hChips"></div>
       <div id="sasRow" hidden></div>
+      <div id="baseRow" hidden><button type="button" class="btn" id="btnBase">Base mode</button></div>
     </div>
     <div id="orbitBox" class="panel" hidden></div>
+    <div id="mapBar" class="panel" hidden></div>
+    <div id="basePanel" class="panel" hidden></div>
     <div id="banner" class="panel" hidden></div>
     <div id="raceBox" class="panel" hidden></div>
     <div id="keys" class="panel"></div>
   </div>
 
+  <div id="title" hidden></div>
+  <div id="titleFade"></div>
   <div id="modalWrap" hidden><div class="modal panel" id="modal" role="dialog" aria-modal="true"></div></div>
   <div id="toast" role="status"></div>
 </div>
@@ -698,13 +770,12 @@ function setupWorld() {
   const fwd = new V3().copy(best.t1).multiplyScalar(Math.cos(best.seaAng)).addScaledVector(best.t2, Math.sin(best.seaAng)).normalize();
   WORLD.padFwd.copy(fwd);
   WORLD.padRight.crossVectors(up, fwd).normalize();
-  // sun behind the default camera, high in the sky
-  WORLD.sunDir.copy(up).multiplyScalar(0.74).addScaledVector(fwd, -0.48).addScaledVector(WORLD.padRight, 0.47).normalize();
-  // moon rising low over the sea direction
-  const e1 = new V3().copy(up).multiplyScalar(0.33).addScaledVector(fwd, 0.94).normalize();
-  const nrm = new V3().copy(WORLD.padRight).addScaledVector(up, 0.25).normalize();
-  const e2 = new V3().crossVectors(nrm, e1).normalize();
-  MOON.orbitRef = e1.clone(); MOON.orbitPlaneN = new V3().crossVectors(e1, e2).normalize();
+  // Terra stands upright: its poles lie along the pad's back-and-forward line (so the pad is on the equator), and the Sun,
+  // the planets' orbits and the Moon's all lie in its equator's plane. The game starts mid-morning: the Sun high in the east
+  // (to the pad's right), the Moon low in the west.
+  WORLD.sunDir.copy(up).multiplyScalar(0.74).addScaledVector(WORLD.padRight, 0.67).normalize();
+  const e1 = new V3().copy(up).multiplyScalar(0.33).addScaledVector(WORLD.padRight, -0.94).normalize();
+  MOON.orbitRef = e1.clone(); MOON.orbitPlaneN = fwd.clone().negate();
   // highlands: flattest high spot near the tallest sampled peak
   let hl = best.mtDir.clone(), hlScore = -1e9;
   { const tt1 = new V3(), tt2 = new V3(); tangentBasis(best.mtDir.x, best.mtDir.y, best.mtDir.z, tt1, tt2);
@@ -1129,7 +1200,8 @@ function initSolar() {
   const moonPlan = [[PIP, DUNE, 22000], [KETTLE, DUNE, 40000], [LANTERN, MIRE, 52000], [SLEET, FROST, 30000],
     [EMBER, TEMPEST, 150000], [VANE, TEMPEST, 260000], [TUMBLE, TEMPEST, 420000], [HALO, TEMPEST, 700000], [SHIVER, AZURE, 120000], [DRIFT, AZURE, 300000]];
   for (const [m, p, a] of moonPlan) setOrbit(m, p, a, rnd() * TAU, tilt((rnd() - 0.5) * 0.2), homeRef);
-  // days: Terra turns every 10 minutes about an axis through its poles that keeps the pad on the equator
+  // days: Terra turns every 10 minutes about an axis through its poles that keeps the pad on the equator; with the Sun
+  // set in the equator's plane (see setupWorld) that axis stands straight up out of the planets' plane: no tilt
   const up = WORLD.padUp, ax = nEcl.clone().addScaledVector(up, -nEcl.dot(up));
   if (ax.lengthSq() < 1e-6) ax.copy(WORLD.padRight);
   setSpin(PLANET, ax.normalize(), TERRA_DAY);
@@ -2465,7 +2537,7 @@ function planRails() {
     all = [...stub(first, sgn[0]).reverse(), ...all, ...stub(last, -sgn[sts.length - 1])];
     L.pts = all;
     L.stations = sts;
-    for (let i = 0; i < all.length - 1; i++) { const a = all[i], b = all[i + 1]; a.seg = wsSeg(PLANET.ws, a.d, b.d, a.h, b.h, 3.6, 10, a.bridge && b.bridge, RAIL_COL); }
+    for (let i = 0; i < all.length - 1; i++) { const a = all[i], b = all[i + 1]; a.seg = wsSeg(PLANET.ws, a.d, b.d, a.h, b.h, 3.6, 10, a.bridge && b.bridge, RAIL_COL); a.seg.rail = L; a.seg.ri = i; }
     markRoad(mark, L, 4); ridxAdd(L);
     L.rail = true;
     GLOBE.rails.push(L);
@@ -2892,15 +2964,78 @@ void main(){
   rx.fillStyle = rg; rx.fillRect(0, 0, 256, 256);
   H.ring = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(rk), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
   H.ring.scale.setScalar(R * 2.6 / 0.7 * 2);
-  // starlight bent round the hole: a sphere that shows the stars behind it, each ray turned toward the hole
+  /* starlight bent round the hole: a sphere that shows what lies behind it, seen along bent rays.
+     Fast: each ray is turned once toward the hole (cheap), and the disk above is a flat ring.
+     Balanced and Sharp: each ray is followed step by step as the hole bends it, picking up the disk wherever it
+     crosses it. So the far side of the disk shows bent up over the top of the hole and down under it, the side
+     spinning toward you is brighter and whiter, and a thin ring of light that went right round the hole hugs
+     the shadow. Lengths in the shader are in horizon radii. */
   H.lensR = R * 20;
   H.lensMat = new THREE.ShaderMaterial({
-    uniforms: { tStars: { value: null }, hole: { value: new V3() }, rs: { value: R }, rl: { value: H.lensR }, op: { value: 1 } },
+    defines: { MARCH: 0, STEPS: 48, STEPK: '0.13' },
+    uniforms: { tStars: { value: null }, hole: { value: new V3() }, rs: { value: R }, rl: { value: H.lensR }, op: { value: 1 },
+      time: H.diskMat.uniforms.time, nrm: H.diskMat.uniforms.nrm, e1: { value: new V3(1, 0, 0) }, e2: { value: new V3(0, 0, 1) }, r0: { value: r0 }, r1: { value: r1 } },
     vertexShader: LOGV + 'varying vec3 vW;\nvoid main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w;\n#include <logdepthbuf_vertex>\n}',
-    fragmentShader: LOGF + `uniform samplerCube tStars; uniform vec3 hole; uniform float rs; uniform float rl; uniform float op; varying vec3 vW;
+    fragmentShader: LOGF + `uniform samplerCube tStars; uniform vec3 hole; uniform float rs; uniform float rl; uniform float op;
+uniform float time; uniform vec3 nrm; uniform vec3 e1; uniform vec3 e2; uniform float r0; uniform float r1; varying vec3 vW;` + GLSL_NOISE + `
+#if MARCH
+/* the disk where a ray crosses it at q: colour (premultiplied) and how much it hides what lies behind */
+vec4 disk(vec3 q, vec3 v) {
+  float R0 = r0 / rs, R1 = r1 / rs, r = length(q), t = (r - R0) / (R1 - R0);
+  if (t < 0.0 || t > 1.0) return vec4(0.0);
+  float a0 = atan(dot(q, e2), dot(q, e1)), lr = log(r / R0), w = pow(R0 / r, 1.5);
+  // two copies of the swirl, each wound up over a minute then faded out as the other comes in, so it never winds tight
+  float P = 60.0, ta = mod(time, P), tb = mod(time + P * 0.5, P), fa = abs(ta / P * 2.0 - 1.0);
+  float aa = a0 + ta * 0.9 * w, ab = a0 + tb * 0.9 * w;
+  float na = vnoise(vec3(cos(aa) * 3.0, sin(aa) * 3.0, lr * 9.0)) * 0.6 + vnoise(vec3(cos(aa) * 10.0, sin(aa) * 10.0, lr * 34.0)) * 0.4;
+  float nb = vnoise(vec3(cos(ab) * 3.0, sin(ab) * 3.0, lr * 9.0 + 7.0)) * 0.6 + vnoise(vec3(cos(ab) * 10.0, sin(ab) * 10.0, lr * 34.0 + 7.0)) * 0.4;
+  float n = mix(na, nb, fa);
+  // hotter inside; the side coming toward you brighter and bluer, the side going away dimmer and redder
+  float beta = sqrt(0.5 / r);
+  vec3 vel = normalize(cross(nrm, q));
+  float g = sqrt(1.0 - beta * beta) / (1.0 - beta * dot(vel, -v)) * sqrt(max(0.0, 1.0 - 1.0 / r));
+  float heat = clamp(1.0 - t * 1.25 + (g - 1.0) * 0.6, 0.0, 1.0);
+  vec3 c = mix(vec3(0.55, 0.1, 0.03), vec3(1.0, 0.5, 0.16), smoothstep(0.0, 0.45, heat));
+  c = mix(c, vec3(1.0, 0.93, 0.82), smoothstep(0.45, 0.85, heat));
+  c = mix(c, vec3(0.86, 0.92, 1.0), smoothstep(0.85, 1.0, heat));
+  float edge = smoothstep(0.0, 0.03, t) * (1.0 - smoothstep(0.7, 1.0, t));
+  float b = pow(1.0 - t, 1.3) * (0.35 + 1.0 * n) * edge * clamp(pow(g, 3.0), 0.12, 4.0);
+  float al = clamp(edge * (0.55 + 0.45 * n) * (1.0 - t * 0.6), 0.0, 0.97);
+  return vec4(c * b * 1.7, al);
+}
+#endif
 void main(){
 #include <logdepthbuf_fragment>
   vec3 d = normalize(vW - cameraPosition);
+#if MARCH
+  vec3 p = (cameraPosition - hole) / rs; float RL = rl / rs;
+  float bq = dot(p, d), cq = dot(p, p) - RL * RL, disc = bq * bq - cq;
+  if (disc <= 0.0) discard;
+  p += d * max(0.0, -bq - sqrt(disc));   // start where the ray comes into the sphere (or at the camera, inside it)
+  vec3 v = d, L = cross(p, v); float h2 = dot(L, L);
+  float bimp = sqrt(h2);                 // how near the ray would pass if nothing bent it
+  vec3 col = vec3(0.0); float tr = 1.0; bool lost = false;
+  float s0 = dot(p, nrm);
+  for (int i = 0; i < STEPS; i++) {
+    float r = length(p);
+    if (r < 1.0) { lost = true; break; }
+    if (r > RL && dot(p, v) > 0.0) break;
+    float dt = STEPK * r;
+    vec3 acc = -1.5 * h2 * p / pow(r, 5.0);
+    v += acc * dt;
+    vec3 p1 = p + v * dt;
+    float s1 = dot(p1, nrm);
+    if (s0 * s1 < 0.0) {
+      vec4 e = disk(mix(p, p1, s0 / (s0 - s1)), normalize(v));
+      col += tr * e.rgb * e.a; tr *= 1.0 - e.a;
+      if (tr < 0.02) break;
+    }
+    p = p1; s0 = s1;
+    if (i == STEPS - 1 && length(p) < 3.0) lost = true;
+  }
+  vec3 bg = lost ? vec3(0.0) : textureCube(tStars, normalize(v)).rgb;
+  gl_FragColor = vec4(col + tr * bg, op * (1.0 - smoothstep(RL * 0.9, RL, bimp)));
+#else
   vec3 h = hole - cameraPosition;
   float along = dot(h, d);
   vec3 perp = h - d * along;
@@ -2912,9 +3047,16 @@ void main(){
   vec3 nd = normalize(d * cos(ang) + toward * sin(ang));
   vec3 c = textureCube(tStars, nd).rgb;
   gl_FragColor = vec4(c, op * (1.0 - smoothstep(rl * 0.9, rl, b)));
+#endif
 }`,
     transparent: true, depthWrite: false, side: THREE.BackSide, fog: false
   });
+  /* how hard the hole is drawn: follows the Graphics setting */
+  H.setQuality = function (q) {
+    const m = q === 'low' ? 0 : 1, s = q === 'high' ? 96 : 48, k = q === 'high' ? '0.085' : '0.13', D = H.lensMat.defines;
+    if (D.MARCH === m && D.STEPS === s && D.STEPK === k) return;
+    D.MARCH = m; D.STEPS = s; D.STEPK = k; H.lensMat.needsUpdate = true; H.march = !!m;
+  };
   H.lens = new THREE.Mesh(new THREE.SphereGeometry(H.lensR, 64, 48), H.lensMat);
   H.lens.renderOrder = -1.5; H.lens.frustumCulled = false;
   scene.add(H.horizon, H.disk, H.ring, H.lens);
@@ -2957,6 +3099,7 @@ function makeSky(scene) {
   // the disk lies in the plane its world circles in
   const hn = new V3().crossVectors(GLOOM.e1, GLOOM.e2).normalize();
   sky.hole.disk.quaternion.setFromUnitVectors(new V3(0, 1, 0), hn); sky.hole.diskMat.uniforms.nrm.value.copy(hn);
+  { const u = sky.hole.lensMat.uniforms; u.e1.value.copy(GLOOM.e1).addScaledVector(hn, -GLOOM.e1.dot(hn)).normalize(); u.e2.value.crossVectors(hn, u.e1.value); }
   /* the stars as seen from anywhere (they are infinitely far), drawn once into a cube for the black hole to bend */
   sky.makeStarCube = function (renderer) {
     const rt = new THREE.WebGLCubeRenderTarget(512, { format: THREE.RGBFormat, generateMipmaps: false, minFilter: THREE.LinearFilter });
@@ -3137,6 +3280,8 @@ void main(){
         H.diskMat.uniforms.time.value = (W.time % 100000);
         H.lensMat.uniforms.hole.value.subVectors(MAW.center, cam);   // drawn with the camera at the origin
         H.lens.visible = !!H.lensMat.uniforms.tStars.value && d < 4e8;
+        // the followed rays draw the shadow, the disk and the ring themselves
+        if (H.march && H.lens.visible) H.horizon.visible = H.disk.visible = H.ring.visible = false;
       }
     }
     for (const o of sky.suns) {
@@ -3832,6 +3977,35 @@ trackDef('track', 'Track', 1.25, .6, .9, .25, [-1.25, -.42, .42, 1.25], cellsBox
   'A tank track with a 30 kW motor. Goes almost anywhere, slowly. The steering keys turn by driving the two sides at different speeds. Mount one on each side.');
 trackDef('track_s', 'Small Track', .8, .45, .45, 0, [-.8, 0, .8], cellsBox(-2, 2, 0, 0, -1, 1), 70, 12000, 9, 140,
   'A narrow track with a 12 kW motor, for small diggers and robots. Turns like a tank.');
+// Storage Modules: crates of base parts to set down as a base once you land (Base mode, in drive)
+function storageGeo(g, P, w, h, d) {
+  g.chamfer(w, h, d, .06, P, 0, h / 2 - .25, 0);
+  for (const s of [-1, 1]) { g.box(w * .98, h * .12, .04, 0, h * .5 - .25, s * (d / 2 + .01), COL.dark); g.box(.04, h * .12, d * .98, s * (w / 2 + .01), h * .5 - .25, 0, COL.dark); }
+  g.box(w * .5, .03, d * .5, 0, h - .24, 0, COL.haz);
+}
+defPart({ id: 'storage', name: 'Storage Module', cat: 'Space', mass: 700, hp: 220, buoy: 0.35, cells: cellsBox(-1, 1, 0, 1, -1, 1), storage: 12, dc: 5,
+  desc: 'Holds 12 crates of base parts. Land with it, stop, and press Base mode to build a base: habitats, domes, pads, hangars and more.',
+  build(g, P) { storageGeo(g, P, 1.46, 0.96, 1.46); } });
+defPart({ id: 'storage_big', name: 'Big Storage Module', cat: 'Space', mass: 2200, hp: 520, buoy: 0.35, cells: cellsBox(-2, 2, 0, 2, -2, 2), storage: 40, dc: 5,
+  desc: 'Holds 40 crates of base parts: enough for a whole colony. Heavy: it needs a big rocket.',
+  build(g, P) { storageGeo(g, P, 2.46, 1.46, 2.46); } });
+// rail bogies: four flanged wheels on a frame, mounted under a deck. Near a railway they lock onto the track and steer
+// themselves along it; take a bend too fast and they jump off
+function bogieGeo(g, P) {
+  for (const x of [-.98, .98]) { g.box(.12, .26, 2.3, x, .5, 0, COL.dark); g.box(.14, .1, 2.0, x, .66, 0, P); }
+  g.box(2.0, .2, .5, 0, .35, 0, COL.dark); g.box(.7, .25, .7, 0, .15, 0, P);
+  for (const z of [-.9, .9]) g.cyl(.07, .07, 1.62, 10, 0, .62, z, COL.metal, 0, 0, Math.PI / 2);
+  for (const z of [-.55, .55]) for (const x of [-.98, .98]) g.cyl(.08, .08, .3, 8, x, .42, z, COL.haz);
+}
+function bogieDef(id, name, power, vmax, mass, desc) {
+  const r = .42, hubY = .62, xs = [[-.75, -.9], [-.75, .9], [.75, -.9], [.75, .9]];
+  defPart({ id, name, cat: 'Land', mass, hp: 160, buoy: 0.05, attach: 'base', kind: 'wheel', cells: cellsBox(-1, 1, 0, 1, -2, 2),
+    wheel: { r, w: .14, hubY, power, vmax, L: .18, steer: 0, grip: 1.1, stiff: 1.4, bogie: { xs } }, desc,
+    build: bogieGeo,
+    dyn: xs.map(([x, z], wi) => ({ type: 'wheel', wi, pivot: [x, hubY, z], build(g, P) { g.cyl(r, r, .14, 20, 0, 0, 0, COL.metal); g.cyl(r + .05, r + .05, .03, 20, 0, -.06, 0, COL.dark); g.cyl(.12, .12, .17, 10, 0, 0, 0, power ? COL.amber : COL.dark); } })) });
+}
+bogieDef('bogie', 'Rail Bogie', 0, 45, 120, 'Four flanged train wheels on a frame, with no motor. Mount it under a deck: on a railway it locks onto the track and steers itself. Too fast round a bend and it jumps the rails.');
+bogieDef('bogie_drive', 'Powered Rail Bogie', 60000, 34, 190, 'A rail bogie with a 60 kW motor in it. Two make a locomotive. Space drives, S brakes. Too fast round a bend and it jumps the rails.');
 // more wheels
 wheelDef('wheel_tiny', 'Tiny Wheel', .18, .14, [[0, 0, 0]], 0, 5, 2500, 22, .12, 0, 25, { desc: 'A little 2.5 kW wheel for karts, robots and toys.' });
 wheelDef('wheel_tiny_steer', 'Tiny Steering Wheel', .18, .14, [[0, 0, 0]], 0, 5, 2500, 22, .12, .6, 25, { hub: COL.amber, desc: 'A little steering wheel for karts, robots and toys.' });
@@ -4028,6 +4202,7 @@ class PartInst {
     const def = this.def = PD[t];
     this.t = t; this.a = a; this.m = m; this.c = c; this.uid = uid || ++PUID; this.cfg = cfg || null;
     this.hp = def.hp; this.alive = true; this.body = null; this.mass = def.mass; this.broken = false; this.fuel = def.fuel || 0;
+    if (def.storage) this.crates = def.storage;
     this.cells = footprint(def, a, m);
     this.keys = this.cells.map(c => ckey(c[0], c[1], c[2]));
     let sx = 0, sy = 0, sz = 0; for (const c of this.cells) { sx += c[0]; sy += c[1]; sz += c[2]; }
@@ -4153,7 +4328,7 @@ function designStats(design) {
     const d = p.def; dry += d.mass; if (d.fuel) fuel += d.fuel;
     // power and thrust limits from each part's settings
     const pk = d.kind === 'rocket' || d.kind === 'jet' || d.kind === 'prop' || d.kind === 'boatprop' || d.kind === 'engine' || d.kind === 'wheel' || d.kind === 'gyro' ? cfgGet(p, 'power') / 100 : 1;
-    if (d.kind === 'wheel' && Math.abs(mapply(p.m, [0, 1, 0])[1]) < 0.5) { nWheels++; if (d.wheel.track) nTracks++; power += d.wheel.power * pk; }
+    if (d.kind === 'wheel' && (d.wheel.bogie || Math.abs(mapply(p.m, [0, 1, 0])[1]) < 0.5)) { nWheels++; if (d.wheel.track) nTracks++; power += d.wheel.power * pk; }
     if (d.kind === 'hover') hover++;
     if (d.kind === 'engine') power += d.power * pk;
     if (d.kind === 'rocket' && !nozzleBlocked(p, grid) && !d.ion) { rocket += d.thrust * pk; veSum += d.thrust * pk * (d.ve || VE); }
@@ -4204,7 +4379,7 @@ function ex(name, list) {
     const def = PD[t]; if (!def) { console.warn('unknown part', t); continue; }
     // wheels: a number turns them from pressing down, 's-x' and friends name the way they press
     let ks;
-    if (def.kind === 'wheel') {
+    if (def.kind === 'wheel' && !def.wheel.bogie) {
       if (typeof k === 'string' && k[0] === 's') { const kk = wheelSpringK(NV[n], NV[k.slice(1)]); if (kk < 0) console.warn('wheel cannot press that way', name, e); ks = [Math.max(0, kk)]; }
       else ks = [((k | 0) + wheelDownK(NV[n])) % 4];
     } else ks = k === 'auto' ? [0, 1, 2, 3] : [k];
@@ -4449,15 +4624,49 @@ function exDigger() {
   L.push(['drill', 0, -1, 9, '+z', 0, 0, 4]);
   return ex('Digger', L);
 }
+/* a truck carrying two Storage Modules of base parts: drive it anywhere, stop, and build a base */
+function exHauler() {
+  const L = [['seat_cabin', 0, 0, 3, '+y', 0, 0, 3], ['block', -1, 0, 3, '+y', 0, 0, 3], ['block', 1, 0, 3, '+y', 0, 0, 3], ['lightbar', 0, 1, 3, '+y', 0, 0, 2]];
+  for (let x = -1; x <= 1; x++) for (let z = -4; z <= 4; z++) L.push(['block', x, -1, z, '+y', 0, 0, x ? 4 : 3]);
+  for (let x = -1; x <= 1; x++) L.push(['wedge', x, 0, 4, '+y', 0, 0, 3]);
+  L.push(['engine', 0, 0, 2], ['heavy_block', -1, 0, 2, '+y', 0, 0, 4], ['heavy_block', 1, 0, 2, '+y', 0, 0, 4], ['light', -1, -1, 5, '+z'], ['light', 1, -1, 5, '+z']);
+  L.push(['storage', 0, 0, 0, '+y', 0, 0, 5], ['storage', 0, 0, -3, '+y', 0, 0, 5]);
+  L.push(['wheel_l_steer', 2, -1, 3, '+x', 0, 0, 1], ['wheel_l_steer', -2, -1, 3, '-x', 0, 0, 1], ['wheel_l', 2, -1, -3, '+x', 0, 0, 1], ['wheel_l', -2, -1, -3, '-x', 0, 0, 1]);
+  return ex('Base Hauler', L);
+}
+/* a little diesel locomotive on two Powered Rail Bogies, with a coupler at each end to pull wagons */
+function exLoco() {
+  const L = [];
+  // the frame: a deck 2.5 m wide and 7.5 m long, with a bogie under each end
+  for (let x = -2; x <= 2; x++) for (let z = -7; z <= 7; z++) L.push([Math.abs(x) === 2 ? 'block' : 'heavy_block', x, 0, z, '+y', 0, 0, 4]);
+  L.push(['bogie_drive', 0, -1, -4, '-y', 0, 0, 4], ['bogie_drive', 0, -1, 4, '-y', 0, 0, 4]);
+  // the cab at the front
+  L.push(['seat_cabin', 0, 1, 5, '+y', 0, 0, 2]);
+  for (const x of [-2, -1, 1, 2]) for (let z = 4; z <= 6; z++) L.push(['block', x, 1, z, '+y', 0, 0, 2]);
+  for (const x of [-2, 2]) for (let z = 4; z <= 6; z++) L.push(['window', x, 2, z, '+y', 0, 0, 8]);
+  for (let x = -1; x <= 1; x++) L.push(['window', x, 2, 7, '+y', 0, 0, 8]);
+  for (let x = -2; x <= 2; x++) L.push(['block', x, 1, 7, '+y', 0, 0, 2]);
+  for (const x of [-2, -1, 0, 1, 2]) for (let z = 4; z <= 7; z++) L.push(['slab', x, 3, z, '+y', 0, 0, 5]);
+  // the long hood with the engines in it, and a horn on top
+  for (let x = -1; x <= 1; x++) for (let z = -6; z <= 3; z++) L.push([x === 0 && (z === -3 || z === 0) ? 'engine' : 'block', x, 1, z, '+y', 0, 0, 2]);
+  for (let x = -1; x <= 1; x++) for (let z = -6; z <= 3; z++) L.push(['slab', x, 2, z, '+y', 0, 0, x ? 2 : 4]);
+  L.push(['horn', 0, 3, -1, '+y', 0, 0, 4]);
+  // lights front and back, couplers at both ends
+  L.push(['light', -1, 0, 8, '+z'], ['light', 1, 0, 8, '+z'], ['light_color', -2, 0, -8, '-z', 0, 0, 2], ['light_color', 2, 0, -8, '-z', 0, 0, 2]);
+  L.push(['coupler', 0, 0, 8, '+z', 0, 0, 4], ['coupler', 0, 0, -8, '-z', 0, 0, 4]);
+  return ex('Locomotive', L);
+}
 let EXAMPLES = [];
 function buildExamples() {
   EXAMPLES = [
     { d: exRover(), blurb: 'Four-wheel starter car.' },
     { d: exBruiser(), blurb: 'Monster truck. 2.3 t, built for ramming.' },
     { d: exRacer(), blurb: 'Race car on Racing Wheels. Fast enough for the stunt park loop: spawn at Stunt park and floor it.' },
-    { d: exTank(), blurb: 'Tank on tracks. {left} {right} turn it on the spot. {fire} or a click fires the cannon and machine gun, {rotor_l} and {rotor_r} turn the turret, {horn} honks.' },
+    { d: exTank(), blurb: 'Tank on tracks. {left} {right} turn it on the spot. {fire} fires the cannon and machine gun, {rotor_l} and {rotor_r} turn the turret, {horn} honks.' },
     { d: exChopper(), blurb: 'Helicopter. Hold {fwd} to climb, {descend} to sink, let go to hover. {pitch_dn} {pitch_up} {roll_l} {roll_r} tilt it, {left} {right} turn.' },
     { d: exHover(), blurb: 'Hovercraft on four Hover Pads: it floats over land and sea alike. {fwd} drives the fans, {left} {right} turn.' },
+    { d: exHauler(), blurb: 'Truck carrying two Storage Modules: 24 crates of base parts. Drive it somewhere, stop, and tap Base mode to build a base. Try it on the Moon or Iris too.' },
+    { d: exLoco(), blurb: 'Locomotive on two Powered Rail Bogies. Spawn it at a railway station (Spawn at, Railways) and it sits on the track: {fwd} drives, {back} brakes, {horn} honks. Take bends gently or it derails.' },
     { d: exTruck(), blurb: 'Truck towing a trailer on a Coupler. {undock} unhitches it, {lights} flashes the light bar. Back a coupler into another to hitch up.' },
     { d: exDigger(), blurb: 'Digger on tracks. {hinge_a} and {hinge_b} raise the arm, hold {fire} to spin the drill, {lights} for the light bar.' },
     { d: exKestrel(), blurb: 'Jet plane. Hold {fwd}, it lifts off near 110 km/h.' },
@@ -4633,7 +4842,7 @@ class Body {
     // gyros, logic blocks and parts that act once per key press (each listens to its own keys)
     this.gyros = []; this.logic = []; this.acts = [];
     this.balloons = []; this.magnets = []; this.guns = []; this.horns = [];
-    this.hovers = []; this.drills = []; this.couplers = []; this.lightbars = [];
+    this.hovers = []; this.drills = []; this.couplers = []; this.lightbars = []; this.bogies = [];
     let gyro = 0, rcs = 0, power = 0, nDriven = 0, rad = 0, drad = 0;
     const gid = new Map();
     this.fgroups = partComponents(this.parts.filter(p => p.def.kind !== 'decoupler')).map((c, i) => { for (const p of c) gid.set(p, i); return { tanks: c.filter(p => p.def.fuel), dem: 0, sc: 0 }; });
@@ -4647,8 +4856,23 @@ class Body {
       const at = (k) => new V3(A[0] + colY[0] * k, A[1] + colY[1] * k, A[2] + colY[2] * k);
       switch (d.kind) {
         case 'wheel': {
-          if (Math.abs(colY[1]) > 0.5) break;
           const Wd = d.wheel;
+          if (Wd.bogie) {
+            // a rail bogie hangs under the deck (its own +Y points down): four wheels, axles across it
+            const dn = new V3(colY[0], colY[1], colY[2]), ax = new V3(colX[0], colX[1], colX[2]), mid = at(Wd.hubY);
+            for (const [tx, tz] of Wd.bogie.xs) {
+              const hub = mid.clone().addScaledVector(ax, tx).add(new V3(colZ[0] * tz, colZ[1] * tz, colZ[2] * tz));
+              const w = makeWheel(p, hub, ax.clone(), dn.clone(), Wd.r, Wd.L);
+              w.vmax = Wd.vmax; w.mu = Wd.grip; w.stiff = Wd.stiff; w.pw = cfgGet(p, 'power') / 100; w.vlim = Math.min(Wd.vmax, cfgGet(p, 'speed') / 3.6);
+              w.brkK = cfgGet(p, 'brake') / 100; w.inv = cfgGet(p, 'inv') ? -1 : 1; w.steerMode = 0; w.rail = true;
+              let reach = 0; for (const cc of p.cells) reach = Math.max(reach, (cc[0] * CELL - hub.x) * dn.x + (cc[1] * CELL - hub.y) * dn.y + (cc[2] * CELL - hub.z) * dn.z); w.reach = reach + CELL / 2;
+              this.wheels.push(w); nDriven++; rad = Math.max(rad, hub.distanceTo(c) + Wd.r);
+            }
+            this.bogies.push({ p, pos: mid, lat: ax, fwd: new V3(colZ[0], colZ[1], colZ[2]), on: false, off: 0, over: 0 });
+            power += Wd.power;
+            break;
+          }
+          if (Math.abs(colY[1]) > 0.5) break;
           // the wheel presses toward its local -Z: down for a car, sideways or up to grip a wall or a truss
           const dn = new V3(-colZ[0], -colZ[1], -colZ[2]);
           // a track is a row of road wheels along its length, all sprung and driven together
@@ -4837,7 +5061,7 @@ class Body {
         if (d.type === 'text') base.multiply(new THREE.Matrix4().makeScale(def.text.w, 1, def.text.h));
         const vo = { mesh, base, p, d, ang: Math.random() * TAU, up: null, glow };
         switch (d.type) {
-          case 'wheel': vo.we = this.wheels.filter(w => w.p === p)[d.wi || 0] || null; vo.rot = rotOnly(p.m); vo.up = visWheel; break;
+          case 'wheel': vo.we = this.wheels.filter(w => w.p === p)[d.wi || 0] || null; vo.rot = rotOnly(p.m); if (def.wheel && def.wheel.bogie) vo.rot.multiply(new THREE.Matrix4().makeRotationZ(Math.PI / 2)); vo.up = visWheel; break;
           case 'flag': vo.up = visFlag; break;
           case 'drill': vo.dr = this.drills.find(e => e.p === p) || null; vo.up = visDrill; break;
           case 'flashA': case 'flashB': case 'dimA': case 'dimB': vo.up = visFlash; break;
@@ -5041,6 +5265,61 @@ class Body {
     if (this.drills.length) this.drillStep(dt);
     if (sc) this.water(sc); else { this.wasWet = false; this.lava = 0; }
     if (this.wheels.length) this.wheelForces(dt);
+    if (this.bogies.length) this.bogieForces(dt);
+  }
+  /* rail bogies: find the railway under each one and pull it sideways onto the line (two bogies also turn the vehicle
+     along it). Past about 0.7 g sideways, or knocked half a metre off the line, it jumps the rails */
+  bogieForces(dt) {
+    const ws = PLANET.ws; if (!ws || !ws.on) return;
+    for (const w of this.wheels) if (w.rail) w.railOn = this.bogies.some(b => b.on && b.p === w.p);
+    const R = PLANET.R, on = this.bogies.filter(b => b.on).length || 1, m = this.mass / Math.max(on, this.bogies.length > 1 ? 2 : 1);
+    for (const bg of this.bogies) {
+      if (!bg.p.alive) { bg.on = false; continue; }
+      this.toWorld(bg.pos.x, bg.pos.y, bg.pos.z, _p);
+      const lp = toSpin(PLANET, _bgA.subVectors(_p, PLANET.center), _bgA), r = lp.length();
+      if (r - R > 1200) { bg.on = false; continue; }
+      const ux = lp.x / r, uy = lp.y / r, uz = lp.z / r;
+      const list = ws.grid.get(wsKey(ws, ux, uy, uz));
+      let best = null, bd = 1.6;
+      if (list) for (const it of list) {
+        if (!it.rail) continue;
+        let t = ((ux - it.x0) * it.ex + (uy - it.y0) * it.ey + (uz - it.z0) * it.ez) / it.l2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+        const h = it.h0 + (it.h1 - it.h0) * t + RAIL_TOP, cx = it.x0 + it.ex * t, cy = it.y0 + it.ey * t, cz = it.z0 + it.ez * t, cl = Math.hypot(cx, cy, cz);
+        const px = cx / cl * (R + h), py = cy / cl * (R + h), pz = cz / cl * (R + h);
+        const up = r - (R + h);   // the hubs ride a wheel's radius over the rail tops
+        if (up < -0.3 || up > 1.6) continue;
+        const dx = lp.x - px, dy = lp.y - py, dz = lp.z - pz, rad = dx * ux + dy * uy + dz * uz;
+        const lat = Math.hypot(dx - rad * ux, dy - rad * uy, dz - rad * uz);
+        if (lat < bd) { bd = lat; best = { it, px, py, pz }; }
+      }
+      if (bg.off > 0) { bg.off -= dt; if (bg.off > 0 || bd > 0.25) { bg.on = false; continue; } }
+      if (!best) { if (bg.on && bd >= 1.6) bg.on = false; continue; }
+      // the line's sideways direction here, in the world's own frame
+      const it = best.it, tl = Math.sqrt(it.l2);
+      _bgT.set(it.ex / tl, it.ey / tl, it.ez / tl); _bgU.set(ux, uy, uz);
+      _bgS.crossVectors(_bgT, _bgU).normalize();
+      const e = (lp.x - best.px) * _bgS.x + (lp.y - best.py) * _bgS.y + (lp.z - best.pz) * _bgS.z;
+      // sideways speed against the ground
+      this.velAt(_p, _bgV).sub(surfaceVel(PLANET, _p, _bgW)); toSpin(PLANET, _bgV, _bgV);
+      const vl = _bgV.dot(_bgS), w = 10, F = -(m * w * w * e + 2 * m * w * vl);
+      if (!bg.on && Math.abs(e) > 0.25) continue;   // lowered onto the track: it has to come down close to the line
+      // how hard the bend pulls sideways at this speed (v² × the line's curvature here): past RAIL_LAT it jumps the rails
+      // (about twice what the timetabled trains allow themselves, and before a tall engine would tip over)
+      const P = it.rail.pts, i1 = Math.min(it.ri + 1, P.length - 2), i0 = Math.max(0, i1 - 1);
+      _bgV.subVectors(P[i1].d, P[i0].d); _bgW.subVectors(P[i1 + 1].d, P[i1].d);
+      const kk = Math.acos(clamp(_bgV.dot(_bgW) / (_bgV.length() * _bgW.length() || 1), -1, 1)) / (_bgV.length() * R || 1);
+      this.velAt(_p, _bgV).sub(surfaceVel(PLANET, _p, _bgW)); const vv = _bgV.lengthSq();
+      if (vv * kk > RAIL_LAT || Math.abs(e) > 0.6) bg.over += dt; else bg.over = Math.max(0, bg.over - dt);
+      if (bg.over > 0.25) {
+        bg.on = false; bg.off = 2; bg.over = 0;
+        if (this === G.player || (G.player && machineOf(G.player).includes(this))) { toast('Derailed! Too fast for that bend', 1800); SND.at('crash', _p, 0.5); }
+        continue;
+      }
+      bg.on = true; bg.line = it.rail; bg.ri = it.ri; bg.tdir = Math.sign(_bgV.copy(this.v).sub(surfaceVel(PLANET, _p, _bgW)).dot(fromSpin(PLANET, _bgT, _bgW))) || 1;
+      const Fc = clamp(F, -m * 12, m * 12);
+      fromSpin(PLANET, _bgS, _bgW);
+      this.addForceAt(_bgW.x * Fc, _bgW.y * Fc, _bgW.z * Fc, _p);
+    }
   }
   /* hover pads: a spring of air between each pad and the ground or water below it, up to HOVER_H away */
   hoverForces(sea) {
@@ -5144,7 +5423,7 @@ class Body {
       const half = w.L * 0.5, maxT = w.L + w.r;
       _q.set(_p.x + ux * half, _p.y + uy * half, _p.z + uz * half);
       _a.set(-ux, -uy, -uz);
-      let hit = groundRay(_q, _a, maxT), x = hit ? maxT - hit.t : 0, onB = null, lat = false;
+      let hit = groundRay(_q, _a, maxT, w.rail), x = hit ? maxT - hit.t : 0, onB = null, lat = false;
       // other vehicles and towers: wheels ride on them too, and clamp onto trusses
       if (others && !w.gear) {
         const reachT = w.leg ? maxT : Math.max(maxT, half + w.reach + 0.3);
@@ -5186,7 +5465,8 @@ class Body {
         const sx = n.y * fz - n.z * fy, sy = n.z * fx - n.x * fz, sz = n.x * fy - n.y * fx;
         const vlong = _u.x * fx + _u.y * fy + _u.z * fz, vlat = _u.x * sx + _u.y * sy + _u.z * sz;
         const mu = w.leg ? 0.9 : lat ? 2.0 : w.mu || 1.05, lim = mu * Fs;
-        let Flat = -clamp(vlat / (lat ? 0.8 : 0.6), -1, 1) * lim * (w.track ? 0.55 : 1), Flong = 0;
+        // a rail wheel locked onto the track leaves the sideways work to its bogie (the flanges): its tyre does not fight the bend
+        let Flat = -clamp(vlat / (lat ? 0.8 : 0.6), -1, 1) * lim * (w.track ? 0.55 : w.railOn ? 0.04 : 1), Flong = 0;
         if (w.leg) Flong = -clamp(vlong / 0.35, -1, 1) * lim;
         else if (lat) {
           // clamped on a truss
@@ -5312,6 +5592,8 @@ function makeWheel(p, hub, axle, dn, r, L) {
     // inputs (set each frame for the machine you drive) and settings
     thr: 0, brk: 0, st: 0, rev: false, pw: 1, vlim: 0, brkK: 1, inv: 1, steerMode: 1 };
 }
+const RAIL_LAT = 3.4;
+const _bgA = new V3(), _bgT = new V3(), _bgU = new V3(), _bgS = new V3(), _bgV = new V3(), _bgW = new V3();
 /* ---------- part visual animators ---------- */
 const _m3 = new THREE.Matrix4();
 function visWheel(vo, b, dt) {
@@ -5466,7 +5748,8 @@ function rayCel(cel, ox, oy, oz, d, maxT) {
   }
   return lo + (hi - lo) * flo / (flo - fhi);
 }
-function groundRay(o, d, maxT) {
+/* flanged (rail) wheels: a rail's sloping sides do not push them off it, their flanges hold them on */
+function groundRay(o, d, maxT, flanged) {
   let bt = 1e9, bc = null, bp = null;
   for (const cel of ROCKY) {
     const ox = o.x - cel.center.x, oy = o.y - cel.center.y, oz = o.z - cel.center.z;
@@ -5498,6 +5781,7 @@ function groundRay(o, d, maxT) {
     const r = Math.hypot(px, py, pz), ux = px / r, uy = py / r, uz = pz / r;
     surfaceNormal(bc, ux, uy, uz, bc.height(ux, uy, uz), _hit.n);
   }
+  if (flanged && bp && bp.tag === 'rail') _hit.n.set(o.x + d.x * bt - bp.cel.center.x, o.y + d.y * bt - bp.cel.center.y, o.z + d.z * bt - bp.cel.center.z).normalize();
   surfaceVel(bc || bp.cel, _pd.set(o.x + d.x * bt, o.y + d.y * bt, o.z + d.z * bt), _hit.sv);
   if (bp && bp.mover) _hit.sv.add(fromSpin(bp.cel, moverVel(bp, _hit.lp, _pd), _pd));
   _hit.mover = bp && bp.mover ? bp : null;
@@ -6806,6 +7090,95 @@ function arcSlabs(site, M, cx, cy, r, a0, a1, n, w, th, col, zf) {
   site.put(g, M);
 }
 
+/* ---------- ground over tunnels ----------
+   The terrain makes room for a tunnel by cutting a trench (it is a height map, it cannot hold a hole), so a tunnel is
+   walls and a roof down in that cut. Over it goes a sheet of hillside at the land's own height and colour, solid earth
+   under that sheet so you can drive over the top, and a concrete headwall at each mouth. pts/side: the path and its
+   sideways directions; o.tun: the walls' half spacing, o.tunH: the roof's underside, o.half: how wide the cut is. */
+function tunnelCover(site, pts, side, i0, i1, o) {
+  const isT = i => pts[i] && pts[i + 1] && pts[i].tunnel && pts[i + 1].tunnel;
+  for (let i = i0; i < i1; i++) {
+    if (!isT(i)) continue;
+    let j = i; while (j < i1 && isT(j)) j++;
+    coverRun(site, pts, side, i, j, o, !isT(i - 1), !isT(j));
+    i = j;
+  }
+}
+function coverRun(site, pts, side, i, j, o, mouthA, mouthB) {
+  const R = PLANET.R, O = site.O, half = o.half + 1.5, roof = o.tun + 1, top = o.tunH + 1;
+  // across the cut: finer for the sheet you see, and the walls' line, the roof's edges and the middle for the solid earth
+  // the sheet reaches a little past the cut, a hand's width over the land there (the land right at a cut's edge is
+  // coloured as bare rock), then tucks under it
+  const ext = half + 6, NL = 16, offs = []; for (let k = 0; k <= NL; k++) offs.push(-ext + 2 * ext * k / NL);
+  const colOffs = [-half, -(half + roof) / 2, -roof, 0, roof, (half + roof) / 2, half];
+  const at = (r, sd, y, out = new V3()) => out.copy(pts[r].d).multiplyScalar(R + pts[r].h + y).addScaledVector(side[r], sd);
+  const dir = new V3();
+  // the land's own height there, and never lower than just over the roof above the tunnel itself
+  const coverH = (r, sd) => {
+    at(r, sd, 0, dir).normalize();
+    const hn = planetHeightRaw(dir.x, dir.y, dir.z), floor = pts[r].h + top + 0.4;
+    return Math.abs(sd) <= roof + 0.5 ? Math.max(hn, floor) : Math.max(hn, Math.min(floor, pts[r].h + 0.5)) + (Math.abs(sd) > half - 2 ? 0.15 : 0);
+  };
+  const rows = j - i + 1, W = NL + 3;   // each row: a skirt, the samples, a skirt
+  const P = new Float32Array(rows * W * 3), C = new Float32Array(rows * W * 3), TL = new Float32Array(rows * W * 3), Hs = [];
+  const ws = PLANET.ws, wasOn = ws && ws.on; if (ws) ws.on = false;   // the land's own colours, not the road's
+  const oc = [0, 0, 0], q = new V3();
+  for (let r = 0; r < rows; r++) {
+    const pr = i + r, hr = offs.map(sd => coverH(pr, sd)); Hs.push(hr);
+    for (let k = 0; k < W; k++) {
+      // the outermost samples on each side tuck just under the land, so the sheet's edge never shows as a lip
+      const kk = clamp(k - 1, 0, NL), rim = k === 0 || k === W - 1, sd = rim ? Math.sign(offs[kk]) * (ext + 4) : offs[kk];
+      at(pr, sd, 0, dir).normalize();
+      q.copy(dir).multiplyScalar(R + (rim ? planetHeightRaw(dir.x, dir.y, dir.z) - 0.7 : hr[kk]));
+      const v = (r * W + k) * 3;
+      TL[v] = q.x; TL[v + 1] = q.y; TL[v + 2] = q.z; P[v] = q.x - O.x; P[v + 1] = q.y - O.y; P[v + 2] = q.z - O.z;
+      const sl = kk > 0 && kk < NL ? Math.abs(hr[kk + 1] - hr[kk - 1]) / (offs[kk + 1] - offs[kk - 1]) : 0;
+      planetColor(hr[kk], clamp(sl * 0.6, 0, 1), dir.x, dir.y, dir.z, oc);
+      C[v] = oc[0]; C[v + 1] = oc[1]; C[v + 2] = oc[2];
+    }
+  }
+  if (ws) ws.on = wasOn;
+  const idx = [];
+  for (let r = 0; r < rows - 1; r++) for (let k = 0; k < W - 1; k++) { const a = r * W + k, b = a + 1, c = a + W, d = c + 1; idx.push(a, c, b, b, c, d); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('color', new THREE.BufferAttribute(C, 3)); g.setAttribute('tl', new THREE.BufferAttribute(TL, 3));
+  g.setIndex(idx); g.computeVertexNormals();
+  // make sure the sheet faces up (its winding depends on which way the path runs)
+  { const N = g.attributes.normal, k = (Math.floor(rows / 2) * W + (W >> 1)) * 3; at(i + (rows >> 1), 0, 0, dir).normalize();
+    if (N.array[k] * dir.x + N.array[k + 1] * dir.y + N.array[k + 2] * dir.z < 0) { for (let t = 0; t < idx.length; t += 3) { const x = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = x; } g.setIndex(idx); g.computeVertexNormals(); } }
+  g.computeBoundingSphere();
+  const mesh = new THREE.Mesh(g, MAT.terrain); mesh.position.copy(O); mesh.receiveShadow = true;
+  (site.extra || (site.extra = [])).push(mesh);
+  // solid earth under the sheet, two path steps at a time: over the roof down to the roof, beside it well into the hill
+  const ci = colOffs.map(sd => offs.reduce((b, x, k) => Math.abs(x - sd) < Math.abs(offs[b] - sd) ? k : b, 0));
+  for (let r = 0; r < rows - 1; r += 2) {
+    const r2 = Math.min(rows - 1, r + 2);
+    for (let k = 0; k < colOffs.length - 1; k++) {
+      const s0 = colOffs[k], s1 = colOffs[k + 1], overRoof = Math.abs(s0) <= roof + 0.01 && Math.abs(s1) <= roof + 0.01;
+      const tops = [[r, k], [r, k + 1], [r2, k], [r2, k + 1]].map(([rr, kk]) => Hs[rr][ci[kk]] - pts[i + rr].h);
+      const y0 = overRoof ? top : Math.min(...tops) - 5;
+      const V = [];
+      for (let m = 0; m < 8; m++) { const rr = m & 4 ? r2 : r, kk = m & 1 ? k + 1 : k; V.push(at(i + rr, colOffs[kk], m & 2 ? Math.max(Hs[rr][ci[kk]] - pts[i + rr].h, y0 + 0.3) : y0)); }
+      makeCollider(V, BOX_F, PLANET, null, [0, 1]);
+    }
+  }
+  // headwalls: concrete across the cut at each mouth, from the track up to the hillside, open over the tunnel itself
+  const wall = (r, toward) => {
+    const r2 = r + toward, f = 1.2 / Math.max(1, at(r, 0, 0).distanceTo(at(r2, 0, 0)));
+    const lerpAt = (sd, y) => at(r, sd, y).lerp(at(r2, sd, y), f);
+    for (let k = 0; k < colOffs.length - 1; k++) {
+      const s0 = colOffs[k], s1 = colOffs[k + 1], overRoof = Math.abs(s0) <= roof + 0.01 && Math.abs(s1) <= roof + 0.01;
+      // its top follows the hillside across the cut
+      const t0 = Hs[r - i][ci[k]] - pts[r].h + 0.3, t1 = Hs[r - i][ci[k + 1]] - pts[r].h + 0.3;
+      const y0 = overRoof ? o.tunH : -0.5;
+      if (Math.max(t0, t1) <= y0 + 0.3) continue;
+      const V = []; for (let m = 0; m < 8; m++) { const sd = m & 1 ? s1 : s0, y = m & 2 ? Math.max(m & 1 ? t1 : t0, y0 + 0.3) : y0; V.push(m & 4 ? lerpAt(sd, y) : at(r, sd, y)); }
+      site.hex(V, 0x8a8880, false, true, [0, 1]);
+    }
+  };
+  if (mouthA) wall(i, 1);
+  if (mouthB) wall(j, -1);
+}
 /* ---------- roads ---------- */
 const IDENT4 = new THREE.Matrix4();
 function buildRoads() {
@@ -6853,6 +7226,7 @@ function buildRoads() {
         if (i % 3 === 0) piece(i, -0.3, 0.3, 6.6, 6.8, 0xfff1c4, true);
       }
     }
+    tunnelCover(site, pts, side, 0, n - 1, { tun: TW, tunH: 6.8, half: ROAD_FLAT + ROAD_BLEND });
   }
   site.finish();
 }
@@ -7002,7 +7376,7 @@ function buildTown(name, label, style) {
   // street lights
   for (const k of ST) for (let t = -120; t <= 120; t += 30) { lamp(s, t, k + 6.5, -Math.PI / 2); lamp(s, k - 6.5, t, Math.PI); }
   for (let i = 0; i < 6; i++) s.loose('cone', -60 + i * 4, -84);
-  if (!WP.spawns[name]) WP.spawns[name] = { name: label, u: 0, v: -70, ang: Math.PI / 2, site: s };
+  if (!WP.spawns[name]) WP.spawns[name] = { name: label, u: 0, v: -70, ang: Math.PI / 2, site: s, group: 'Towns' };
   s.finish();
 }
 /* ---------- the race and stunt park ---------- */
@@ -7242,7 +7616,7 @@ function buildWorld() {
   MAT.site = shine(new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 12, specular: 0x111111 }), 'site', 0.5, { windows: true, ao: true });
   MAT.decal = new THREE.MeshLambertMaterial({ vertexColors: true });
   MAT.glow = new THREE.MeshBasicMaterial({ vertexColors: true });
-  buildSpacePort(); buildRoads(); buildAirport(); buildTown('town1', 'Town', 'small'); buildTown('town2', 'City', 'big'); buildRace(); buildHarbor(); buildMoonBase();
+  buildSpacePort(); buildRoads(); buildAirport(); buildTown('town1', 'Liftoff', 'small'); buildTown('town2', 'Rocket City', 'big'); buildRace(); buildHarbor(); buildMoonBase();
   buildGlobe();
   // the lighthouse beam and the windmill sails turn (their matrices are in the world's own frame)
   for (const a of SITES.anim) {
@@ -7475,7 +7849,7 @@ function sleepersD(s, pts, side, i0, i1, col, skip) {
       const f = (k + 0.5) / 4, h = lerp(p.h, q.h, f);
       u.copy(p.d).lerp(q.d, f).normalize(); sd.copy(side[i]).lerp(side[i + 1], f).normalize();
       t.subVectors(q.d, p.d).normalize().multiplyScalar(0.16);
-      p0.copy(u).multiplyScalar(R + h + 0.13);
+      p0.copy(u).multiplyScalar(R + h + 0.1);
       a.copy(p0).addScaledVector(sd, -1.3).sub(t).sub(O); b.copy(p0).addScaledVector(sd, 1.3).sub(t).sub(O);
       c.copy(p0).addScaledVector(sd, 1.3).add(t).sub(O); d.copy(p0).addScaledVector(sd, -1.3).add(t).sub(O);
       s.decal.quad(a, b, c, d, col, u);
@@ -7513,9 +7887,10 @@ function pathSolids(s, pts, side, i0, i1, o) {
       if (!pts[i - 1] || !pts[i - 1].tunnel || !pts[i + 2] || !pts[i + 2].tunnel) piece(i, -o.tun - 1.6, o.tun + 1.6, o.tunH, o.tunH + 2.4, 0x6f6d68);
     }
   }
+  tunnelCover(s, pts, side, i0, i1, o);
 }
-const HW_SOLID = { deck: ROAD_W + 0.5, par: 1, tun: ROAD_W + 2, tunH: 6.8 };
-const RAIL_SOLID = { deck: 2.7, par: 0.8, tun: 3.3, tunH: 6.6, deckCol: 0xa8a49a };
+const HW_SOLID = { deck: ROAD_W + 0.5, par: 1, tun: ROAD_W + 2, tunH: 6.8, half: ROAD_FLAT + ROAD_BLEND };
+const RAIL_SOLID = { deck: 2.7, par: 0.8, tun: 3.3, tunH: 6.6, deckCol: 0xa8a49a, half: 3.6 + 10 };
 const CHUNK = 60;
 function roadChunk(r, ri, i0, i1) {
   const asph = rgb(0x34363a), line = rgb(0xe9e6dc), yel = rgb(0xe8b83a), pts = r.pts, side = r.side;
@@ -7526,6 +7901,21 @@ function roadChunk(r, ri, i0, i1) {
   pathSolids(s, pts, side, i0, i1, HW_SOLID);
   s.finish();
 }
+/* the rails are solid: a low ridge with sloping sides under each one, so wheels bump over them rather than hit a wall.
+   Two path steps per piece; none where the line crosses a road (the rails sit flush in the road there) */
+const RAIL_GAUGE = 0.75, RAIL_TOP = 0.2;
+function railBumps(pts, side, i0, i1) {
+  const R = PLANET.R, at = (i, sd, y) => pts[i].d.clone().multiplyScalar(R + pts[i].h + y).addScaledVector(side[i], sd);
+  for (let i = i0; i < i1; i += 2) {
+    const j = Math.min(i + 2, i1, pts.length - 1); if (j <= i) break;
+    if (pts[i].cross || pts[j].cross) continue;
+    for (const g of [-RAIL_GAUGE, RAIL_GAUGE]) {
+      const V = [];
+      for (let m = 0; m < 8; m++) { const top = m & 2, w = top ? 0.05 : 0.5; V.push(at(m & 4 ? j : i, g + (m & 1 ? w : -w), top ? RAIL_TOP : -0.02)); }
+      makeCollider(V, BOX_F, PLANET, 'rail', [0, 1]);
+    }
+  }
+}
 function railChunk(L, li, i0, i1) {
   const ballast = rgb(0x6f6760), sleeper = rgb(0x4a3a2c), steel = rgb(0xa7aeb5), steelD = rgb(0x5d636a), pts = L.pts, side = L.side;
   const onRoad = i => pts[i].cross && !pts[i].bridge;
@@ -7533,9 +7923,10 @@ function railChunk(L, li, i0, i1) {
   bandD(s, pts, side, i0, i1, 0, 3.4, ballast, 0.07, onRoad);
   sleepersD(s, pts, side, i0, i1, sleeper, onRoad);
   for (const g of [-0.75, 0.75]) {
-    bandD(s, pts, side, i0, i1, g, 0.1, steel, 0.27);
-    wallD(s, pts, side, i0, i1, g + Math.sign(g) * 0.05, 0.12, 0.27, steelD, Math.sign(g));
+    bandD(s, pts, side, i0, i1, g, 0.1, steel, RAIL_TOP);
+    for (const sg of [-1, 1]) wallD(s, pts, side, i0, i1, g + sg * 0.05, 0.08, RAIL_TOP, steelD, sg);
   }
+  railBumps(pts, side, i0, i1);
   pathSolids(s, pts, side, i0, i1, RAIL_SOLID);
   s.finish();
 }
@@ -7934,7 +8325,7 @@ function buildTrains() {
   GLOBE.rails.forEach((L, li) => {
     const pts = L.pts, n = pts.length;
     const P = new Float64Array(n * 3), S = new Float64Array(n);
-    for (let i = 0; i < n; i++) { const r = R + pts[i].h + 0.27; P[i * 3] = pts[i].d.x * r; P[i * 3 + 1] = pts[i].d.y * r; P[i * 3 + 2] = pts[i].d.z * r; if (i) S[i] = S[i - 1] + Math.hypot(P[i * 3] - P[i * 3 - 3], P[i * 3 + 1] - P[i * 3 - 2], P[i * 3 + 2] - P[i * 3 - 1]); }
+    for (let i = 0; i < n; i++) { const r = R + pts[i].h + RAIL_TOP; P[i * 3] = pts[i].d.x * r; P[i * 3 + 1] = pts[i].d.y * r; P[i * 3 + 2] = pts[i].d.z * r; if (i) S[i] = S[i - 1] + Math.hypot(P[i * 3] - P[i * 3 - 3], P[i * 3 + 1] - P[i * 3 - 2], P[i * 3 + 2] - P[i * 3 - 1]); }
     // where each station's middle is along the line
     const stops = L.stations.map(st => {
       const u = st.uses.find(x => x.line.name === L.name), D = expDir(st.C, st.E1, st.E3, R, 0, u.off, new V3());
@@ -7948,13 +8339,14 @@ function buildTrains() {
       const k = Math.acos(clamp(t1.normalize().dot(t2.normalize()), -1, 1)) / (l || 1);
       if (k > 1e-6) vlim[i] = Math.min(TRAIN.VMAX, Math.sqrt(TRAIN.ALAT / k));
     }
+    // an engine at each end, both cabs facing out (a car's cab is at its +X end; the first car is turned round)
     const kinds = ['loco', 'flat', 'coach', 'flat', 'loco'];
     let len = 0; const offs = kinds.map(k => { const o = len + CAR_SPEC[k].L / 2; len += CAR_SPEC[k].L + CAR_GAP; return o; }); len -= CAR_GAP;
     const tr = { line: L, P, S, n, stops, vlim, k: 0, tgt: 1, dir: 1, s: stops[0], v: 0, dwell: 30 + li * 25, len, cars: [], idx: li };
     tr.cars = kinds.map((k, j) => {
       const spec = CAR_SPEC[k], hx = spec.L / 2, hy = (spec.h1 - spec.h0) / 2, hz = TRAIN_W / 2;
       const pr = { c: new V3(), r: Math.hypot(hx, hy, hz), planes: [0, 1, 2, 3, 4, 5].map(() => ({ nx: 0, ny: 0, nz: 0, d: 0, int: 0 })), cel: PLANET, tag: 'train', mu: 0.9, _s: 0, mover: true,
-        mv: new V3(), mw: new V3(), base: new V3(), X: new V3(1, 0, 0), Y: new V3(0, 1, 0), Z: new V3(0, 0, 1), hx, hy, hz, h0: spec.h0, spec, kind: k, off: offs[j] - len / 2, flip: j === kinds.length - 1, prevC: null, prevX: new V3() };
+        mv: new V3(), mw: new V3(), base: new V3(), X: new V3(1, 0, 0), Y: new V3(0, 1, 0), Z: new V3(0, 0, 1), hx, hy, hz, h0: spec.h0, spec, kind: k, off: offs[j] - len / 2, flip: j === 0, prevC: null, prevX: new V3() };
       W.movers.push(pr);
       return pr;
     });
@@ -8453,6 +8845,357 @@ function floraStandUp() {
   for (const list of FLORA.tiles.values()) for (const t of list) if (t.fallen) { t.fallen = 0; t.fall = null; FLORA.dirty = true; }
   FLORA.lastBuild = 0;
 }
+
+/* ---- bases.js ---- */
+/* ================= Scrapline · bases and colonies =================
+   Bases are built from crates of parts carried in Storage Modules. Land a vehicle carrying them on any world, open
+   Base mode, and set pieces down on the ground round it: habitats, greenhouse domes, corridors, solar arrays, landing
+   pads, hangars, fuel tanks, comms masts, lights, walls and depots. Each piece uses up crates; taking one back puts its
+   crates back aboard. A base with a habitat, a greenhouse and power is a colony. Bases are saved (and go to the cloud
+   with your vehicles), show on the map, and can be picked under Spawn at. */
+
+/* ---- the pieces (object frame: x along, y up, z across; the floor at y = 0). cols: solid boxes [w, h, d, x, y, z] ---- */
+const BW = 0xe6e2d6, BG = 0x8c99a3, BD = 0x3a4148, BY = 0xf2c230, BT = 0x8fd8c8, BC = 0xb9b8b2;
+const BASE_KINDS = {
+  hab: { name: 'Habitat', cost: 4, w: 9, d: 5, desc: 'Living quarters for the crew.', build(g, gl) {
+    g.cyl(2.2, 2.2, 7, 20, 0, 2.6, 0, BW, 0, 0, Math.PI / 2); g.sph(2.2, -3.5, 2.6, 0, BW, 0.45, 1, 1); g.sph(2.2, 3.5, 2.6, 0, BW, 0.45, 1, 1);
+    for (const x of [-2.6, 0, 2.6]) g.torus(2.22, 0.08, x, 2.6, 0, BG, 0, Math.PI / 2, 0);
+    g.box(6.5, 0.5, 3.4, 0, 0.25, 0, BD);
+    for (const x of [-2.7, -0.9, 0.9, 2.7]) for (const z of [-1, 1]) gl.box(1.0, 0.55, 0.06, x, 3.0, z * 2.13, 0xffd98a, z * 0.35, 0, 0);
+    g.box(0.7, 1.9, 0.9, 4.45, 1.45, 0, BG); gl.box(0.05, 0.3, 0.3, 4.82, 2.1, 0, 0x9fd4ff);
+  }, cols: [[9, 4.6, 4.5, 0, 2.4, 0]] },
+  dome: { name: 'Greenhouse', cost: 6, w: 11, d: 11, desc: 'A glass dome full of crops. Colonies need one.', build(g, gl) {
+    g.cyl(5.2, 5.2, 0.6, 24, 0, 0.3, 0, BC);
+    g.add(new THREE.SphereGeometry(5, 18, 9, 0, TAU, 0, Math.PI / 2), BT, 0, 0.6, 0);
+    for (let k = 0; k < 6; k++) g.torus(5.03, 0.07, 0, 0.6, 0, BW, Math.PI / 2, k * Math.PI / 6, 0);
+    g.torus(4.35, 0.08, 0, 3.1, 0, BW, Math.PI / 2, 0, 0);
+    for (let k = 0; k < 9; k++) { const a = k / 9 * TAU, r = 1.4 + (k % 3); gl.box(0.8, 0.5, 0.8, Math.cos(a) * r, 0.9, Math.sin(a) * r, 0x7fd36a); }
+  }, cols: [[9, 3, 9, 0, 1.5, 0], [6, 2.4, 6, 0, 4.0, 0]] },
+  corr: { name: 'Corridor', cost: 1, w: 6, d: 3, desc: 'A tube to join two pieces.', build(g, gl) {
+    g.cyl(1.25, 1.25, 6, 14, 0, 1.6, 0, BW, 0, 0, Math.PI / 2); for (const x of [-2.6, 2.6]) g.torus(1.27, 0.07, x, 1.6, 0, BG, 0, Math.PI / 2, 0);
+    g.box(5.6, 0.35, 1.6, 0, 0.18, 0, BD); gl.box(4, 0.08, 0.08, 0, 2.86, 0, 0xffe2a0);
+  }, cols: [[6, 2.6, 2.6, 0, 1.6, 0]] },
+  solar: { name: 'Solar Array', cost: 2, w: 7, d: 5, desc: 'Power for the base. Colonies need it.', build(g, gl) {
+    for (const x of [-2.3, 0, 2.3]) { g.box(0.14, 1.6, 0.14, x, 0.8, 0, BG); g.box(2.1, 0.06, 3.4, x, 1.75, 0, 0x22344f, 0.45, 0, 0); for (let k = -1; k <= 1; k++) g.box(2.12, 0.07, 0.04, x, 1.76 + k * 0.48, k * 1.06, BG, 0.45, 0, 0); }
+    g.box(6.2, 0.12, 0.2, 0, 1.0, 0, BG);
+  }, cols: [[6.6, 2.4, 3.4, 0, 1.2, 0]] },
+  pad: { name: 'Landing Pad', cost: 4, w: 16, d: 16, flat: true, desc: 'A flat pad to land on and drive onto, with lights at its corners.', build(g, gl) {
+    g.box(14, 0.3, 14, 0, 0.15, 0, BC); g.torus(4.5, 0.25, 0, 0.31, 0, BY, Math.PI / 2, 0, 0);
+    g.box(5, 0.02, 0.6, 0, 0.32, 0, BY); g.box(0.6, 0.02, 5, 0, 0.32, 0, BY);
+    for (const [x, z] of [[-6.6, -6.6], [6.6, -6.6], [-6.6, 6.6], [6.6, 6.6]]) { g.box(0.4, 0.5, 0.4, x, 0.55, z, BD); gl.box(0.3, 0.2, 0.3, x, 0.9, z, 0xff9a3b); }
+  }, cols: [[14, 0.3, 14, 0, 0.15, 0]], ramps: 14 },
+  hangar: { name: 'Hangar', cost: 8, w: 14, d: 14, desc: 'A big shed, open at the front, to park vehicles in.', build(g, gl) {
+    g.box(13, 0.3, 13, 0, 0.15, 0, BC);
+    g.box(13, 7, 0.4, 0, 3.5, -6.3, BG); g.box(13, 7, 0.4, 0, 3.5, 6.3, BG); g.box(0.4, 7, 13, -6.3, 3.5, 0, BG);
+    g.box(13.6, 0.5, 13.6, 0, 7.25, 0, BD); for (const z of [-6.5, 6.5]) g.box(0.6, 7, 0.6, 6.3, 3.5, z, BY);
+    for (const z of [-3, 0, 3]) gl.box(2.4, 0.1, 0.4, 0, 6.9, z, 0xfff1c4);
+  }, cols: [[13, 0.3, 13, 0, 0.15, 0], [13, 7, 0.4, 0, 3.5, -6.3], [13, 7, 0.4, 0, 3.5, 6.3], [0.4, 7, 13, -6.3, 3.5, 0], [13.6, 0.5, 13.6, 0, 7.25, 0]], ramps: 13, rampSides: [1] },
+  tank: { name: 'Fuel Tank', cost: 3, w: 6, d: 6, desc: 'A big round tank for fuel.', build(g, gl) {
+    g.sph(2.4, 0, 3.4, 0, BW); g.torus(2.42, 0.1, 0, 3.4, 0, BG, Math.PI / 2, 0, 0);
+    for (let k = 0; k < 4; k++) { const a = k / 4 * TAU + 0.785; g.box(0.25, 2.4, 0.25, Math.cos(a) * 1.8, 1.2, Math.sin(a) * 1.8, BG); }
+    g.cyl(0.15, 0.15, 3, 8, 0, 6, 0, BG); g.box(1.8, 0.4, 0.4, 0, 0.2, 2.6, BD);
+  }, cols: [[4.6, 5.8, 4.6, 0, 2.9, 0]] },
+  comms: { name: 'Comms Mast', cost: 2, w: 4, d: 4, desc: 'A tall mast with a dish, to talk home.', build(g, gl) {
+    for (const [x, z] of [[-0.6, -0.6], [0.6, -0.6], [-0.6, 0.6], [0.6, 0.6]]) g.box(0.12, 12, 0.12, x * (1 - 0), 6, z, BG);
+    for (let y = 1; y < 12; y += 1.5) { g.box(1.3, 0.08, 0.08, 0, y, -0.6, BG); g.box(1.3, 0.08, 0.08, 0, y, 0.6, BG); g.box(0.08, 0.08, 1.3, -0.6, y, 0, BG); g.box(0.08, 0.08, 1.3, 0.6, y, 0, BG); }
+    g.add(new THREE.SphereGeometry(1.5, 16, 6, 0, TAU, 0, 0.9), BW, 0.4, 10.5, 0, 0, 0, 1.2); g.cyl(0.05, 0.05, 1.4, 6, 1.0, 10.6, 0, BG, 0, 0, 1.2);
+    gl.box(0.3, 0.3, 0.3, 0, 12.15, 0, 0xff3b2b);
+  }, cols: [[1.6, 12, 1.6, 0, 6, 0]] },
+  lamp: { name: 'Light Mast', cost: 1, w: 2, d: 2, desc: 'A floodlight on a pole.', build(g, gl) {
+    g.cyl(0.12, 0.16, 8, 8, 0, 4, 0, BG); g.box(0.5, 0.5, 0.5, 0, 0.25, 0, BD); g.box(1.2, 0.25, 0.6, 0.3, 8, 0, BD); gl.box(1.0, 0.06, 0.45, 0.3, 7.86, 0, 0xfff1c4);
+  }, cols: [[0.6, 8, 0.6, 0, 4, 0]] },
+  depot: { name: 'Supply Depot', cost: 2, w: 7, d: 4, desc: 'A stack of shipping containers.', build(g, gl) {
+    g.box(6, 2.5, 2.4, 0, 1.25, -0.1, 0xc8432f); g.box(6, 2.5, 2.4, 0.4, 3.75, 0.1, 0x2f6f9f); for (const x of [-2.9, 2.9]) g.box(0.12, 2.5, 2.42, x, 1.25, -0.1, 0x8a2e20);
+  }, cols: [[6.8, 5, 2.8, 0.2, 2.5, 0]] },
+  wall: { name: 'Wall', cost: 1, w: 6, d: 1.5, desc: 'A concrete wall section.', build(g, gl) {
+    g.box(6, 2.6, 0.5, 0, 1.3, 0, BC); g.box(6.1, 0.2, 0.7, 0, 2.7, 0, BG);
+  }, cols: [[6, 2.8, 0.5, 0, 1.4, 0]] }
+};
+const BASE_ORDER = ['hab', 'corr', 'dome', 'solar', 'pad', 'hangar', 'tank', 'comms', 'lamp', 'depot', 'wall'];
+
+/* ---- state: every base and every piece, saved in this browser (and to the cloud) ---- */
+const BASES = { t: 0, bases: [], pieces: [], built: new Map(), mode: null, ghost: null, labels: [] };
+function basesState() { return { t: BASES.t, bases: BASES.bases, pieces: BASES.pieces }; }
+function basesSave() { BASES.t = Date.now(); LS.set('scrapline.bases', basesState()); if (typeof cloudChanged === 'function') cloudChanged(); }
+function mergeBases(a, b) { if (!a) return b || null; if (!b) return a; return (b.t || 0) > (a.t || 0) ? b : a; }
+function setBasesState(st) {
+  if (!st || (st.t || 0) === BASES.t) return;
+  for (const id of [...BASES.built.keys()]) unbuildPiece(id);
+  BASES.t = st.t || 0; BASES.bases = Array.isArray(st.bases) ? st.bases : []; BASES.pieces = Array.isArray(st.pieces) ? st.pieces : [];
+  LS.set('scrapline.bases', basesState());
+  for (const p of BASES.pieces) buildPiece(p);
+  basesChanged();
+}
+function basesLoad() {
+  const st = LS.get('scrapline.bases', null);
+  if (st && Array.isArray(st.pieces)) { BASES.t = st.t || 0; BASES.bases = st.bases || []; BASES.pieces = st.pieces.filter(p => BASE_KINDS[p.kind] && celByName(p.cel)); }
+  for (const p of BASES.pieces) buildPiece(p);
+  basesChanged(false);
+}
+const celByName = n => CELS.find(c => c.name === n) || null;
+const baseFrameDirs = (b) => { const C = new V3().fromArray(b.d), E1 = new V3(), E3 = new V3(); tangentBasis(C.x, C.y, C.z, E1, E3); return { C, E1, E3 }; };
+
+/* ---- where a piece stands, as a matrix in its world's own frame ---- */
+function pieceMatrix(p, out = new THREE.Matrix4()) {
+  const cel = celByName(p.cel), up = new V3().fromArray(p.d).normalize(), t1 = new V3(), t2 = new V3();
+  const b = BASES.bases.find(x => x.id === p.base);
+  // turned against the base's own north, so every piece of a base lines up
+  if (b) { const f = baseFrameDirs(b); t1.copy(f.E1).addScaledVector(up, -f.E1.dot(up)).normalize(); } else tangentBasis(up.x, up.y, up.z, t1, t2);
+  t2.crossVectors(up, t1);
+  const X = t1.clone().multiplyScalar(Math.cos(p.yaw)).addScaledVector(t2, Math.sin(p.yaw)), Z = new V3().crossVectors(X, up);
+  return out.makeBasis(X, up, Z).setPosition(up.multiplyScalar(cel.R + p.h));
+}
+/* the ground under a footprint: its highest and lowest points (the piece sits on the highest, a plinth fills below) */
+function footHeights(cel, M, w, d) {
+  const o = new V3(), q = new V3(); let hi = -1e9, lo = 1e9;
+  for (const [sx, sz] of [[0, 0], [-1, -1], [1, -1], [-1, 1], [1, 1], [0, -1], [0, 1], [-1, 0], [1, 0]]) {
+    q.set(sx * w / 2, 0, sz * d / 2).applyMatrix4(M); o.copy(q).normalize();
+    const h = cel.height(o.x, o.y, o.z), hs = cel.sea && !cel.sea.lava ? h : h; hi = Math.max(hi, hs); lo = Math.min(lo, h);
+  }
+  return { hi, lo };
+}
+function pieceGeo(kind, depth) {
+  const K = BASE_KINDS[kind], g = new GB(), gl = new GB();
+  K.build(g, gl);
+  // a plinth down into the ground, so the piece never floats on a slope
+  if (depth > 0.05) g.box(K.w * 0.92, depth + 0.6, K.d * 0.92, 0, -depth / 2 - 0.25, 0, 0x6f6d68);
+  if (K.ramps) for (const s of K.rampSides || [0, 1, 2, 3]) { const a = s * Math.PI / 2, L = K.ramps / 2; g.add(new THREE.BoxGeometry(K.ramps, 0.3, 2.2), BC, Math.cos(a) * (L + 1.0), 0.05, Math.sin(a) * (L + 1.0), -0.13, -a + Math.PI / 2, 0); }
+  return { body: g.geometry(), glow: gl.P.length ? gl.geometry() : null };
+}
+function siteGroup(cel) {
+  let g = SITES.groups.get(cel);
+  if (!g) { g = new THREE.Group(); scene.add(g); SITES.groups.set(cel, g); }
+  return g;
+}
+function buildPiece(p) {
+  const cel = celByName(p.cel), K = BASE_KINDS[p.kind]; if (!cel || !K) return;
+  const M = pieceMatrix(p), geo = pieceGeo(p.kind, p.depth || 0), grp = siteGroup(cel), meshes = [];
+  const m = new THREE.Mesh(geo.body, MAT.site); m.matrixAutoUpdate = false; m.matrix.copy(M); m.castShadow = true; m.receiveShadow = true; grp.add(m); meshes.push(m);
+  if (geo.glow) { const gm = new THREE.Mesh(geo.glow, MAT.glow); gm.matrixAutoUpdate = false; gm.matrix.copy(M); grp.add(gm); meshes.push(gm); }
+  const cols = [];
+  for (const [w, h, d, x, y, z] of K.cols) {
+    const V = []; for (let i = 0; i < 8; i++) V.push(new V3(x + (i & 4 ? w : -w) / 2, y + (i & 2 ? h : -h) / 2, z + (i & 1 ? d : -d) / 2).applyMatrix4(M));
+    cols.push(makeCollider(V, BOX_F, cel, 'base'));
+  }
+  // ramps up onto a pad or a hangar floor
+  if (K.ramps) for (const s of K.rampSides || [0, 1, 2, 3]) {
+    const a = s * Math.PI / 2, ca = Math.cos(a), sa = Math.sin(a), L = K.ramps / 2, V = [];
+    for (let i = 0; i < 8; i++) { const out = i & 4 ? L + 2.2 : L, across = (i & 1 ? 1 : -1) * L, y = i & 2 ? (i & 4 ? -0.15 : 0.3) : -0.6; V.push(new V3(ca * out - sa * across, y, sa * out + ca * across).applyMatrix4(M)); }
+    cols.push(makeCollider(V, BOX_F, cel, 'base', [0, 1]));
+  }
+  BASES.built.set(p.id, { meshes, cols, cel });
+}
+function removeCollider(pr) {
+  const i = W.props.indexOf(pr); if (i >= 0) W.props.splice(i, 1);
+  const ci = CELS.indexOf(pr.cel), s = PG.size, c = pr.c, r = pr.r;
+  for (let a = Math.floor((c.x - r) / s); a <= Math.floor((c.x + r) / s); a++)
+    for (let b = Math.floor((c.y - r) / s); b <= Math.floor((c.y + r) / s); b++)
+      for (let k = Math.floor((c.z - r) / s); k <= Math.floor((c.z + r) / s); k++) {
+        const l = PG.map.get(pgKey(ci, a, b, k)); if (!l) continue;
+        const j = l.indexOf(pr); if (j >= 0) l.splice(j, 1);
+      }
+}
+function unbuildPiece(id) {
+  const b = BASES.built.get(id); if (!b) return;
+  for (const m of b.meshes) { if (m.parent) m.parent.remove(m); m.geometry.dispose(); }
+  for (const c of b.cols) removeCollider(c);
+  BASES.built.delete(id);
+}
+/* a base is a colony once it has somewhere to live, food and power */
+function baseIsColony(b) { const k = new Set(BASES.pieces.filter(p => p.base === b.id).map(p => p.kind)); return k.has('hab') && k.has('dome') && k.has('solar'); }
+function baseTitle(b) { return `${b.name}${baseIsColony(b) ? ' (colony)' : ''}`; }
+/* bases under Spawn at, and their labels on the map */
+function basesChanged(refill = true) {
+  for (const k of Object.keys(WORLD.locs)) if (k.startsWith('base_')) delete WORLD.locs[k];
+  for (const b of BASES.bases) {
+    const cel = celByName(b.cel); if (!cel || !BASES.pieces.some(p => p.base === b.id)) continue;
+    const f = baseFrameDirs(b), pad = BASES.pieces.find(p => p.base === b.id && p.kind === 'pad');
+    // on its landing pad if it has one, otherwise just beside the base
+    const dir = pad ? new V3().fromArray(pad.d) : expDir(f.C, f.E1, f.E3, cel.R, -28, 0, new V3());
+    WORLD.locs['base_' + b.id] = { name: baseTitle(b), kind: 'surface', cel, dir, fwd: f.E1.clone(), group: 'Your bases', hAbs: pad ? pad.h + 0.4 : undefined };
+  }
+  if (refill && typeof fillSpawnSel === 'function') fillSpawnSel();
+}
+function baseLabels(vis, w, h, me) {
+  const L = BASES.labels;
+  let n = 0;
+  for (const b of BASES.bases) {
+    const cel = celByName(b.cel); if (!cel || !BASES.pieces.some(p => p.base === b.id)) continue;
+    if (camera.position.distanceTo(cel.center) > cel.R * 9) continue;
+    const pos = fromSpin(cel, new V3().fromArray(b.d), new V3()).multiplyScalar(cel.R + (b.h || 0) + 30).add(cel.center);
+    if (_lp.subVectors(camera.position, pos).dot(_lp2.subVectors(pos, cel.center)) < 0) continue;
+    const sp = screenOf(pos, w, h); if (!sp) continue;
+    let el = L[n]; if (!el) { el = L[n] = document.createElement('div'); el.className = 'mapLabel'; el.dataset.kind = 'base'; MAP.labels.appendChild(el); }
+    n++; vis.push({ el, x: sp.x, y: sp.y, k: 'place', txt: baseTitle(b), d: me.distanceTo(pos) });
+  }
+  for (let i = n; i < L.length; i++) L[i].hidden = true;
+}
+
+/* ---- crates aboard: Storage Modules on the vehicle you drive ---- */
+function storageParts(b) { return b && !b.dead ? machineOf(b).flatMap(o => o.parts.filter(p => p.alive && p.def.storage)) : []; }
+function cratesAboard(b) { return storageParts(b).reduce((s, p) => s + (p.crates ?? p.def.storage), 0); }
+function takeCrates(b, n) { for (const p of storageParts(b)) { const c = p.crates ?? p.def.storage, k = Math.min(c, n); p.crates = c - k; n -= k; if (!n) break; } }
+function giveCrates(b, n) { for (const p of storageParts(b)) { const c = p.crates ?? p.def.storage, k = Math.min(p.def.storage - c, n); p.crates = c + k; n -= k; if (!n) break; } return n; }
+
+/* ---- Base mode: the palette, the ghost, placing and taking back ---- */
+const BASE_RANGE = 160;
+function canBaseMode(b) {
+  if (!b || b.dead || G.mode !== 'drive' || G.map) return false;
+  const cel = b.groundCel || null; if (!cel || cel.kind !== 'rocky') return false;
+  const spd = b.v.clone().sub(surfaceVel(cel, b.x, new V3())).length();
+  if (spd > 2.5) return false;
+  return cratesAboard(b) > 0 || nearBase(cel, b.x) !== null;
+}
+function nearBase(cel, x, range = 400) {
+  const lp = toSpin(cel, new V3().subVectors(x, cel.center), new V3()).normalize();
+  let best = null, bd = range;
+  for (const b of BASES.bases) { if (b.cel !== cel.name) continue; const d = new V3().fromArray(b.d).distanceTo(lp) * cel.R; if (d < bd) { bd = d; best = b; } }
+  return best;
+}
+function enterBaseMode() {
+  const b = G.player; if (!canBaseMode(b)) { toast('Land and stop first, with Storage Modules aboard (they carry the crates of base parts)', 2800); return; }
+  BASES.mode = { kind: 'hab', yaw: 0, remove: false, cel: b.groundCel, hover: null, valid: false, why: '' };
+  G.chase = false; DC.dist = Math.max(DC.dist, 45); DC.pitch = Math.max(DC.pitch, 0.6);
+  for (const o of machineOf(b)) { clearInputs(o); o.ctl.brake = 1; }
+  renderBasePanel();
+}
+function exitBaseMode() {
+  BASES.mode = null; if (BASES.ghost) { BASES.ghost.parent && BASES.ghost.parent.remove(BASES.ghost); BASES.ghost = null; }
+  $('basePanel').hidden = true;
+}
+function renderBasePanel() {
+  const el = $('basePanel'), M = BASES.mode; if (!M) { el.hidden = true; return; }
+  const n = cratesAboard(G.player);
+  el.hidden = false;
+  el.innerHTML = `<div class="bphead"><b>Base mode</b><span class="crates">${n} crate${n === 1 ? '' : 's'} aboard</span><span class="grow"></span>
+      <button type="button" class="btn${M.remove ? ' on' : ''}" data-bp="remove" title="Take a piece back: its crates go back aboard">Take back</button>
+      <button type="button" class="btn" data-bp="turn" title="Turn the piece (${esc(keyName(actKeys('b_rot')[0]))})">Turn</button>
+      <button type="button" class="btn primary" data-bp="done">Done</button></div>
+    <div class="bplist">${BASE_ORDER.map(k => { const K = BASE_KINDS[k]; return `<button type="button" class="bpc${!M.remove && M.kind === k ? ' on' : ''}${K.cost > n ? ' poor' : ''}" data-bk="${k}" title="${esc(K.desc)}"><span>${esc(K.name)}</span><em>${K.cost} crate${K.cost === 1 ? '' : 's'}</em></button>`; }).join('')}</div>
+    <div class="bphint" id="bpHint">${esc(M.why || (M.remove ? `${COARSE ? 'Tap' : 'Click'} a piece to take it back.` : `${COARSE ? 'Tap' : 'Click'} the ground to set down a ${BASE_KINDS[M.kind].name}. ${keyName(actKeys('b_rot')[0])} turns it.`))}</div>`;
+}
+/* the ground under the pointer: a march along the ray, then a closer look */
+function groundUnder(cel, x, y) {
+  const r = new THREE.Raycaster(); r.setFromCamera(new THREE.Vector2(x / window.innerWidth * 2 - 1, -(y / window.innerHeight) * 2 + 1), camera);
+  const o = r.ray.origin, d = r.ray.direction, p = new V3(), dir = new V3();
+  const f = t => { p.copy(o).addScaledVector(d, t).sub(cel.center); const rr = p.length(); toSpin(cel, p, dir).divideScalar(rr); let h = cel.height(dir.x, dir.y, dir.z); if (cel.sea) h = Math.max(h, 0); return rr - cel.R - h; };
+  let t0 = 0, f0 = f(0), t = 0, step = 2;
+  for (let i = 0; i < 400 && t < 3000; i++) {
+    t += step; step = Math.max(2, t * 0.02);
+    const ft = f(t);
+    if (ft < 0) { let lo = t0, hi = t; for (let k = 0; k < 14; k++) { const m = (lo + hi) / 2; if (f(m) > 0) lo = m; else hi = m; } return toSpin(cel, p.copy(o).addScaledVector(d, hi).sub(cel.center), new V3()); }
+    t0 = t; f0 = ft;
+  }
+  return null;
+}
+/* a candidate piece at a ground point: snapped to the base's 2 m grid, standing on the highest ground under it */
+function candidate(cel, lp, kind, yaw) {
+  const b = G.player, near = nearBase(cel, b.x, 400);
+  const dir = lp.clone().normalize();
+  let base = near, d = dir;
+  if (near) {
+    const f = baseFrameDirs(near), u = Math.round(dir.clone().sub(f.C).dot(f.E1) * cel.R / 2) * 2, v = Math.round(dir.clone().sub(f.C).dot(f.E3) * cel.R / 2) * 2;
+    d = expDir(f.C, f.E1, f.E3, cel.R, u, v, new V3());
+  }
+  const p = { id: null, kind, cel: cel.name, d: d.toArray(), yaw, h: 0, depth: 0, base: base ? base.id : null };
+  const K = BASE_KINDS[kind], M = pieceMatrix(p), fh = footHeights(cel, M, K.w * 0.9, K.d * 0.9);
+  p.h = fh.hi; p.depth = fh.hi - fh.lo;
+  // the reasons it cannot go here
+  let why = '';
+  const vlp = toSpin(cel, new V3().subVectors(b.x, cel.center), new V3());
+  if (d.clone().multiplyScalar(cel.R).distanceTo(vlp.clone().normalize().multiplyScalar(cel.R)) > BASE_RANGE) why = `Too far from your vehicle: build within ${BASE_RANGE} m of it`;
+  else if (cel.sea && !cel.sea.lava && fh.lo < 0.3) why = "Not in the water: pick dry ground";
+  else if (cel.sea && cel.sea.lava && fh.lo < 0.3) why = 'Not in the lava!';
+  else if (p.depth > 6) why = 'Too steep here: find flatter ground';
+  else if (BASES.pieces.some(q => q.cel === cel.name && overlap(p, q))) why = 'Something is already there';
+  else if (cratesAboard(b) < K.cost) why = `Needs ${K.cost} crates: you have ${cratesAboard(b)}`;
+  else if (vehicleInside(p, cel)) why = 'Your vehicle is in the way';
+  return { p, why };
+}
+/* two footprints (turned rectangles on the ground) overlapping */
+function rectOf(p) { const cel = celByName(p.cel), M = pieceMatrix(p), K = BASE_KINDS[p.kind]; const c = new V3().setFromMatrixPosition(M), X = new V3().setFromMatrixColumn(M, 0), Z = new V3().setFromMatrixColumn(M, 2); return { c, X, Z, a: K.w / 2 - 0.3, b: K.d / 2 - 0.3, cel }; }
+function overlap(p, q) {
+  const A = rectOf(p), B = rectOf(q); if (A.c.distanceTo(B.c) > Math.hypot(A.a, A.b) + Math.hypot(B.a, B.b)) return false;
+  const D = new V3().subVectors(B.c, A.c);
+  for (const ax of [A.X, A.Z, B.X, B.Z]) {
+    const ra = A.a * Math.abs(A.X.dot(ax)) + A.b * Math.abs(A.Z.dot(ax)), rb = B.a * Math.abs(B.X.dot(ax)) + B.b * Math.abs(B.Z.dot(ax));
+    if (Math.abs(D.dot(ax)) > ra + rb) return false;
+  }
+  return true;
+}
+function vehicleInside(p, cel) {
+  const A = rectOf(p);
+  for (const o of machineOf(G.player)) { const lp = toSpin(cel, new V3().subVectors(o.x, cel.center), new V3()), D = lp.sub(A.c); if (Math.abs(D.dot(A.X)) < A.a + o.radius * 0.6 && Math.abs(D.dot(A.Z)) < A.b + o.radius * 0.6) return true; }
+  return false;
+}
+const _bgM = new THREE.Matrix4();
+function baseHover(x, y) {
+  const M = BASES.mode; if (!M) return;
+  const cel = M.cel, lp = groundUnder(cel, x, y);
+  if (!lp) { M.valid = false; if (BASES.ghost) BASES.ghost.visible = false; return; }
+  if (M.remove) {
+    const hit = BASES.pieces.filter(p => p.cel === cel.name).find(p => { const R = rectOf(p), D = lp.clone().sub(R.c); return Math.abs(D.dot(R.X)) < R.a + 0.3 && Math.abs(D.dot(R.Z)) < R.b + 0.3; });
+    M.hover = hit || null; M.why = hit ? `Take back the ${BASE_KINDS[hit.kind].name}: ${BASE_KINDS[hit.kind].cost} crates go back aboard` : 'Click a piece to take it back.';
+    setBaseGhost(hit ? hit.kind : null, hit, false);
+  } else {
+    const c = candidate(cel, lp, M.kind, M.yaw); M.cand = c.p; M.valid = !c.why; M.why = c.why;
+    setBaseGhost(M.kind, c.p, M.valid);
+  }
+  const h = $('bpHint'); if (h) h.textContent = M.why || `Click to set down the ${BASE_KINDS[M.kind].name}. ${keyName(actKeys('b_rot')[0])} turns it.`;
+}
+function setBaseGhost(kind, p, ok) {
+  if (BASES.ghost && BASES.ghost.userData.kind !== kind) { BASES.ghost.parent && BASES.ghost.parent.remove(BASES.ghost); BASES.ghost.geometry.dispose(); BASES.ghost = null; }
+  if (!kind || !p) { if (BASES.ghost) BASES.ghost.visible = false; return; }
+  if (!BASES.ghost) {
+    const geo = pieceGeo(kind, 0).body;
+    BASES.ghost = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x6fe0a8, transparent: true, opacity: 0.45, depthWrite: false }));
+    BASES.ghost.userData.kind = kind; BASES.ghost.matrixAutoUpdate = false; BASES.ghost.renderOrder = 6;
+  }
+  const g = BASES.ghost, grp = siteGroup(celByName(p.cel)); if (g.parent !== grp) grp.add(g);
+  g.visible = true; g.matrix.copy(pieceMatrix(p, _bgM));
+  g.material.color.setHex(BASES.mode && BASES.mode.remove ? 0xffa040 : ok ? 0x6fe0a8 : 0xff5a40);
+}
+function baseClick(x, y, btn) {
+  const M = BASES.mode; if (!M) return;
+  baseHover(x, y);
+  if (btn === 2 || M.remove) {
+    const p = M.remove ? M.hover : null;
+    if (!p) return;
+    const left = giveCrates(G.player, BASE_KINDS[p.kind].cost);
+    if (left === BASE_KINDS[p.kind].cost) { toast('No room aboard for its crates: bring an empty Storage Module', 2400); return; }
+    unbuildPiece(p.id); BASES.pieces.splice(BASES.pieces.indexOf(p), 1);
+    BASES.bases = BASES.bases.filter(b => BASES.pieces.some(q => q.base === b.id));
+    SND.play('pop'); basesSave(); basesChanged(); renderBasePanel(); baseHover(x, y);
+    return;
+  }
+  if (!M.valid || !M.cand) { if (M.why) toast(M.why, 1800); return; }
+  const p = M.cand;
+  p.id = newId();
+  if (!p.base) {
+    // the first piece starts a new base, named after its world
+    const n = BASES.bases.filter(b => b.cel === p.cel).length + 1, cel = celByName(p.cel);
+    const b = { id: newId(), cel: p.cel, d: p.d.slice(), h: p.h, name: `${cel.name} Base${n > 1 ? ' ' + n : ''}`, made: Date.now() };
+    BASES.bases.push(b); p.base = b.id;
+  }
+  takeCrates(G.player, BASE_KINDS[p.kind].cost);
+  BASES.pieces.push(p); buildPiece(p);
+  const b = BASES.bases.find(x => x.id === p.base), wasColony = b.colony;
+  b.colony = baseIsColony(b);
+  SND.play('place'); basesSave(); basesChanged(); renderBasePanel(); baseHover(x, y);
+  if (b.colony && !wasColony) toast(`${b.name} is now a colony: it has a habitat, a greenhouse and power`, 3600);
+}
+function initBases() {
+  basesLoad();
+  $('basePanel').onclick = e => {
+    const t = e.target.closest('button'); if (!t) return; t.blur();
+    const M = BASES.mode; if (!M) return;
+    if (t.dataset.bk) { M.kind = t.dataset.bk; M.remove = false; renderBasePanel(); }
+    if (t.dataset.bp === 'remove') { M.remove = !M.remove; renderBasePanel(); }
+    if (t.dataset.bp === 'turn') baseTurn();
+    if (t.dataset.bp === 'done') exitBaseMode();
+  };
+}
+function baseTurn() { const M = BASES.mode; if (!M) return; M.yaw = (M.yaw + Math.PI / 4) % TAU; if (BASES.lastXY) baseHover(...BASES.lastXY); }
 
 /* ---- controls.js ---- */
 /* ================= Scrapline · controls: key bindings, part settings, logic blocks, SAS =================
@@ -9038,7 +9781,8 @@ function toggleSAS(on = !SAS.on) {
   if (typeof renderSAS === 'function') renderSAS();
 }
 function setSASMode(m) {
-  if (m === 'target' && !sasTargetPos()) { openTargetPicker(); return; }
+  // Target with nothing targeted, or pressed again while already pointing at the target: pick (or change) the target
+  if (m === 'target' && (!sasTargetPos() || (SAS.on && SAS.mode === 'target'))) { openTargetPicker(true); return; }
   SAS.mode = m;
   if (!SAS.on) toggleSAS(true); else { for (const o of machineOf(G.player)) o.sasHold = null; renderSAS(); }
 }
@@ -9212,6 +9956,198 @@ const SND = {
 };
 const _sdv = new V3(), _sdv2 = new V3();
 
+/* ---- cloud.js ---- */
+/* ================= Scrapline · cloud saves =================
+   Saved vehicles (and bases) follow you from one device to another.
+   - Inside Claude, they are kept in your own private corner of this page's database, tied to your Claude account:
+     open Scrapline signed in on any device and they are there. Nobody else can see them.
+   - On the website, they are kept on the site's own server under a save code. Turn it on in the vehicle library on
+     one device, then type the same code on another. (The site's owner adds a free database once: see README.)
+   The browser keeps its own copy as well, so it all works offline. The copies are merged: every vehicle carries an
+   id and the time it was last saved, the newest copy of each wins, and a deleted vehicle leaves a note so it stays
+   deleted everywhere. */
+const CLOUD = { kind: null, api: null, status: 'off', note: '', last: 0, busy: false, again: false, timer: 0, code: null, siteReady: null };
+const CLOUD_WORDS = ('amber anchor apple arrow atlas autumn badger banjo basil beacon birch bison blaze bolt bonsai breeze brick bronze cactus ' +
+  'camel canyon cedar cherry cinder clover cobalt comet copper coral cosmos crane crater crystal cypress delta desert dingo dolphin dragon ' +
+  'drift dune eagle echo ember falcon fern fjord flint forest fossil fox frost galaxy garnet gecko geyser glacier granite gravel harbor hawk ' +
+  'hazel heron hickory horizon iceberg indigo iris island ivory jade jaguar jasper jungle kayak kelp kestrel koala lagoon lantern lava ' +
+  'lemon lichen lilac lizard lotus lynx magma mango maple marble meadow meteor mint moose moss nebula nickel nova oak oasis ocean olive ' +
+  'onyx orbit orchid otter owl panda pebble pepper pine planet plasma pluto polar pony prairie puffin quartz quasar rabbit radar raven ' +
+  'reef ridge river robin rocket ruby saffron salmon sand sapphire saturn sequoia shadow shark sierra silver sky slate sparrow spruce ' +
+  'squid star storm summit sunset swift tango thunder tiger timber topaz tornado tulip tundra turbo turtle valley velvet violet volcano ' +
+  'walnut walrus willow wolf yak zebra zephyr').split(' ');
+
+/* ---- the local copy: every saved vehicle gets an id and a time ---- */
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+function stampSaves(list) {
+  let changed = false;
+  for (const d of list) { if (!d.id) { d.id = newId(); changed = true; } if (typeof d.t !== 'number') { d.t = 0; changed = true; } }
+  return changed;
+}
+function localState() {
+  const saves = savedList(); if (stampSaves(saves)) LS.set('scrapline.saves', saves);
+  const deleted = LS.get('scrapline.deleted', {}) || {};
+  const bases = typeof basesState === 'function' ? basesState() : null;
+  return { saves, deleted, bases };
+}
+/* the library calls these when it changes the list */
+function noteSaved(d) { if (!d.id) d.id = newId(); d.t = Date.now(); }
+function noteDeleted(d) { if (!d || !d.id) return; const del = LS.get('scrapline.deleted', {}) || {}; del[d.id] = Date.now(); LS.set('scrapline.deleted', del); cloudChanged(); }
+/* two copies into one: the newest of each vehicle, minus the deleted ones */
+function mergeStates(a, b) {
+  const deleted = { ...(a.deleted || {}) };
+  for (const [k, t] of Object.entries(b.deleted || {})) if (!(deleted[k] >= t)) deleted[k] = t;
+  const by = new Map();
+  for (const d of [...(a.saves || []), ...(b.saves || [])]) { if (!d || !d.id) continue; const h = by.get(d.id); if (!h || (d.t || 0) > (h.t || 0)) by.set(d.id, d); }
+  const saves = [...by.values()].filter(d => !(deleted[d.id] >= (d.t || 0))).sort((x, y) => (y.t || 0) - (x.t || 0));
+  const bases = typeof mergeBases === 'function' ? mergeBases(a.bases, b.bases) : (a.bases || b.bases || null);
+  return { saves, deleted, bases };
+}
+const stateKey = s => JSON.stringify([s.saves.map(d => [d.id, d.t || 0]), Object.keys(s.deleted || {}).sort(), s.bases ? s.bases.t || 0 : 0]);
+
+/* ---- inside Claude: your own private documents in the page's database ---- */
+async function claudeCloud() {
+  if (!window.claude || typeof window.claude.use !== 'function') return null;
+  const [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
+  if (!db || !user) return null;
+  const uid = await user.id(); if (!uid) return null;
+  const col = db.collection('data/users/' + uid);
+  let seen = new Map();   // what the store holds: vehicle id -> time
+  return {
+    kind: 'claude',
+    async pull() {
+      const snap = await col.get(), saves = [], out = { saves, deleted: {}, bases: null };
+      seen = new Map();
+      for (const doc of snap.docs) {
+        const v = doc.data(); if (!v) continue;
+        if (doc.id === 'meta') { out.deleted = v.deleted || {}; continue; }
+        if (doc.id === 'bases') { out.bases = v.bases || null; continue; }
+        if (doc.id.startsWith('v_') && v.d) { const d = { ...v.d, id: doc.id.slice(2), t: v.t || 0 }; saves.push(d); seen.set(d.id, d.t); }
+      }
+      return out;
+    },
+    async push(st) {
+      // one write at a time, and only what changed
+      for (const d of st.saves) {
+        if (seen.get(d.id) === (d.t || 0)) continue;
+        const body = { ...d }; delete body.id; delete body.t;
+        await col.doc('v_' + d.id).set({ t: d.t || 0, d: body }); seen.set(d.id, d.t || 0);
+      }
+      for (const id of [...seen.keys()]) if (st.deleted[id] && !st.saves.some(d => d.id === id)) { await col.doc('v_' + id).delete(); seen.delete(id); }
+      await col.doc('meta').set({ deleted: st.deleted });
+      if (st.bases) await col.doc('bases').set({ bases: st.bases });
+    }
+  };
+}
+/* ---- on the website: the site's server keeps it under a save code ---- */
+function siteCloud(code) {
+  const url = '/api/cloud';
+  return {
+    kind: 'code',
+    async pull() {
+      const r = await fetch(url + '?code=' + encodeURIComponent(code), { cache: 'no-store' });
+      if (r.status === 404) return { saves: [], deleted: {}, bases: null };
+      if (!r.ok) throw new Error('server ' + r.status);
+      const j = await r.json(); return j.state || { saves: [], deleted: {}, bases: null };
+    },
+    async push(st) {
+      const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code, state: st }) });
+      if (!r.ok) { let m = ''; try { m = (await r.json()).error || ''; } catch (e) { } throw new Error(m || 'server ' + r.status); }
+    }
+  };
+}
+/* is the site's cloud there? (only on the website, never inside Claude) */
+async function siteCloudReady() {
+  if (CLOUD.siteReady !== null) return CLOUD.siteReady;
+  if (inFrame() || !/^https?:$/.test(location.protocol)) return (CLOUD.siteReady = false);
+  try { const r = await fetch('/api/cloud?ping=1', { cache: 'no-store' }); const j = r.ok ? await r.json() : null; CLOUD.siteReady = !!(j && j.ok); }
+  catch (e) { CLOUD.siteReady = false; }
+  return CLOUD.siteReady;
+}
+function newCloudCode() {
+  const w = () => CLOUD_WORDS[Math.floor(Math.random() * CLOUD_WORDS.length)];
+  return `${w()}-${w()}-${w()}-${Math.floor(Math.random() * 90 + 10)}`;
+}
+const cleanCode = c => String(c || '').trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 60);
+
+/* ---- syncing ---- */
+async function cloudInit() {
+  try {
+    const cc = await claudeCloud();
+    if (cc) { CLOUD.api = cc; CLOUD.kind = 'claude'; }
+    else {
+      const code = LS.get('scrapline.cloudCode', null), ready = await siteCloudReady();
+      if (code && ready) { CLOUD.api = siteCloud(code); CLOUD.kind = 'code'; CLOUD.code = code; }
+    }
+  } catch (e) { CLOUD.api = null; }
+  if (CLOUD.api) await cloudSync();
+  else CLOUD.status = 'off';
+  // back from another tab or device: catch up
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && CLOUD.api && Date.now() - CLOUD.last > 30000) cloudSync(); });
+}
+async function cloudSync() {
+  if (!CLOUD.api) return false;
+  if (CLOUD.busy) { CLOUD.again = true; return false; }
+  CLOUD.busy = true; CLOUD.status = 'syncing'; cloudShow();
+  try {
+    const remote = await CLOUD.api.pull(), local = localState(), merged = mergeStates(local, remote);
+    if (stateKey(merged) !== stateKey(local)) {
+      LS.set('scrapline.saves', merged.saves); LS.set('scrapline.deleted', merged.deleted);
+      if (merged.bases && typeof setBasesState === 'function') setBasesState(merged.bases);
+    }
+    if (stateKey(merged) !== stateKey(remote)) await CLOUD.api.push(merged);
+    CLOUD.status = 'ok'; CLOUD.note = ''; CLOUD.last = Date.now();
+  } catch (e) {
+    CLOUD.status = 'error'; CLOUD.note = e && (e.code || e.message) ? String(e.code || e.message) : 'unreachable';
+  }
+  CLOUD.busy = false; cloudShow();
+  if (CLOUD.again) { CLOUD.again = false; return cloudSync(); }
+  return CLOUD.status === 'ok';
+}
+/* something changed here: send it up in a moment (a burst of changes goes as one) */
+function cloudChanged() { if (!CLOUD.api) return; clearTimeout(CLOUD.timer); CLOUD.timer = setTimeout(cloudSync, 1500); }
+/* the line about it in the vehicle library */
+function cloudLine() {
+  const t = CLOUD.last ? new Date(CLOUD.last).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : '';
+  if (CLOUD.kind === 'claude') {
+    const s = CLOUD.status === 'syncing' ? 'Syncing…' : CLOUD.status === 'error' ? `Can't reach your Claude account right now (${esc(CLOUD.note)}); saved on this device` : `Synced ${t}`;
+    return `<div class="cloudrow"><span class="cloudic" aria-hidden="true">☁</span><div class="grow"><b>Saved to your Claude account</b><span class="meta">${s}. Open Scrapline signed in on any device and they are there.</span></div></div>`;
+  }
+  if (CLOUD.kind === 'code') {
+    const s = CLOUD.status === 'syncing' ? 'Syncing…' : CLOUD.status === 'error' ? `Can't reach the server right now (${esc(CLOUD.note)}); saved on this device` : `Synced ${t}`;
+    return `<div class="cloudrow"><span class="cloudic" aria-hidden="true">☁</span><div class="grow"><b>Cloud saves on · code <code>${esc(CLOUD.code)}</code></b><span class="meta">${s}. Type this code on another device to get your vehicles there.</span></div><button type="button" class="btn" data-cloud="copy">Copy code</button><button type="button" class="btn" data-cloud="off">Turn off</button></div>`;
+  }
+  if (CLOUD.siteReady) return `<div class="cloudrow"><span class="cloudic" aria-hidden="true">☁</span><div class="grow"><b>Cloud saves are off</b><span class="meta">Turn them on to get your vehicles on any device with a save code.</span></div><button type="button" class="btn primary" data-cloud="on">Turn on</button><button type="button" class="btn" data-cloud="enter">I have a code</button></div>`;
+  return '';
+}
+function cloudShow() { const el = document.querySelector('#modal .cloudslot'); if (el) el.innerHTML = cloudLine(); }
+/* the buttons on that line */
+async function cloudAction(a) {
+  if (a === 'copy' && CLOUD.code) { try { await navigator.clipboard.writeText(CLOUD.code); toast('Code copied'); } catch (e) { toast('Your code: ' + CLOUD.code, 5000); } return; }
+  if (a === 'off') { LS.set('scrapline.cloudCode', null); CLOUD.api = null; CLOUD.kind = null; CLOUD.code = null; toast('Cloud saves off on this device. Your vehicles stay here, and on the server under the code'); cloudShow(); return; }
+  if (a === 'enter') {
+    openModal(`<h2>Use a save code</h2><p>Type the save code from your other device. Your vehicles from that code are added to the ones here, and from then on both stay in step.</p>
+      <input type="text" id="ccode" maxlength="60" placeholder="river-comet-oak-42" aria-label="Save code" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="mfoot"><button type="button" class="btn" data-back="1">Back</button><button type="button" class="btn primary" data-go="1">Link</button></div>`);
+    const go = () => cloudLink(cleanCode($('ccode').value));
+    $('modal').onclick = e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.back) openLibrary(false); if (t.dataset.go) go(); };
+    $('ccode').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    return;
+  }
+  if (a === 'on') cloudLink(newCloudCode(), true);
+}
+async function cloudLink(code, fresh) {
+  {
+    if (!code) return;
+    if (code.split('-').length < 3) { toast('That does not look like a save code'); return; }
+    LS.set('scrapline.cloudCode', code); CLOUD.code = code; CLOUD.api = siteCloud(code); CLOUD.kind = 'code';
+    const ok = await cloudSync();
+    if (ok) toast(fresh ? `Cloud saves on. Your code is ${code}: write it down` : 'Linked: your vehicles from that code are here', 5200);
+    else toast("Couldn't reach the server: try again in a moment", 3000);
+    if (typeof openLibrary === 'function') openLibrary(false);
+  }
+}
+
 /* ---- builder.js ---- */
 /* ================= Scrapline · builder =================
    Trailmakers-style: Build places parts, Select picks groups (click, Shift-click, drag a box) to move, turn,
@@ -9353,7 +10289,7 @@ function placementTarget(cell, n, faceOK) {
   const anchor = [cell[0] + n[0], cell[1] + n[1], cell[2] + n[2]];
   const def = PD[B.sel];
   // wheels: rotation 0 presses down, each R turns the press direction a quarter about the axle
-  const M = def.kind === 'wheel' && Math.abs(n[1]) < 0.5 ? orient(n, (B.rotK + wheelDownK(n)) % 4) : orient(n, B.rotK, def.attach === 'all' ? B.tilt : 0);
+  const M = def.kind === 'wheel' && !def.wheel.bogie && Math.abs(n[1]) < 0.5 ? orient(n, (B.rotK + wheelDownK(n)) % 4) : orient(n, B.rotK, def.attach === 'all' ? B.tilt : 0);
   const fp = footprint(def, anchor, M);
   const free = fp.every(c => !B.occ.has(ckey(c[0], c[1], c[2])));
   let valid = faceOK && free, mir = null, reason = !faceOK ? 'face' : !free ? 'blocked' : '';
@@ -9907,7 +10843,7 @@ function rotLabel() {
   const def = PD[B.sel];
   if (isStamping()) return `${B.moving ? 'Carrying' : 'Stamping'} ${B.clip.parts.length} part${B.clip.parts.length > 1 ? 's' : ''} · Turn ${B.rotK * 90}° (${keyName(actKeys('b_rot')[0])}) · Click a face · Esc ${B.moving ? 'puts it back' : 'stops'}`;
   let rot = `Rotation ${B.rotK * 90}° (${keyName(actKeys('b_rot')[0])})`;
-  if (def.kind === 'wheel') { const t = B.target; rot = `Presses ${t && t.M ? dirName(mapply(t.M, WHEEL_DN)) : B.rotK === 0 ? 'down' : B.rotK === 2 ? 'up' : 'sideways'} (${keyName(actKeys('b_rot')[0])} turns it)`; }
+  if (def.kind === 'wheel' && !def.wheel.bogie) { const t = B.target; rot = `Presses ${t && t.M ? dirName(mapply(t.M, WHEEL_DN)) : B.rotK === 0 ? 'down' : B.rotK === 2 ? 'up' : 'sideways'} (${keyName(actKeys('b_rot')[0])} turns it)`; }
   const parts = [def.name, rot];
   if (def.attach === 'all') parts.push(`Tilt ${B.tilt * 90}° (${keyName(actKeys('b_tilt')[0])})`);
   return parts.join(' · ');
@@ -9950,11 +10886,190 @@ function builderKey(code, e, shift) {
   if (A('b_focus')) return bFocus(false);
 }
 
+/* ---- title.js ---- */
+/* ================= Scrapline · title screen and menu =================
+   The game opens on a title screen. Behind the menu, little scenes play one after another, like Trailmakers' and
+   Minecraft's: real vehicles from the library parked in real places (the launch pad, the city, a station, the Moon,
+   Lagoon's beaches, Iris, the black hole), the camera drifting slowly round them. The Menu button brings the same
+   menu up later, over the game, paused. */
+const TITLE = { on: false, pause: false, scenes: [], i: -1, t: 0, bodies: [], focus: null, fr: null, busy: false, cam: null };
+const DIORAMAS = [
+  { cap: 'The launch pad · Terra', loc: 'pad', main: 'Starfarer', extras: ['Rover'], dist: 26, pitch: 0.18, yaw: 2.5, lift: 9 },
+  { cap: 'Millbrook station · Terra', loc: 'st_g_millbrook', main: 'Locomotive', extras: [], dist: 24, pitch: 0.28, yaw: 0.9, lift: 2 },
+  { cap: 'Grand Metro · Terra', loc: 'g_grand_metro', main: 'Truck', extras: ['Racer'], dist: 30, pitch: 0.3, yaw: 2.2, lift: 2 },
+  { cap: 'The Moon', loc: 'moon', main: 'Base Hauler', extras: ['Hopper'], dist: 28, pitch: 0.32, yaw: 0.6, lift: 2 },
+  { cap: 'Lagoon · Sapphire, a blue giant', loc: 's_Lagoon', main: 'Hovercraft', extras: [], dist: 20, pitch: 0.25, yaw: 1.4, lift: 1 },
+  { cap: 'Iris · Ruby, a red dwarf', loc: 's_Iris', main: 'Bruiser', extras: [], dist: 22, pitch: 0.2, yaw: 2.8, lift: 2 },
+  { cap: 'Maw, a black hole', loc: 'o_Maw', main: 'Comet', extras: [], dist: 13, pitch: 0, yaw: 0, lift: 0, space: true, hole: true }
+];
+const SCENE_T = 11;
+
+function titleHTML(paused) {
+  return `<div class="tmenu panel">
+      <div class="tmark">SCRAP<span>LINE</span></div>
+      <p class="ttag">Build anything from blocks. Drive it, fly it, sail it, and take it to the stars.</p>
+      <nav class="tbtns">
+        <button type="button" class="tbtn primary" data-t="play">${paused ? 'Resume' : 'Play'}</button>
+        <button type="button" class="tbtn" data-t="library">Vehicle library</button>
+        <button type="button" class="tbtn" data-t="settings">Settings</button>
+        <button type="button" class="tbtn" data-t="help">How to play</button>
+        ${paused ? '<button type="button" class="tbtn" data-t="title">Title screen</button>' : ''}
+      </nav>
+      <p class="tnote">${paused ? 'The game is paused.' : 'Play starts in the builder with your last vehicle.'}</p>
+    </div>
+    <div class="tcap" id="titleCap"></div>`;
+}
+/* first thing on screen: the title, with the scenes behind it */
+function showTitle() {
+  TITLE.on = true; TITLE.pause = false; TITLE.i = -1; TITLE.t = SCENE_T; document.body.classList.add('title');
+  const el = $('title'); el.innerHTML = titleHTML(false); el.hidden = false; el.classList.remove('paused');
+  B.group.visible = false;
+  focusFirst();
+}
+/* later, from the Menu button: the same menu over the game, which waits */
+function openMenu() {
+  if (TITLE.on) return;
+  closeModal(); if (BASES.mode) exitBaseMode();
+  TITLE.pause = true; document.body.classList.add('paused');
+  const el = $('title'); el.innerHTML = titleHTML(true); el.hidden = false; el.classList.add('paused');
+  KEYS.clear(); focusFirst();
+}
+function closeMenu() {
+  TITLE.pause = false; document.body.classList.remove('paused');
+  $('title').hidden = true; $('title').classList.remove('paused'); $('view').focus();
+}
+function focusFirst() { const b = $('title').querySelector('.tbtn'); if (b) b.focus({ preventScroll: true }); }
+function titleAction(a) {
+  if (a === 'play') { if (TITLE.pause) closeMenu(); else leaveTitle(); }
+  else if (a === 'library') openLibrary(false);
+  else if (a === 'settings') openSettings();
+  else if (a === 'help') openHelp();
+  else if (a === 'title') { closeMenu(); setMode('build', false, null, true); worldSave(); showTitle(); }
+}
+/* off the title and into the builder, as the game used to start */
+async function leaveTitle() {
+  if (!TITLE.on || TITLE.leaving) return;
+  TITLE.leaving = true;
+  await titleFade(1);
+  clearScene();
+  TITLE.on = false; TITLE.leaving = false; document.body.classList.remove('title');
+  $('title').hidden = true;
+  G.spawnLoc = 'pad'; $('spawnSel').value = 'pad';
+  B.group.visible = true;
+  setMode('build', true);
+  titleFade(0);
+  if (TITLE.after) { const f = TITLE.after; TITLE.after = null; f(); }
+}
+const titleFade = v => new Promise(r => { const f = $('titleFade'); f.style.opacity = v; setTimeout(r, 650); });
+function clearScene() {
+  for (const b of TITLE.bodies) if (!b.dead) removeMachine(b);
+  TITLE.bodies = []; TITLE.focus = null;
+}
+/* one scene: its vehicles set down at its place, a moment for them and the ground round them to settle */
+async function nextScene() {
+  if (TITLE.busy) return; TITLE.busy = true;
+  await titleFade(1);
+  if (!TITLE.on) { TITLE.busy = false; return; }
+  clearScene();
+  for (let tries = 0; tries < DIORAMAS.length; tries++) {
+    TITLE.i = (TITLE.i + 1) % DIORAMAS.length;
+    const S = DIORAMAS[TITLE.i], ex = EXAMPLES.find(e => e.d.name === S.main);
+    if (!ex || !WORLD.locs[S.loc]) continue;
+    try {
+      const b = createVehicle(ex.d, { brake: 1 });
+      for (const o of machineOf(b)) o.diorama = true;
+      let fr = spawnAtLocation(b, S.loc) || frameAt(new V3(0, 1, 0), new V3(0, 0, 1));
+      // by the black hole: stood upright against its disk, the hole off to one side behind it
+      // (seen from just under the disk, so its bright side, the one spinning toward you, is on the right, clear of the menu)
+      if (S.hole) {
+        const n = TITLE.holeN = sky.hole.lensMat.uniforms.nrm.value.clone().negate(), r = MAW.R * 16;
+        const out = new V3().subVectors(b.x, MAW.center).normalize(); out.addScaledVector(n, -2 * out.dot(n));
+        const vel = new V3().subVectors(b.v, MAW.vel).normalize().multiplyScalar(Math.sqrt(MAW.mu / r)).add(MAW.vel);
+        fr = frameAt(n.clone(), out.clone().negate()); placeBody(b, fr, MAW.center.clone().addScaledVector(out, r), vel, 0);
+      }
+      ensureBuiltNear(b.x);
+      TITLE.bodies.push(b); TITLE.focus = b; TITLE.fr = fr; TITLE.scene = S;
+      // the others parked alongside
+      const cel = dominantCel(b.x);
+      let side = b.radius + 3;
+      for (const name of S.extras) {
+        const e2 = EXAMPLES.find(e => e.d.name === name); if (!e2) continue;
+        const nb = createVehicle(e2.d, { brake: 1 }); for (const o of machineOf(nb)) o.diorama = true;
+        side += nb.radius + 2;
+        const at = b.x.clone().addScaledVector(fr.right, side), up = at.clone().sub(cel.center).normalize(), f2 = frameAt(up, fr.fwd);
+        const h = cel.height ? groundHeightUnder(cel, cel.center.clone().addScaledVector(up, cel.R), f2, Math.min(nb.radius, 20)) : 0;
+        placeBody(nb, f2, cel.center.clone().addScaledVector(up, cel.R + Math.max(h, cel.sea ? 0 : -1e9)), cel.vel, 0.4, cel);
+        TITLE.bodies.push(nb); side += nb.radius + 1;
+      }
+      for (let k = 0; k < (S.space ? 0 : 150); k++) physicsStep(FIXED_DT);
+      for (const o of TITLE.bodies.flatMap(x => machineOf(x))) o.sleepT = 99;
+      TITLE.cam = { yaw: S.yaw, dist: S.dist + Math.min(b.radius, 30) * 0.8, pitch: S.pitch, lift: S.lift };
+      $('titleCap').textContent = S.cap;
+      break;
+    } catch (err) { console.warn('scene', S.cap, err); clearScene(); }
+  }
+  // let the ground near the camera come in before showing it
+  for (let k = 0; k < 10; k++) { titleCamera(0); updateTerrains(camera.position); for (const t of TERS) if (!t.skip) t.process(30); await nextFrame(); }
+  TITLE.t = 0; TITLE.busy = false;
+  if (TITLE.on) titleFade(0);
+}
+/* the camera drifts round the scene's main vehicle */
+const _tcU = new V3(), _tcF = new V3(), _tcR = new V3(), _tcP = new V3();
+function titleCamera(dt) {
+  const b = TITLE.focus, C = TITLE.cam; if (!b || b.dead || !C) return;
+  C.yaw += dt * 0.045;
+  if (TITLE.scene && TITLE.scene.hole) {
+    // the vehicle in the middle, the hole and its disk off to the right of it
+    const h = _tcF.subVectors(MAW.center, b.x).normalize(), n = TITLE.holeN, s = _tcR.crossVectors(h, n).normalize();
+    const hf = Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect), a = Math.min(0.36, hf * 0.6) + 0.05 * Math.sin(C.yaw * 4), k = Math.min(0.38, hf * 0.48);
+    camera.position.copy(b.x).addScaledVector(h, -Math.cos(a) * C.dist).addScaledVector(s, Math.sin(a) * C.dist).addScaledVector(n, C.dist * 0.08);
+    _tcP.copy(h).multiplyScalar(Math.cos(k)).addScaledVector(s, -Math.sin(k)).add(camera.position);
+    camera.up.copy(n); camera.lookAt(_tcP);
+    return;
+  }
+  const cel = dominantCel(b.x), up = _tcU.subVectors(b.x, cel.center).normalize();
+  const f = _tcF.copy(TITLE.fr.fwd).addScaledVector(up, -TITLE.fr.fwd.dot(up)).normalize(), r = _tcR.crossVectors(f, up);
+  const focus = _tcP.copy(b.x).addScaledVector(up, C.lift);
+  const cp = Math.cos(C.pitch), sp = Math.sin(C.pitch);
+  camera.position.copy(focus).addScaledVector(f, -Math.cos(C.yaw) * cp * C.dist).addScaledVector(r, Math.sin(C.yaw) * cp * C.dist).addScaledVector(up, sp * C.dist);
+  if (cel.height) {
+    const cr = camera.position.clone().sub(cel.center), crl = cr.length(); cr.divideScalar(crl);
+    const lcr = toSpin(cel, cr, new V3());
+    let gh = cel.R + Math.max(cel.height(lcr.x, lcr.y, lcr.z), cel.sea ? 0 : -1e9) + 2;
+    if (crl < gh) camera.position.copy(cel.center).addScaledVector(cr, gh);
+  }
+  camera.up.copy(up); camera.lookAt(focus);
+}
+/* called every frame while the title is up */
+function titleStep(dt) {
+  TITLE.t += dt;
+  if (!TITLE.busy && TITLE.t > SCENE_T) nextScene();
+  // the world goes on (trains run, the scene's vehicles sit still)
+  const n = Math.min(4, Math.round(dt / FIXED_DT));
+  for (let k = 0; k < n; k++) physicsStep(FIXED_DT);
+  nearFar(); titleCamera(dt);
+}
+function initTitle() {
+  $('title').addEventListener('click', e => { const t = e.target.closest('[data-t]'); if (!t) return; t.blur(); titleAction(t.dataset.t); });
+  $('btnMenu').onclick = e => { e.currentTarget.blur(); openMenu(); };
+}
+/* the menu's own keys: arrows move between its buttons, Enter or Space presses one */
+function titleKey(e) {
+  if ($('title').hidden || !$('modalWrap').hidden) return false;
+  const btns = [...$('title').querySelectorAll('.tbtn')], i = btns.indexOf(document.activeElement);
+  if (e.code === 'ArrowDown' || e.code === 'ArrowUp') { e.preventDefault(); const j = i < 0 ? 0 : (i + (e.code === 'ArrowDown' ? 1 : btns.length - 1)) % btns.length; btns[j].focus(); return true; }
+  if (e.code === 'Enter' || e.code === 'Space') { e.preventDefault(); (i >= 0 ? btns[i] : btns[0]).click(); return true; }
+  if (e.code === 'Escape' && TITLE.pause) { closeMenu(); return true; }
+  return true;   // nothing else reaches the game while the menu is up
+}
+
 /* ---- game.js ---- */
 /* ================= Scrapline · game: renderer, camera, input, FX, HUD, UI ================= */
 let renderer, stage, scene, camera, sunLight, sun2, moonL, hemi, ambient, sky, raycaster;
 const RO = new V3(); // render origin: the scene is drawn shifted by -RO so the GPU only sees small numbers
 const KEYS = new Set();
+/* a touchscreen first (an iPad): words say tap, not click */
+const COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 const G = {
   mode: 'build', player: null, seatUid: null, spawnLoc: 'pad', warp: 1, map: false, chase: true, shake: 0, initialParts: 1,
   throttle: 0, reversing: false, noSeat: false, wrecked: false, budget: 4.5, hudT: 0, mapYaw: 0.4, mapPitch: 0.55, mapZoom: 1, keysMin: false, fuelWarned: false, predT: 0,
@@ -10144,7 +11259,7 @@ function makeProps() {
 }
 
 /* ---------------- map objects ---------------- */
-const MAP = { segs: [], ghosts: [], rings: [], celLabels: [], pred: null };
+const MAP = { segs: [], ghosts: [], rings: [], celLabels: [], pred: null, focus: null, pan: new V3(), tr: null, pick: [] };
 const SEG_N = 2400, SEG_COLS = [0xf0a32b, 0x7fd0ff, 0xd99cff];
 function lineObj(n, color, opacity = 1) {
   const pos = new Float32Array(n * 3);
@@ -10183,6 +11298,7 @@ function initMapObjects() {
   for (const c of CELS) { const l = document.createElement('div'); l.className = 'mapLabel'; l.dataset.kind = c.kind === 'star' ? 'star' : c.parent && c.parent.kind === 'star' ? 'planet' : 'moon'; l.hidden = true; MAP.labels.appendChild(l); MAP.celLabels.push({ c, l }); }
   mapPlaces();
   MAP.dip = dotSprite(gtex, 0xf0a32b, 0.034);
+  MAP.tgt = dotSprite(gtex, 0xff6fd8, 0.05);
   // winch cables
   MAP.ropes = [];
   for (const g of MAP.ghosts) { g.label = document.createElement('div'); g.label.className = 'mapLabel'; g.label.dataset.kind = 'ghost'; g.label.hidden = true; MAP.labels.appendChild(g.label); }
@@ -10284,13 +11400,13 @@ function updateMapLabels() {
   for (const o of MAP.celLabels) {
     o.l.hidden = true;
     const sp = screenOf(o.c.center, w, h); if (!sp) continue;
-    vis.push({ el: o.l, x: sp.x, y: sp.y, k: o.l.dataset.kind, name: o.c.name, d: me.distanceTo(o.c.center) - o.c.R });
+    vis.push({ el: o.l, x: sp.x, y: sp.y, k: o.l.dataset.kind, name: o.c.name, d: me.distanceTo(o.c.center) - o.c.R, obj: { cel: o.c }, tg: !!(SAS.target && SAS.target.cel === o.c) });
   }
   for (const g of MAP.ghosts) {
     g.label.hidden = true;
     if (!g.on) continue;
     const sp = screenOf(g.s.position, w, h); if (!sp) continue;
-    vis.push({ el: g.label, x: sp.x, y: sp.y, k: 'ghost', txt: g.txt });
+    vis.push({ el: g.label, x: sp.x, y: sp.y, k: 'ghost', txt: g.txt, obj: { cel: g.cel } });
   }
   // places on Terra: only from fairly near, and only on the side facing the camera
   const nearT = camera.position.distanceTo(PLANET.center) < PLANET.R * 7;
@@ -10305,19 +11421,25 @@ function updateMapLabels() {
     s.label.hidden = true;
     if (!s.body || !s.dot.visible) continue;
     const sp = screenOf(s.body.x, w, h); if (!sp) continue;
-    vis.push({ el: s.label, x: sp.x, y: sp.y, k: bodyKind(s.body), name: s.body.name, d: me.distanceTo(s.body.x) });
+    vis.push({ el: s.label, x: sp.x, y: sp.y, k: bodyKind(s.body), name: s.body.name, d: me.distanceTo(s.body.x), obj: { body: s.body }, tg: !!(SAS.target && SAS.target.body === s.body) });
   }
-  vis.sort((a, b) => rank[a.k] - rank[b.k] || (a.d || 0) - (b.d || 0));
+  baseLabels(vis, w, h, me);
+  vis.sort((a, b) => (b.tg ? 1 : 0) - (a.tg ? 1 : 0) || rank[a.k] - rank[b.k] || (a.d || 0) - (b.d || 0));
+  // your own vehicle can be clicked too (its dot has no label)
+  if (G.player && !G.player.dead) { const sp = screenOf(G.player.x, w, h); if (sp) vis.push({ x: sp.x, y: sp.y, obj: { body: G.player }, k: 'me' }); }
+  MAP.pick = vis;
   const shown = [];
   for (const v of vis) {
     const near = shown.find(o => Math.abs(o.x - v.x) < 26 && Math.abs(o.y - v.y) < 16);
+    if (v.k === 'me') continue;
     if (near) { near.extra++; continue; }
     v.extra = 0; shown.push(v);
   }
   for (const v of shown) {
-    const txt = (v.txt || `${v.name} · ${fmtDist(v.d)}`) + (v.extra ? ` · +${v.extra} more` : '');
+    const txt = (v.txt || (v.d < 200 ? v.name : `${v.name} · ${fmtDist(v.d)}`)) + (v.extra ? ` · +${v.extra} more` : '');
     const L = v.el;
     if (L.textContent !== txt) L.textContent = txt;
+    if (L.classList.contains('tgt') !== !!v.tg) L.classList.toggle('tgt', !!v.tg);
     L.style.transform = `translate(${(v.x + 9).toFixed(1)}px, ${(v.y - 9).toFixed(1)}px)`;
     L.hidden = false;
   }
@@ -10355,7 +11477,8 @@ function predDominant(px, py, pz) {
 function predictOrbit(b, draw = true) {
   const segs = MAP.segs; for (const sg of segs) { sg.n = 0; sg.cel = null; }
   for (const g of MAP.ghosts) g.on = false;
-  const pred = { enc: [], impact: null, segs: 0 };
+  const pred = { enc: [], impact: null, segs: 0, tgt: null };
+  const tgi = SAS.target && SAS.target.cel ? CELS.indexOf(SAS.target.cel) : -1; if (tgi >= 0) pred.tgt = { min: Infinity, t: 0 };
   let px = b.x.x, py = b.x.y, pz = b.x.z, vx = b.v.x, vy = b.v.y, vz = b.v.z, t = W.time;
   celPositions(t);
   let ci = predDominant(px, py, pz), si = 0, seg = segs[0]; seg.cel = CELS[ci];
@@ -10375,6 +11498,7 @@ function predictOrbit(b, draw = true) {
     for (let i = 0; i < NCEL; i++) {
       const c = CELS[i], k = i * 3, d = Math.hypot(px - CPOS[k], py - CPOS[k + 1], pz - CPOS[k + 2]);
       const lim = c.kind === 'star' ? (c.hole ? c.R * 2.2 : c.heatEnd) : c.R + (c.kind === 'gas' ? -c.R * 0.05 : 0);
+      if (i === tgi && d - c.R < pred.tgt.min) { pred.tgt.min = d - c.R; pred.tgt.t = t - W.time; }
       if (d < lim) { hitI = i; break; }
       if (enc && i === enc.i) enc.min = Math.min(enc.min, d - c.R);
     }
@@ -10418,6 +11542,8 @@ function placeMapLines() {
   for (const sg of MAP.segs) { sg.line.visible = G.map && sg.n > 1 && !!sg.cel; if (sg.cel) sg.line.position.copy(sg.cel.center); }
   for (const g of MAP.ghosts) { g.s.visible = G.map && g.on; if (g.on) g.s.position.copy(g.anchor.center).add(g.rel); }
   for (const r of MAP.rings) { r.line.visible = G.map; r.line.position.copy(r.cel.parent.center); }
+  // the target: a pink ring round it
+  const tp = G.map ? sasTargetPos() : null; MAP.tgt.visible = !!tp; if (tp) MAP.tgt.position.copy(tp);
   // in flight: a ring where the next skyhook dip happens, for anything carrying a docking port
   const dp = HOOKPRED.ok && G.mode === 'drive' && HOOKPRED.cel ? HOOKPRED : null;
   MAP.dip.visible = !!dp;
@@ -10630,6 +11756,8 @@ function spawnAtLocation(b, key) {
     else {
       const S = c.kind === 'star' ? (c === SUN ? null : SUN) : rootStar(c);
       up = S ? new V3().subVectors(S.center, c.center).normalize() : SOLAR.e1.clone(); hint = new V3().crossVectors(SOLAR.n, up);
+      // round the black hole the orbit is tipped a little out of the disk's plane, so you see the disk from just above it
+      if (c === MAW) { const n = sky.hole.lensMat.uniforms.nrm.value; up.addScaledVector(n, -up.dot(n)).normalize().multiplyScalar(Math.cos(0.26)).addScaledVector(n, Math.sin(0.26)); hint = new V3().crossVectors(n, up); }
     }
     const fr = frameAt(up, hint);
     const r = c.R + L.alt, pos = c.center.clone().addScaledVector(fr.up, r);
@@ -10663,6 +11791,31 @@ function spawnAtLocation(b, key) {
   const h = key === 'pad' ? WORLD.padH : L.hAbs !== undefined ? L.hAbs : groundHeightUnder(PLANET, PLANET.center.clone().addScaledVector(up, PLANET.R), fr, Math.min(b.radius, 30));
   placeBody(b, fr, PLANET.center.clone().addScaledVector(up, PLANET.R + (L.hAbs !== undefined ? h : Math.max(h, 0))), PLANET.vel, 0.35, PLANET);
   if (key !== 'pad') warmTerrain(PLANET, b.x);
+  return railSnap(b) || fr;
+}
+/* a vehicle on rail bogies spawned near a railway is set down on the track, lined up with it, clear of the trains */
+function railSnap(b) {
+  if (!machineOf(b).some(o => o.bogies && o.bogies.length) || !GLOBE.rails.length) return null;
+  const lp = toSpin(PLANET, new V3().subVectors(b.x, PLANET.center), new V3()).normalize(), R = PLANET.R;
+  const trains = TRAIN.list.flatMap(tr => tr.cars.map(c => c.base));
+  let best = null, bd = 160;
+  for (const L of GLOBE.rails) {
+    const P = L.pts;
+    for (let i = 1; i < P.length - 1; i++) {
+      const d = P[i].d.distanceTo(lp) * R; if (d >= bd || P[i].cross) continue;
+      const at = P[i].d.clone().multiplyScalar(R + P[i].h);
+      if (trains.some(t => t.distanceTo(at) < 45)) continue;
+      bd = d; best = { L, i };
+    }
+  }
+  if (!best) return null;
+  const P = best.L.pts, p = P[best.i];
+  // facing the longer way along the line, not into the buffers at the end of it
+  const ahead = best.i < P.length / 2 ? 1 : -1;
+  const up = fromSpin(PLANET, p.d, new V3()).normalize(), f = fromSpin(PLANET, new V3().subVectors(P[best.i + ahead].d, P[best.i - ahead].d), new V3());
+  const fr = frameAt(up, f);
+  placeBody(b, fr, PLANET.center.clone().addScaledVector(up, R + p.h + RAIL_TOP), PLANET.vel, 0.08, PLANET);
+  ensureBuiltNear(b.x);
   return fr;
 }
 function spawnPlayer(respawn) {
@@ -10830,6 +11983,7 @@ function flipUpright() {
 /* ---------------- modes ---------------- */
 /* B back to the builder removes the vehicle you were driving; Park & build leaves it out in the world */
 function setMode(m, force, board, park) {
+  if (BASES.mode) exitBaseMode();
   if (m === G.mode && !force && !board) return;
   G.mode = m;
   document.body.classList.toggle('mode-build', m === 'build');
@@ -10864,11 +12018,13 @@ function setMode(m, force, board, park) {
   $('view').focus();
 }
 function setMapVisible(v) {
+  if (v && BASES.mode) exitBaseMode();
   G.map = v; MAP.objT = 0;
+  if (v) { MAP.focus = null; MAP.pan.set(0, 0, 0); MAP.tr = null; MAP.lastClick = null; }
   if (!v) updateMapTracks(0);
   document.body.classList.toggle('map', v);
   if (v && G.player && !G.player.dead) predictOrbit(G.player);
-  placeMapLines();
+  placeMapLines(); renderMapBar();
 }
 /* highest time warp allowed right now, and why */
 function warpLimit() {
@@ -10993,7 +12149,7 @@ function driveControls(dt = 1 / 60) {
   // under warp, turning keeps its real-time feel
   const rs = 1 / Math.max(1, Math.min(G.warp, 100));
   for (const o of mach) o.ctl.rs = rs;
-  applyInputs(mach, live, dt, dt * G.warp);
+  applyInputs(mach, live && !BASES.mode, dt, dt * G.warp);
   if (live) {
     const jk = id => anyDown(actKeys(id)) ? 1 : 0;
     const hk = jk('hinge_a') - jk('hinge_b'), rk = jk('rotor_r') - jk('rotor_l'), pk = jk('piston_out') - jk('piston_in');
@@ -11031,6 +12187,11 @@ function onKey(code, e) {
   // Shift pressed after the key: count it as the Shift+ key
   if (code === 'ShiftLeft' || code === 'ShiftRight') { for (const k of IN.shifted) if (KEYS.has(k)) onKey(k, { shiftKey: true }); return; }
   const A = id => isAct(id, code, shift);
+  if (BASES.mode) {
+    if (A('build')) { exitBaseMode(); return; }
+    if (isAct('b_rot', code, shift)) { baseTurn(); return; }
+    if (A('map')) exitBaseMode(); else return;
+  }
   if (A('build')) {
     if (G.mode === 'build') setMode('drive');
     else { if (B.pasting) cancelPaste(); setMode('build'); }
@@ -11050,7 +12211,7 @@ function onKey(code, e) {
   if (A('map')) { setMapVisible(!G.map); return; }
   if (A('warp_up')) { changeWarp(1); return; }
   if (A('warp_dn')) { changeWarp(-1); return; }
-  if (A('keys')) { G.keysMin = !G.keysMin; $('keys').classList.toggle('min', G.keysMin); return; }
+  if (A('keys')) { toggleKeys(); return; }
   if (A('map_out')) { if (G.map) G.mapZoom = clamp(G.mapZoom * 1.8, 0.15, 4000); return; }
   if (A('map_in')) { if (G.map) G.mapZoom = clamp(G.mapZoom / 1.8, 0.15, 4000); return; }
   if (ok) {
@@ -11064,6 +12225,8 @@ function bindInput() {
   window.addEventListener('keydown', e => {
     SND.unlock();
     if (captureKeydown(e)) return;
+    if (!$('title').hidden && titleKey(e)) return;
+    if (e.key === 'Escape' && $('modalWrap').hidden && G.mode === 'drive' && !BASES.mode && !(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))) { e.preventDefault(); openMenu(); return; }
     const tg = e.target;
     if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA' || tg.tagName === 'SELECT')) { if (e.key === 'Escape' || e.key === 'Enter') tg.blur(); return; }
     if (!$('modalWrap').hidden) { if (e.key === 'Escape') closeModal(); return; }
@@ -11101,7 +12264,7 @@ function bindInput() {
     setNdc(e);
     // in drive mode a click is the Mouse0 key: a quick click fires once, holding without dragging keeps it down
     clearTimeout(PTR.fireT);
-    if (G.mode === 'drive' && e.button === 0 && !G.map) PTR.fireT = setTimeout(() => { if (PTR.down && !PTR.dragged && !PTR.multi) KEYS.add('Mouse0'); }, 150);
+    if (G.mode === 'drive' && e.button === 0 && !G.map && !BASES.mode) PTR.fireT = setTimeout(() => { if (PTR.down && !PTR.dragged && !PTR.multi) KEYS.add('Mouse0'); }, 150);
   });
   const setNdc = e => { const r = cv.getBoundingClientRect(); B.ndc.set((e.clientX - r.left) / r.width * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); B.hoverOK = true; };
   cv.addEventListener('pointermove', e => {
@@ -11112,7 +12275,11 @@ function bindInput() {
       if (G.mode === 'build') {
         bPan(now.x - pinch.x, now.y - pinch.y);
         if (pinch.d > 10 && now.d > 10) B.cam.dist = clamp(B.cam.dist * pinch.d / now.d, 2.5, Math.max(120, (B.size || 0) * 2));
-      }
+      } else if (G.map) {
+        // on the map: two fingers move it and pinch zooms
+        mapPan(now.x - pinch.x, now.y - pinch.y);
+        if (pinch.d > 10 && now.d > 10) G.mapZoom = clamp(G.mapZoom * pinch.d / now.d, 0.15, 4000);
+      } else if (pinch.d > 10 && now.d > 10) DC.dist = clamp(DC.dist * pinch.d / now.d, 3, 600);
       pinch = now; return;
     }
     if (PTR.multi) return;
@@ -11120,8 +12287,9 @@ function bindInput() {
     if (PTR.down) {
       const dx = e.clientX - PTR.x, dy = e.clientY - PTR.y; PTR.x = e.clientX; PTR.y = e.clientY;
       if (!PTR.dragged && Math.hypot(e.clientX - PTR.x0, e.clientY - PTR.y0) > 5) { PTR.dragged = true; KEYS.delete('Mouse0'); }
-      if (PTR.dragged) { if (PTR.box) showBox(e.clientX, e.clientY); else if (PTR.pan && G.mode === 'build') bPan(dx, dy); else orbitDrag(dx, dy); }
+      if (PTR.dragged) { if (PTR.box) showBox(e.clientX, e.clientY); else if (PTR.pan && G.mode === 'build') bPan(dx, dy); else if (PTR.pan && G.map) mapPan(dx, dy); else orbitDrag(dx, dy); }
     } else B.needsHover = true;
+    if (BASES.mode && !PTR.down) { BASES.lastXY = [e.clientX, e.clientY]; if (performance.now() - (BASES.hoverT || 0) > 60) { BASES.hoverT = performance.now(); baseHover(e.clientX, e.clientY); } }
   });
   const lift = e => {
     TOUCH.delete(e.pointerId);
@@ -11135,6 +12303,8 @@ function bindInput() {
     const held = KEYS.has('Mouse0'); clearTimeout(PTR.fireT); KEYS.delete('Mouse0');
     if (PTR.box && PTR.dragged) { box.hidden = true; bBoxSelect(PTR.x0, PTR.y0, e.clientX, e.clientY, PTR.shift); }
     else if (!PTR.dragged && G.mode === 'build') { bHover(); bClick(PTR.btn, PTR.shift); }
+    else if (!PTR.dragged && BASES.mode) baseClick(e.clientX, e.clientY, PTR.btn);
+    else if (!PTR.dragged && G.map && PTR.btn === 0) mapClick(e.clientX, e.clientY);
     else if (!PTR.dragged && !held && G.mode === 'drive' && PTR.btn === 0 && !G.map) TAPS.add('Mouse0');
     PTR.box = false; box.hidden = true;
     DC.dragging = false; DC.lastDrag = performance.now(); B.needsHover = true;
@@ -11193,25 +12363,72 @@ function driveCamera(dt) {
   let gh = cel.height ? cel.R + cel.height(cr.x, cr.y, cr.z) + 1.0 : 0;
   if (cel.sea && focus.distanceTo(cel.center) > cel.R + 0.5) gh = Math.max(gh, cel.R + 0.6);
   if (crl < gh) camera.position.copy(cel.center).addScaledVector(cr, gh);
+  camBlock(cel, focus);
   if (G.shake > 0.01) { const s = G.shake * 0.45; camera.position.x += (Math.random() - 0.5) * s; camera.position.y += (Math.random() - 0.5) * s; camera.position.z += (Math.random() - 0.5) * s; }
   camera.up.copy(up); camera.lookAt(focus);
 }
-const _mf = new V3();
+/* keep the chase camera on the near side of walls, roofs and the ground over tunnels: if something solid lies between
+   the vehicle and the camera, the camera comes in to just short of it */
+const _cbA = new V3(), _cbB = new V3();
+function camBlock(cel, focus) {
+  const dist = camera.position.distanceTo(focus); if (dist < 1 || dist > 140 || !cel.spinQ) return;
+  toSpin(cel, _cbA.subVectors(focus, cel.center), _cbA); toSpin(cel, _cbB.subVectors(camera.position, cel.center), _cbB);
+  const dx = _cbB.x - _cbA.x, dy = _cbB.y - _cbA.y, dz = _cbB.z - _cbA.z;
+  let best = 1;
+  pgQuery(cel, _cbA.clone().lerp(_cbB, 0.5), dist / 2 + 2, pr => {
+    if (!pr.planes || pr.loose) return;
+    let t0 = 0, t1 = 1, inside0 = true;
+    for (const p of pr.planes) {
+      const den = p.nx * dx + p.ny * dy + p.nz * dz, num = p.d - (p.nx * _cbA.x + p.ny * _cbA.y + p.nz * _cbA.z);
+      if (num < 0) inside0 = false;
+      if (Math.abs(den) < 1e-9) { if (num < 0) return; continue; }
+      const t = num / den;
+      if (den > 0) { if (t < t1) t1 = t; } else if (t > t0) t0 = t;
+      if (t0 > t1) return;
+    }
+    if (inside0 || t0 <= 0) return;   // the vehicle itself is in or on it
+    if (t0 < best) best = t0;
+  });
+  if (best < 1) camera.position.lerp(focus, 1 - Math.max(0.05, best - 0.6 / dist));
+}
+const _mf = new V3(), _mfT = new V3(), _mR = new V3(), _mU = new V3();
 function mapBase(cel, b) {
   if (cel.kind === 'star' && !cel.parent) return b ? Math.max(cel === SUN ? 4e6 : 3e6, b.x.distanceTo(cel.center) * 1.6) : cel.sysR || 6e7;
   if (cel.kind === 'star') return cel.R * 9;
   return cel.R * (cel.parent.kind === 'star' ? 6.2 : 7.3);
 }
-function mapCamera() {
-  const b = G.player && !G.player.dead ? G.player : null, cel = b ? dominantCel(b.x) : PLANET;
-  const d = mapBase(cel, b) * G.mapZoom;
-  // zooming out drifts the view from your world to its parent and on to its star
-  const f = _mf.copy(cel.center);
-  for (let c = cel; c.parent; c = c.parent) {
-    const t = smooth(Math.log(c.soi * 1.2), Math.log(c.a * 1.1), Math.log(d));
-    if (t <= 0) break;
-    f.lerp(c.parent.center, t);
+/* what the map is looking at: something you clicked, else the world you are at. Zooming only moves the camera in and out:
+   the view stays on it (it no longer slides over to the Sun) */
+function mapFocusObj() {
+  const f = MAP.focus;
+  if (f && f.body && !f.body.dead) return f;
+  if (f && f.cel) return f;
+  const b = G.player && !G.player.dead ? G.player : null;
+  return { cel: b ? dominantCel(b.x) : PLANET, home: true };
+}
+function mapFocusName(f = mapFocusObj()) { return f.body ? (f.body === G.player ? 'Your vehicle' : f.body.name) : f.cel.name; }
+function mapFocusPos(out) {
+  const f = mapFocusObj(), b = G.player && !G.player.dead ? G.player : null;
+  if (f.body) { out.copy(f.body.x); return Math.max(400, f.body.radius * 30); }
+  out.copy(f.cel.center);
+  return mapBase(f.cel, b && dominantCel(b.x) === f.cel ? b : null);
+}
+function mapSetFocus(obj) {
+  MAP.tr = { t: 0, f0: (MAP.lastF || camera.position).clone(), d0: MAP.lastD || 1e5 };
+  MAP.focus = obj; MAP.pan.set(0, 0, 0); G.mapZoom = 1;
+  renderMapBar();
+}
+function mapCamera(dt = 0.016) {
+  const d1 = mapFocusPos(_mfT) * G.mapZoom;
+  _mfT.add(MAP.pan);
+  const f = _mf.copy(_mfT); let d = d1;
+  // a short glide to a newly picked focus
+  if (MAP.tr) {
+    const tr = MAP.tr; tr.t = Math.min(1, tr.t + dt / 0.7); const e = tr.t * tr.t * (3 - 2 * tr.t);
+    f.copy(tr.f0).lerp(_mfT, e); d = Math.exp(lerp(Math.log(tr.d0), Math.log(d1), e));
+    if (tr.t >= 1) MAP.tr = null;
   }
+  (MAP.lastF || (MAP.lastF = new V3())).copy(f); MAP.lastD = d;
   const cp = Math.cos(G.mapPitch);
   camera.position.copy(f)
     .addScaledVector(SOLAR.e2, Math.sin(G.mapYaw) * cp * d)
@@ -11219,15 +12436,79 @@ function mapCamera() {
     .addScaledVector(SOLAR.e1, Math.cos(G.mapYaw) * cp * d);
   camera.up.copy(SOLAR.n);
   camera.lookAt(f);
-  if (b) { MAP.marker.position.copy(b.x); }
+  const b = G.player && !G.player.dead ? G.player : null;
+  if (b) MAP.marker.position.copy(b.x);
   // zoomed right out, the view reaches across the galaxy
   const far = Math.max(1e9, d * 8);
   if (camera.far !== far) { camera.far = far; camera.updateProjectionMatrix(); }
+}
+/* slide the map sideways (Shift+drag, middle drag, or two fingers) */
+function mapPan(dx, dy) {
+  camera.updateMatrixWorld();
+  _mR.setFromMatrixColumn(camera.matrixWorld, 0); _mU.setFromMatrixColumn(camera.matrixWorld, 1);
+  const k = (MAP.lastD || 1e5) * 2 * Math.tan(camera.fov * Math.PI / 360) / window.innerHeight;
+  MAP.pan.addScaledVector(_mR, -dx * k).addScaledVector(_mU, dy * k);
+  renderMapBar();
+}
+/* what is under a click on the map: a label, a dot, or a world's disc */
+function mapPick(x, y) {
+  let best = null, bd = 1e9;
+  for (const p of MAP.pick || []) {
+    if (!p.obj) continue;
+    let d = Math.hypot(p.x - x, p.y - y);
+    if (p.el && !p.el.hidden) { const r = p.el.getBoundingClientRect(); if (x >= r.left - 3 && x <= r.right + 3 && y >= r.top - 3 && y <= r.bottom + 3) d = Math.min(d, 2); }
+    if (d < 30 && d < bd) { bd = d; best = p; }
+  }
+  if (best) return best;
+  // a world big on screen: anywhere on its disc
+  const h = window.innerHeight, f = h / 2 / Math.tan(camera.fov * Math.PI / 360);
+  let cd = Infinity;
+  for (const c of CELS) {
+    const sp = screenOf(c.center, window.innerWidth, h); if (!sp) continue;
+    const dist = camera.position.distanceTo(c.center), rp = c.R / dist * f;
+    if (rp > 8 && Math.hypot(sp.x - x, sp.y - y) < rp && dist < cd) { cd = dist; best = { obj: { cel: c }, key: c.name }; }
+  }
+  return best;
+}
+/* one click (or tap) focuses on it; a second one straight after makes it the target */
+function mapClick(x, y) {
+  const now = performance.now(), lc = MAP.lastClick;
+  if (lc && now - lc.t < 450 && Math.hypot(lc.x - x, lc.y - y) < 24) { MAP.lastClick = null; setTarget(lc.obj); return; }
+  const hit = mapPick(x, y);
+  MAP.lastClick = hit ? { t: now, x, y, obj: hit.obj } : null;
+  if (hit) mapSetFocus(hit.obj);
+}
+/* the target: what SAS Target mode points at, and what the map and the orbit panel measure to */
+function setTarget(obj) {
+  const b = G.player && !G.player.dead ? G.player : null;
+  if (!obj) { SAS.target = null; if (SAS.mode === 'target') SAS.mode = 'hold'; toast('Target cleared', 1200); }
+  else if (obj.body) {
+    if (b && machineOf(b).includes(obj.body)) { toast("That's your own vehicle: pick something else to target", 2000); return; }
+    SAS.target = { body: obj.body, name: obj.body.name }; toast(`Target: ${obj.body.name}`, 1400);
+  } else { SAS.target = { cel: obj.cel, name: celCall(obj.cel) }; toast(`Target: ${celTitle(obj.cel)}`, 1400); }
+  G.predT = 0;
+  SND.play('beep'); renderSAS(); renderMapBar();
+}
+/* the strip at the top of the map: what it is centred on, the target, and how to move about */
+function renderMapBar() {
+  const el = $('mapBar'); if (!el) return;
+  el.hidden = !G.map; if (!G.map) return;
+  const f = mapFocusObj(), b = G.player && !G.player.dead ? G.player : null;
+  const t = SAS.target && sasTargetPos() ? SAS.target : null;
+  const homeCel = b ? dominantCel(b.x) : PLANET;
+  const panned = MAP.pan.lengthSq() > 1;
+  el.innerHTML = `<div class="mbrow"><span class="lab">Focus</span><b>${esc(mapFocusName(f))}</b>`
+    + (b && f.body !== b ? `<button type="button" class="btn" data-mb="me">Your vehicle</button>` : '')
+    + (!f.home || panned ? `<button type="button" class="btn" data-mb="home">${esc(homeCel.name)}</button>` : '')
+    + `</div><div class="mbrow"><span class="lab">Target</span><b class="tg">${t ? esc(t.body ? t.name : celTitle(t.cel)) : 'none'}</b>`
+    + (t ? `<button type="button" class="btn" data-mb="clear">Clear</button>` : `<button type="button" class="btn" data-mb="pick">Pick</button>`)
+    + `</div><div class="mbhint">${COARSE ? 'Tap to focus · double-tap to target · two fingers to move' : 'Click to focus · double-click to target · Shift+drag to move'}</div>`;
 }
 function nearFar() { if (camera.far !== 1e9) { camera.far = 1e9; camera.updateProjectionMatrix(); } }
 
 /* ---------------- HUD ---------------- */
 /* the key list shows only what this vehicle can use, with your own key settings */
+function toggleKeys() { G.keysMin = !G.keysMin; $('keys').classList.toggle('min', G.keysMin); }
 function renderKeys() {
   const kinds = new Set(), custom = [], seen = new Set();
   if (G.player && !G.player.dead) for (const o of machineOf(G.player)) for (const p of o.parts) {
@@ -11267,33 +12548,43 @@ function renderKeys() {
   if (has('chute')) rows.push([K1('chute'), 'Parachute open, cut']);
   if (has('gear')) rows.push([K1('gear'), 'Landing gear up, down']);
   rows.push(...custom.slice(0, 8));
-  rows.push([K1('flip'), 'Flip upright'], [K1('respawn'), 'Respawn'], [K2('camera', 'map'), 'Camera mode, map'], [K2('warp_dn', 'warp_up'), 'Time warp, up to ×10,000 (×1,000,000 between stars)'], [K1('keys'), 'Hide this list'], [K1('build'), 'Back to build (clears this vehicle)']);
-  $('keys').innerHTML = rows.map(r => `<span>${r[0]}</span><span>${r[1]}</span>`).join('');
+  rows.push([K1('flip'), 'Flip upright'], [K1('respawn'), 'Respawn'], [K2('camera', 'map'), 'Camera mode, map'], [K2('warp_dn', 'warp_up'), 'Time warp'], [K1('keys'), 'Hide this list'], [K1('build'), 'Back to build (clears this vehicle)']);
+  // folded away (after the first drive) it is one line saying how to bring it back
+  $('keys').innerHTML = rows.map(r => `<span>${r[0]}</span><span>${r[1]}</span>`).join('') + `<span class="kmin">${K1('keys')}</span><span class="kmin">Show the keys</span>`;
 }
 /* SAS buttons under the gauges */
 const SAS_SHORT = { hold: 'Hold', pro: 'Pro', retro: 'Retro', norm: 'Norm', anti: 'Anti', rout: 'Rad +', rin: 'Rad −', target: 'Target', level: 'Level' };
+const _tgv = new V3(), _tgv2 = new V3(), _rk1 = new V3(), _rk2 = new V3();
 function renderSAS() {
   const el = $('sasRow'), b = G.player;
   const can = G.mode === 'drive' && b && !b.dead && machineOf(b).some(sasCapable);
   el.hidden = !can; if (!can) return;
   const tn = SAS.mode === 'target' && SAS.target ? ` · ${esc(SAS.target.name)}` : '';
   el.innerHTML = `<button type="button" class="sasbtn main${SAS.on ? ' on' : ''}" data-sas="toggle" title="SAS on, off (${esc(keyName(actKeys('sas')[0]))})">SAS ${SAS.on ? 'on' : 'off'}${SAS.on ? tn : ''}</button>`
-    + SAS_MODES.map(([m, nm]) => `<button type="button" class="sasbtn${SAS.on && SAS.mode === m ? ' on' : ''}" data-sas="${m}" title="${nm}">${SAS_SHORT[m]}</button>`).join('');
+    + SAS_MODES.filter(([m]) => SAS.space || !ORBIT_ONLY.has(m) || (SAS.on && SAS.mode === m))
+      .map(([m, nm]) => `<button type="button" class="sasbtn${SAS.on && SAS.mode === m ? ' on' : ''}" data-sas="${m}" title="${nm}">${SAS_SHORT[m]}</button>`).join('');
 }
-function openTargetPicker() {
+/* normal, anti-normal and radial only mean something in orbit: down in the air the row is just hold, pro, retro, target and level */
+const ORBIT_ONLY = new Set(['norm', 'anti', 'rout', 'rin']);
+function openTargetPicker(forSAS) {
   const b = G.player; if (!b || b.dead) return;
   const mine = new Set(machineOf(b));
   const veh = vehicleList().filter(v => !mine.has(v));
   const d = p => fmtDist(Math.max(0, b.x.distanceTo(p)));
   const rows = [...veh.map((v, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(v.name)}</span><span class="meta">${d(v.x)} away</span></div><button type="button" class="btn primary" data-v="${i}">Target</button></div>`),
-    ...CELS.map((c, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(celTitle(c))}</span><span class="meta">${d(c.center)} to its centre</span></div><button type="button" class="btn" data-c="${i}">Target</button></div>`)].join('');
-  openModal(`<h2>Pick a target</h2><p>SAS Target mode points the craft at it. Its rockets' thrust points that way, or the nose if it has none.</p><div class="mlist">${rows}</div><div class="mfoot"><button type="button" class="btn" data-close="1">Close</button></div>`);
+    // worlds nearest first
+    ...CELS.map((c, i) => [c, i]).sort((A, B) => b.x.distanceTo(A[0].center) - b.x.distanceTo(B[0].center))
+      .map(([c, i]) => `<div class="mrow"><div class="grow"><span class="nm">${esc(celTitle(c))}</span><span class="meta">${d(c.center)} to its centre</span></div><button type="button" class="btn" data-c="${i}">Target</button></div>`)].join('');
+  const cur = SAS.target && sasTargetPos() ? `<div class="mrow"><div class="grow"><span class="nm">Now: ${esc(SAS.target.body ? SAS.target.name : celTitle(SAS.target.cel))}</span><span class="meta">the pink ring on the map</span></div><button type="button" class="btn danger" data-clear="1">Clear target</button></div>` : '';
+  openModal(`<h2>Pick a target</h2><p>The orbit panel and the map measure to your target, and SAS Target mode points the craft at it. On the map you can also double-${COARSE ? 'tap' : 'click'} something to target it.</p>${cur}<div class="mlist">${rows}</div><div class="mfoot"><button type="button" class="btn" data-close="1">Close</button></div>`);
   $('modal').onclick = e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.close) return closeModal();
-    if (t.dataset.v !== undefined) { const v = veh[+t.dataset.v]; SAS.target = { body: v, name: v.name }; }
-    if (t.dataset.c !== undefined) { const c = CELS[+t.dataset.c]; SAS.target = { cel: c, name: celCall(c) }; }
-    closeModal(); if (SAS.target) setSASMode('target');
+    if (t.dataset.clear) { closeModal(); setTarget(null); return; }
+    if (t.dataset.v !== undefined) setTarget({ body: veh[+t.dataset.v] });
+    if (t.dataset.c !== undefined) setTarget({ cel: CELS[+t.dataset.c] });
+    closeModal();
+    if (forSAS && sasTargetPos()) setSASMode('target');
   };
 }
 /* spotlights: two real lights follow the player's lamps when it gets dark */
@@ -11369,14 +12660,38 @@ function updateHUD() {
   if (mach.some(o => o.dock || o.carrying)) chips.push(`<span class="chip on">Linked · ${esc(keyName(actKeys('undock')[0]))} undocks, ${esc(keyName(actKeys('grab')[0]))} lets go</span>`);
   if (mach.some(o => o.wheels.some(w => w.gear))) chips.push(`<span class="chip">${mach.some(o => o.gearUp) ? 'Gear up' : 'Gear down'}</span>`);
   chips.push(`<span class="chip">${G.map ? 'Map view' : G.chase ? 'Chase cam' : 'Free cam'}</span>`);
+  // on rail bogies: say so, and how fast the bends just ahead can be taken
+  const bogs = mach.flatMap(o => o.bogies || []), onb = bogs.find(g => g.on);
+  if (onb) {
+    const P = onb.line.pts, dir = onb.tdir; let kmax = 0;
+    for (let k = 0, i = onb.ri; k < 30; k++, i += dir) {
+      if (i < 1 || i >= P.length - 1) break;
+      const a = _rk1.subVectors(P[i].d, P[i - 1].d), c = _rk2.subVectors(P[i + 1].d, P[i].d);
+      kmax = Math.max(kmax, Math.acos(clamp(a.dot(c) / (a.length() * c.length() || 1), -1, 1)) / (a.length() * PLANET.R || 1));
+    }
+    const lim = kmax > 1e-5 ? Math.sqrt(RAIL_LAT * 0.85 / kmax) : 99;
+    chips.push(lim < 40 ? `<span class="chip ${spd > lim ? 'warn' : 'on'}">Bend ahead · ${Math.round(lim * 3.6)} km/h</span>` : '<span class="chip on">On rails</span>');
+  } else if (bogs.length) chips.push('<span class="chip">Bogies off the track</span>');
   $('hChips').innerHTML = chips.join('');
+  { const sp = inSpace(b); if (SAS.space !== sp) { SAS.space = sp; renderSAS(); } }
+  // Base mode: offered once you have landed and stopped with crates aboard (or beside a base of yours)
+  if (BASES.mode && (!canBaseMode(b) || BASES.mode.cel !== b.groundCel)) exitBaseMode();
+  const bm = !BASES.mode && canBaseMode(b), br = $('baseRow');
+  if (br.hidden === bm) br.hidden = !bm;
+  if (bm) { const n = cratesAboard(b), t = n ? `Base mode · ${n} crates aboard` : 'Base mode · take pieces back'; if ($('btnBase').textContent !== t) $('btnBase').textContent = t; }
+  document.body.classList.toggle('basemode', !!BASES.mode);
   const ob = $('orbitBox');
   const onTower = b.anchored || mach.some(o => o.onTower);
-  if (!onTower && (alt > 1500 || spd > 120 || G.map || !b.airCel)) {
+  // the orbit panel: up high, going fast, in the map, or off the ground on a world with no air (not while you sit on it)
+  const landed = b.groundCel && spd < 30;
+  if (!onTower && (alt > 1500 || spd > 120 || G.map || (!b.airCel && !landed))) {
     const oi = orbitInfo(b, cel);
     const nm = celCall(cel);
-    let html = `<div class="ttl">${oi.escape ? 'Escaping ' + nm : (oi.pe > 0 ? 'Orbiting ' + nm : 'Suborbital · ' + nm)}</div>`;
-    if (oi.escape) html += `<div class="row"><span>Eccentricity</span><b>${oi.e.toFixed(2)}</b></div>`;
+    // sitting on the ground (looking at the map): no orbit to speak of, just where you are and what is round you
+    const sitting = landed && alt < 1500;
+    let html = `<div class="ttl">${sitting ? 'Landed · ' + nm : oi.escape ? 'Escaping ' + nm : (oi.pe > 0 ? 'Orbiting ' + nm : 'Suborbital · ' + nm)}</div>`;
+    if (sitting) { }
+    else if (oi.escape) html += `<div class="row"><span>Eccentricity</span><b>${oi.e.toFixed(2)}</b></div>`;
     else {
       html += `<div class="row"><span>Apoapsis</span><b>${fmtDist(oi.ap)}</b></div>`;
       html += `<div class="row"><span>Periapsis</span><b>${oi.pe < 0 ? (cel.kind === 'gas' ? 'in the clouds' : 'below surface') : fmtDist(oi.pe)}</b></div>`;
@@ -11390,8 +12705,17 @@ function updateHUD() {
     let nb = null, nd = Infinity;
     const home = rootStar(cel);
     for (const c of ORBITERS) { if (c === cel || c.kind === 'star' || rootStar(c) !== home) continue; const d = b.x.distanceTo(c.center) - c.R; if (d < nd) { nd = d; nb = c; } }
-    if (nb) html += `<div class="row"><span>Nearest · ${nb.name}</span><b>${fmtDist(nd)}</b></div>`;
     const pr = MAP.pred;
+    // the target: how far, how fast you are closing, and the closest your path comes
+    const tp = sasTargetPos();
+    if (nb && !(tp && SAS.target && SAS.target.cel === nb)) html += `<div class="row"><span>Nearest · ${nb.name}</span><b>${fmtDist(Math.max(0, nd))}</b></div>`;
+    if (tp && SAS.target) {
+      const T = SAS.target, tv = T.body ? T.body.v : T.cel.vel, dist = b.x.distanceTo(tp) - (T.cel ? T.cel.R : 0);
+      const rel = _tgv.subVectors(b.v, tv), close = -rel.dot(_tgv2.subVectors(tp, b.x).normalize());
+      html += `<div class="row tg"><span>Target · ${esc(T.body ? T.name : T.cel.name)}</span><b>${fmtDist(Math.max(0, dist))}</b></div>`;
+      html += `<div class="row tg"><span>${close >= 0 ? 'Closing at' : 'Moving away at'}</span><b>${Math.abs(close) < 1000 ? Math.abs(close).toFixed(1) + ' m/s' : (Math.abs(close) / 1000).toFixed(2) + ' km/s'}</b></div>`;
+      if (pr && pr.tgt && pr.tgt.min < Infinity) html += `<div class="row tg"><span>Closest approach</span><b>${pr.tgt.min < 0 ? 'impact' : fmtDist(pr.tgt.min)} · ${fmtTime(pr.tgt.t)}</b></div>`;
+    }
     if (pr && pr.enc.length) { const e = pr.enc[0]; html += `<div class="row hi"><span>${e.cel.name} encounter</span><b>${fmtTime(e.t)}</b></div>`; }
     if (pr && pr.impact && pr.impact.cel !== cel && !(pr.enc[0] && pr.enc[0].cel === pr.impact.cel)) html += `<div class="row warn"><span>${pr.impact.cel.kind === 'star' ? 'Into ' + celCall(pr.impact.cel) : 'Impact · ' + pr.impact.cel.name}</span><b>${fmtTime(pr.impact.t)}</b></div>`;
     ob.innerHTML = html; ob.hidden = false;
@@ -11440,7 +12764,7 @@ function updateTint() {
 }
 
 /* ---------------- vehicles in the world ---------------- */
-function vehicleList() { return W.bodies.filter(b => !b.dead && !b.debris && b.seat && !b.seat.broken); }
+function vehicleList() { return W.bodies.filter(b => !b.dead && !b.debris && !b.diorama && b.seat && !b.seat.broken); }
 function vehicleWhere(b) {
   const mach = machineOf(b), rider = mach.find(o => o.dock && (o.dock.kind === 'grapple' || o.dock.kind === 'dock'));
   if (rider) return rider.dock.kind === 'grapple' ? 'Hanging from a skyhook' : `Docked to ${rider.dock.carrier.name}`;
@@ -11461,7 +12785,7 @@ function openVehicles() {
   const list = vehicleList();
   const pc = b => machineOf(b).reduce((s, o) => s + o.parts.length, 0);
   const rows = list.length ? list.map((b, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(b.name)}${b === G.player ? ' · driving' : ''}</span><span class="meta">${esc(vehicleWhere(b))} · ${pc(b)} parts</span></div>${b === G.player ? '' : `<button type="button" class="btn primary" data-board="${i}">Drive</button>`}<button type="button" class="btn danger" data-rm="${i}">Remove</button></div>`).join('')
-    : `<p>No vehicles out in the world yet. Build one and press ${esc(keyName(actKeys('build')[0]))} to drive it. Park &amp; build leaves it out in the world for later.</p>`;
+    : `<p>No vehicles out in the world yet. Build one and ${COARSE ? 'tap Drive it' : `press ${esc(keyName(actKeys('build')[0]))}`} to drive it. Park &amp; build leaves it out in the world for later.</p>`;
   openModal(`<h2>Vehicles in the world</h2>
     <p>Everything you leave behind stays where it is, even after you close the page. Pick one to take the controls again.</p>
     <div class="mlist">${rows}</div>
@@ -11680,7 +13004,7 @@ function uiStats() {
   if (!s.hasSeat && s.count) w.push('No seat: this vehicle won\'t respond to controls.');
   if (s.loose) w.push(`${s.loose} part${s.loose > 1 ? 's are' : ' is'} not attached to the ${s.hasSeat ? 'seat' : 'main body'} and will fall off.`);
   if (s.rocket && !s.fuel) w.push('Rocket engines need fuel tanks.');
-  if (B.design.parts.some(p => PD[p.t].kind === 'wheel' && Math.abs(p.m[4]) > 0.5)) w.push('A wheel is mounted flat and won\'t roll. Put wheels on side faces.');
+  if (B.design.parts.some(p => PD[p.t].kind === 'wheel' && !PD[p.t].wheel.bogie && Math.abs(p.m[4]) > 0.5)) w.push('A wheel is mounted flat and won\'t roll. Put wheels on side faces.');
   if (s.rocket && s.twr > 0 && s.twr < 1) w.push('Rockets are too weak to lift off the planet.');
   const JN = { piston: 'piston', hinge: 'hinge', rotor: 'rotor', susp: 'suspension' };
   for (const [, why, type] of B.locked || []) {
@@ -11747,7 +13071,7 @@ function renderCtx() {
       <div class="actgrid"><button type="button" class="btn" data-a="rotclip">Turn</button><button type="button" class="btn" data-a="cancel">${B.moving ? 'Put back' : 'Stop'}</button></div>`;
   } else if (T === 'build') {
     const d = PD[B.sel];
-    h = `<span class="lab">Build · ${esc(d.name)}</span><p class="hintp">Click a face to place it, right-click a part to delete it. ${kbd(actKeys('b_rot')[0])} rotates${d.attach === 'all' ? `, ${kbd(actKeys('b_tilt')[0])} tilts` : ''}. With Mirror on, a twin goes on the other side.</p><span class="lab">Colour for new parts</span>${swatchHTML()}`;
+    h = `<span class="lab">Build · ${esc(d.name)}</span><p class="hintp">${COARSE ? 'Tap a face to place it; to take parts off, pick them with Select and press Delete.' : 'Click a face to place it, right-click a part to delete it.'} ${kbd(actKeys('b_rot')[0])} rotates${d.attach === 'all' ? `, ${kbd(actKeys('b_tilt')[0])} tilts` : ''}. With Mirror on, a twin goes on the other side.</p><span class="lab">Colour for new parts</span>${swatchHTML()}`;
   } else if (T === 'paint') {
     h = `<span class="lab">Paint</span><p class="hintp">Pick a colour, then click parts. With Mirror on, both sides change.</p>${swatchHTML()}`;
   } else if (!idx.length) {
@@ -11823,18 +13147,25 @@ function openModal(html, wide) {
 function closeModal() { CAPTURE = null; $('modalWrap').hidden = true; $('view').focus(); }
 function savedList() { const l = LS.get('scrapline.saves', []); return Array.isArray(l) ? l : []; }
 function openLibrary(spawnMode) {
+  // catch up with the cloud when the library opens (then show it again with what came down)
+  if (!spawnMode && CLOUD.api && !CLOUD.busy && Date.now() - Math.max(CLOUD.last, CLOUD.tried || 0) > 15000) {
+    CLOUD.tried = Date.now();
+    cloudSync().then(ok => { if (ok && !$('modalWrap').hidden && document.querySelector('#modal .cloudslot')) openLibrary(false); });
+  }
   const ex = EXAMPLES.map((e, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(e.d.name)}</span><span class="meta">${e.d.parts.length} parts · ${esc(keyText(e.blurb))}</span></div><button type="button" class="btn${spawnMode ? '' : ' primary'}" data-ex="${i}">${spawnMode ? 'Spawn' : 'Load'}</button></div>`).join('');
   const sv = savedList();
   const svh = sv.length ? sv.map((d, i) => `<div class="mrow"><div class="grow"><span class="nm">${esc(d.name)}</span><span class="meta">${d.parts.length} parts</span></div><button type="button" class="btn${spawnMode ? '' : ' primary'}" data-sv="${i}">${spawnMode ? 'Spawn' : 'Load'}</button>${spawnMode ? '' : `<button type="button" class="btn danger" data-del="${i}">Delete</button>`}</div>`).join('')
     : '<p>No saved vehicles yet. Use Save in the builder to keep one here.</p>';
   openModal(`<h2>${spawnMode ? 'Spawn a vehicle to crash into' : 'Vehicle library'}</h2>
     ${spawnMode ? '<p>It appears in front of you with its brakes on.</p>' : ''}
+    ${spawnMode ? '' : '<div class="cloudslot">' + cloudLine() + '</div>'}
     <span class="lab">Your vehicles</span><div class="mlist">${svh}</div>
     <span class="lab">Examples</span><div class="mlist">${ex}</div>
     <div class="mfoot">${spawnMode ? `<button type="button" class="btn danger" data-clear="1">Remove spawned vehicles</button><button type="button" class="btn" data-current="1">Spawn ${esc(B.design.name)}</button>` : '<button type="button" class="btn" data-export="1">Export</button><button type="button" class="btn" data-import="1">Import</button><span class="grow"></span>'}<button type="button" class="btn" data-close="1">Close</button></div>`);
   $('modal').onclick = e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.close) return closeModal();
+    if (t.dataset.cloud) return cloudAction(t.dataset.cloud);
     if (t.dataset.export) return openExport();
     if (t.dataset.import) return openImport();
     if (t.dataset.clear) { const l = W.bodies.filter(b => !b.player && (b.spawned || b.debris) && !b.parts.some(p => p.uid === G.seatUid)); for (const b of l) removeBody(b); closeModal(); toast(`Removed ${l.length} spawned vehicle${l.length === 1 ? '' : 's'} and wreckage`); return; }
@@ -11842,11 +13173,16 @@ function openLibrary(spawnMode) {
     if (t.dataset.ex !== undefined) d = EXAMPLES[+t.dataset.ex].d;
     if (t.dataset.sv !== undefined) d = sanitizeDesign(sv[+t.dataset.sv]);
     if (t.dataset.current) d = B.design;
-    if (t.dataset.del !== undefined) { const l = savedList(); const nm = l[+t.dataset.del].name; l.splice(+t.dataset.del, 1); LS.set('scrapline.saves', l); toast(`Deleted ${nm}`); openLibrary(spawnMode); return; }
+    if (t.dataset.del !== undefined) { const l = savedList(); const nm = l[+t.dataset.del].name; noteDeleted(l[+t.dataset.del]); l.splice(+t.dataset.del, 1); LS.set('scrapline.saves', l); toast(`Deleted ${nm}`); openLibrary(spawnMode); return; }
     if (!d) return;
     closeModal();
     if (spawnMode) spawnOther(d);
-    else { const prev = snap(); bLoad(d); B.undo.push(prev); syncUndo(); toast(`Loaded ${d.name}. Undo brings back what you had`); }
+    else {
+      const prev = snap(); bLoad(d); B.undo.push(prev); syncUndo();
+      // from the title or the paused menu, loading a vehicle means you want it now: into the builder with it
+      if (TITLE.on) leaveTitle(); else if (TITLE.pause) { closeMenu(); if (G.mode !== 'build') setMode('build'); }
+      toast(`Loaded ${d.name}. Undo brings back what you had`);
+    }
   };
 }
 /* ---------- moving saved vehicles between browsers (or from one copy of the game to another) ----------
@@ -11916,9 +13252,10 @@ function openImport() {
       // the same vehicle already here (under any name) is not added again
       if (all.some(h => JSON.stringify((sanitizeDesign(h) || h).parts) === js)) { same++; continue; }
       let nm = d.name, k = 2; while (all.some(h => h.name === nm)) nm = `${d.name.slice(0, 36)} ${k++}`;
-      d.name = nm; fresh.push(d);
+      d.name = nm; noteSaved(d); fresh.push(d);
     }
     if (fresh.length && !LS.set('scrapline.saves', [...fresh, ...have])) return toast('This browser blocked saving');
+    if (fresh.length) cloudChanged();
     openLibrary(false);
     toast(fresh.length ? `Imported ${fresh.length} vehicle${fresh.length === 1 ? '' : 's'}${same ? ` (${same} you already had)` : ''}` : 'You already have all of those');
   };
@@ -11931,7 +13268,11 @@ function openImport() {
   };
 }
 function openSave() {
-  openModal(`<h2>Save vehicle</h2><p>Saved vehicles live in this browser. Load them from the library or spawn them in drive mode; Export in the library moves them to another browser.</p>
+  const where = CLOUD.kind === 'claude' ? 'Saved vehicles go to your Claude account, so they are on any device you sign in on.'
+    : CLOUD.kind === 'code' ? 'Saved vehicles go to the cloud under your save code, so they are on any device you type it on.'
+    : CLOUD.siteReady ? 'Saved vehicles stay on this device. To have them on your other devices too, turn on cloud saves in the library.'
+    : 'Saved vehicles stay on this device. Export in the library moves them to another.';
+  openModal(`<h2>Save vehicle</h2><p>${where} Load them from the library, or spawn them while driving.</p>
     <input type="text" id="saveName" maxlength="40" value="${esc(B.design.name)}" aria-label="Vehicle name">
     <div class="mfoot"><button type="button" class="btn" data-close="1">Cancel</button><button type="button" class="btn primary" data-save="1">Save</button></div>`);
   const doSave = () => {
@@ -11939,8 +13280,10 @@ function openSave() {
     B.design.name = nm; $('designName').value = nm;
     const l = savedList(); const i = l.findIndex(d => d.name === nm);
     const copy = cloneDesign(B.design);
+    if (i >= 0) copy.id = l[i].id;
+    noteSaved(copy);
     if (i >= 0) l[i] = copy; else l.unshift(copy);
-    if (LS.set('scrapline.saves', l)) toast(i >= 0 ? `Updated ${nm}` : `Saved ${nm}`); else toast('This browser blocked saving');
+    if (LS.set('scrapline.saves', l)) { toast(i >= 0 ? `Updated ${nm}` : `Saved ${nm}`); cloudChanged(); } else toast('This browser blocked saving');
     saveCurrent(); closeModal();
   };
   $('modal').onclick = e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.close) closeModal(); if (t.dataset.save) doSave(); };
@@ -11952,10 +13295,12 @@ function openNew() {
     <div class="mfoot"><button type="button" class="btn" data-close="1">Keep building</button><button type="button" class="btn primary" data-new="1">Start new</button></div>`);
   $('modal').onclick = e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.close) closeModal(); if (t.dataset.new) { bNew(); closeModal(); } };
 }
-function openHelp() {
+function openHelp(tab) {
   const kb = (a, b) => `<span>${a}</span><span>${b}</span>`, K = id => actKbd(id), K2 = (x, y) => kbd(actKeys(x)[0] || '') + kbd(actKeys(y)[0] || '');
-  openModal(`<h2>How to play</h2>
-  <div class="cols">
+  const click = COARSE ? 'tap' : 'click', Click = COARSE ? 'Tap' : 'Click';
+  const TABS = [['keys', 'Keys'], ['build', 'Building'], ['terra', 'Terra'], ['space', 'Space'], ['bases', 'Bases'], ['saves', 'Saving']];
+  const P = {
+    keys: `<div class="cols">
     <div><span class="lab">Build</span><div class="ctlgrid">
       ${kb(K('b_build'), 'Build: click a face to place the part, right-click deletes')}
       ${kb(K('b_select'), 'Select: click, Shift-click, drag a box, double-click a branch')}
@@ -11968,7 +13313,7 @@ function openHelp() {
       ${kb(K('b_forces') + K('b_air') + K('b_keys'), 'Forces, air drag and part keys views')}
       ${kb('<kbd>Drag</kbd> <kbd>Right-drag</kbd>', 'Turn the camera')}${kb('<kbd>Shift</kbd>+<kbd>Drag</kbd>', 'Slide the view (two fingers on a touchscreen)')}
       ${kb('<kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> <kbd>Q</kbd><kbd>E</kbd>', 'Move and turn the camera')}${kb('<kbd>Scroll</kbd>', 'Zoom')}${kb(K('b_focus'), 'Refocus')}
-      ${kb(K('build'), 'Drive it')}
+      ${kb(K('build'), 'Drive it')}${kb('<kbd>Esc</kbd>', 'Menu (or the Menu button, top left)')}
     </div></div>
     <div><span class="lab">Drive</span><div class="ctlgrid">
       ${kb(K('fwd'), 'Drive forward, plane and boat thrust')}${kb(K('back'), 'Brake, keep holding to reverse')}
@@ -11977,56 +13322,74 @@ function openHelp() {
       ${kb(K('sas'), 'SAS on, off; the buttons under the gauges point it')}${kb(K('rcs'), 'RCS translate: the steering keys slide the craft')}
       ${kb(K2('hinge_a', 'hinge_b'), 'Swing hinges')}${kb(K2('rotor_l', 'rotor_r'), 'Turn rotors')}${kb(K2('piston_out', 'piston_in'), 'Extend, retract pistons')}
       ${kb(K2('winch_in', 'winch_out'), 'Winch in, out')}${kb(K('grab'), 'Claws and hooks grab, let go')}${kb(K('chute'), 'Parachutes open, cut')}${kb(K('gear'), 'Landing gear up, down')}
-      ${kb(K('undock'), 'Undock, let go of a skyhook, ground anchor')}${kb(K('fire') , 'Fire weapons (a click on the view works too)')}
+      ${kb(K('undock'), 'Undock, let go of a skyhook, ground anchor')}${kb(K('fire'), 'Fire weapons')}
       ${kb(K('boost'), 'Afterburners')}${kb(K2('fwd', 'descend'), 'Helicopter rotors climb, sink; let go to hover')}${kb(K('horn'), 'Horn')}
       ${kb(K('detach'), 'Detachers let go')}${kb(K('spin'), 'Spinners on, off')}${kb(K('lights'), 'Light bars on, off')}
       ${kb(K('flip'), 'Flip upright')}${kb(K('respawn'), 'Respawn')}${kb(K('keys'), 'Show or hide the key list')}
       ${kb(K('camera'), 'Chase or free camera')}${kb(K('map'), 'Map and orbit line')}${kb(K2('map_out', 'map_in'), 'Zoom the map')}
-      ${kb(K2('warp_dn', 'warp_up'), 'Time warp: ×5 near worlds, ×100 thrusting, ×10,000 coasting, ×1,000,000 between the stars')}${kb(K('build'), 'Back to the builder')}
+      ${kb(K2('warp_dn', 'warp_up'), 'Time warp slower, faster')}${kb(K('build'), 'Back to the builder')}
     </div></div>
   </div>
-  <div class="mfoot" style="justify-content:flex-start"><button type="button" class="btn" data-keys="1">Change keys</button></div>
-  <span class="lab">Building like Trailmakers</span>
-  <p>Pick a part on the left and click a face to stick it on. The tool strip next to the right panel switches tools and building views. Select grabs groups of parts: drag a box around them, Shift-click to add, or double-click a part to take it with everything built onto it. Then move it, turn it, copy it, mirror it to the other side, paint it or delete it. Undo and redo go back and forth through every change.</p>
+  <div class="mfoot" style="justify-content:flex-start"><button type="button" class="btn" data-keys="1">Change keys</button></div>`,
+    build: `<p>Pick a part on the left and ${click} a face of your vehicle to stick it on. The tool strip next to the right panel switches tools and building views. Select grabs groups of parts: drag a box around them, Shift-click to add, or double-click a part to take it with everything built onto it. Then move it, turn it, copy it, mirror it to the other side, paint it or delete it. Undo and redo go back and forth through every change.</p>
   <p>Configure is where each part gets its own keys and settings, like in Trailmakers: wheel power, top speed and steering, engine power, flap swing, hinge angle limits and speed, piston stroke, which key fires each rocket or decoupler, and more. A grey key follows your Controls settings; set one of its own and it turns orange. The Keys view labels every part with the keys it answers to.</p>
   <p>Forces shows the centre of mass (orange), centre of thrust with its push (red), centre of lift (blue) and of buoyancy (teal), and warns when they would make the craft turn or flip. Air drag paints every face the wind hits head-on red and tells you the drag at 100 km/h.</p>
-  <p>Logic blocks press keys for you. A Sensor watches height, speed, climb, tilt, distance ahead or fuel and presses a key while the reading is past your value. A Timer waits and then presses a key for a while, a Logic Gate combines two keys, and a Toggle Switch latches on and off. They can press real keys or channels (Ch 1 to Ch 8) that only parts and other logic blocks hear: set a parachute to Ch 1 and a sensor to press Ch 1 when below 300 m, and it opens by itself.</p>
-  <span class="lab">All over Terra</span>
-  <p>Highways run out from the launch pad to the city of Grand Metro, three towns, villages and farms all round the planet, over long bridges and through tunnels; two towns sit on islands of their own. Three railway lines link eight stations, and a train runs on each by itself, stopping at every station. Drive up a station's ramp onto the platform and onto a flat car, or pick a ride under Spawn at, Railways: whatever stands on a train is carried along. Under Landmarks, Summit Station sits on the highest peak and the Deep Sea Base on the deepest sea floor. The wider world is built as you come near it, so far-off places appear as you travel.</p>
-  <span class="lab">Places</span>
-  <p>Roads run from the launch pad to two towns, an airport, a race and stunt park and a harbor, with tunnels through the hills. Pick a place under Spawn at. The race track times your laps: drive through the start line, then every orange gate. The stunt park has jumps, a half-pipe, a quarter pipe and a loop: line up on its blue run-up and go flat out. Buildings are solid, but cones, barrels and crates go flying, and crates break. The Moon has a base on the side that faces Terra.</p>
-  <span class="lab">New blocks</span>
-  <p>Shapes has wedges, corners, cones, balls, panels, pipe elbows and glass windows. Air has a Thruster that works in water too, a Small Jet, an Afterburner Jet (${K('boost')}), a Helicopter Rotor that holds its height and stays level by itself, Balloons, a Delta Wing, Wing Tips and a Big Flap. Gadgets has a Magnet (${K('grab')}), a Horn (${K('horn')}) and a bouncy Bumper; Moving has a Servo that turns to an angle and springs back; Land has Racing Wheels. Weapons has a Cannon, a Machine Gun, a homing Missile Launcher, a Bomb Rack and Armor Plate: they fire from their top face with ${K('fire')} or a click, and their shots fly through your own vehicle. The Tank, Racer and Chopper in the library show them off.</p>
-  <p>Version 13 adds Tracks that turn a vehicle on the spot, Tiny, Offroad and Giant Wheels, Hover Pads that float over land and water, an Outboard Motor that steers, a Big Boat Propeller, a Big Helicopter Rotor and a Plasma Thruster that works even in space. Moving has a Detacher (${K('detach')}), a Ball Joint that swivels every way, a Coupler that hitches two vehicles together (${K('undock')} lets go), a Drill (${K('fire')}), a Big Hinge, Long and Small Pistons, a Big Rotor and a Spinner (${K('spin')}). Gadgets has a Big Grabber. Decor has a Number Plate and a Sign with your own words (set them with Configure), a Flag, a Coloured Light in its paint colour and a flashing Light Bar (${K('lights')}). Control has a Racing Seat, a Saddle and a Cabin. Try the Tank, Hovercraft, Truck and Digger.</p>
-  <p>Version 15 adds the Star Drive (Space): a slow, frugal engine for crossing between the stars. The Starfarer in the library carries one on top of a big booster.</p>
-  <span class="lab">Other stars</span>
-  <p>Four more stars lie far beyond the Sun, each with worlds to land on. Ruby is a dim red dwarf; its world Iris always shows it the same face, scorched in the middle of the day side, frozen on the night side, with a ring of purple life in between. Duet is two suns circling each other, so the desert world Mirage gets two shadows and two sunsets; Pebble is its moon. Sapphire is a blazing blue-white giant with Lagoon, a world of islands and palms, and Crown, a ringed giant with the moon Spindle. Maw is a black hole: its glowing disk is the only light on dark Gloom and its fields of crystal. Get too close to Maw and it pulls you apart.</p>
-  <p>To get there, break free of the Sun (about 750 m/s more than leaving Terra) and coast out past the edge of its system. Out between the stars time warp goes all the way to ×1,000,000, and it drops back by itself at the edge of the next system. Every new world is also under Spawn at, and Deep space starts you on the way to Ruby.</p>
-  <p>Graphics: Balanced and Sharp have a painted sky with sunsets, waves and shallows on the sea, trees and bushes, finer ground detail and sky reflections on vehicles and windows; Sharp reaches furthest and adds tree shadows. Drive into a tree fast and it falls over. Fast keeps things light for Chromebooks.</p>
-  <span class="lab">SAS</span>
-  <p>${K('sas')} turns SAS on. It uses gyroscopes, RCS blocks and control flaps to hold the craft where you leave it. The buttons under the gauges point it instead: prograde (where you're going), retrograde (for braking burns), normal and anti-normal (to tilt an orbit), radial out and in, at a target, or level with the ground. Steering keys still work while it's on.</p>
-  <span class="lab">Field notes</span>
-  <p>Terra is 10 km in radius and its air thins out by 5 km. Above that only rockets work. Low orbit needs about 260 m/s sideways; watch the periapsis in the top-right panel climb above 5 km. The Moon orbits 42 km out with one-sixth gravity, so landing legs help.</p>
-  <p>The Sun is about 6,800 km away, and seven more worlds circle it: lava-flooded Cinder, desert Dune, jungle Mire, icy Frost, tiny Shard, and the gas giants Tempest and Azure, with ten more moons between them. From low orbit, about 150 m/s more breaks free of Terra. Open the map, zoom out, and burn until your path reaches another world's orbit. Time warp works with engines firing too: up to ×5 in air or near the ground and ×100 in space; coasting in space it goes on to ×10,000.</p>
-  <p>Every world spins. Terra turns once every 10 minutes and carries you east at about 105 m/s: launch east for a head start into orbit.</p>
-  <p>The Space Elevator in the library is 50 Sky Trusses standing on a Ground Anchor, reaching geostationary height, 10.75 km up. ${K('stage')} lets the climber go, then hold ${K('fwd')} to drive up. At the top, ${K('stage')} again drops the climber and the rocket floats beside the tower, already in orbit. Skyhooks are builds too: spawn the Skyhook at Skyhook orbit and catch its grapple with the Skylark's docking port.</p>
-  <p>Moving parts split a vehicle into pieces joined at the hinge, rotor, piston or spring: whatever you build on the part's top face moves. If it also touches the rest of the vehicle the part is stuck, and the builder shows it glowing red. ${K('build')} takes you back to the builder and clears away the vehicle you were driving; Park &amp; build leaves it out in the world. Hard hits knock parts loose; fuel tanks and explosives blow up.</p>
+  <span class="lab">Parts</span>
+  <p>Blocks and Shapes make the frame, from small wedges to 215 m Sky Trusses. Land has wheels from Tiny to Giant, Tracks that turn on the spot, Hover Pads, an Engine, Landing Gear and Rail Bogies. Air has propellers, jets, wings, flaps, helicopter rotors that hold their height, balloons and parachutes. Sea has floats, hulls, propellers, a rudder and an Outboard Motor. Space has rocket engines, tanks, decouplers, docking ports, RCS, the Plasma Thruster, the Star Drive and Storage Modules. Gadgets has claws, a winch, a magnet, a horn and a bumper. Weapons fire from their top face with ${K('fire')}, and their shots fly through your own vehicle. Decor has number plates, signs, flags and lights; Control has seats, a cabin and headlights.</p>
+  <p>Moving has hinges, rotors, pistons, servos, ball joints, couplers, detachers, drills and spinners. They split a vehicle into pieces: whatever you build on a moving part's top face moves. If it also touches the rest of the vehicle the part is stuck, and the builder shows it glowing red.</p>
+  <p>Logic blocks press keys for you. A Sensor watches height, speed, climb, tilt, distance ahead or fuel and presses a key while the reading is past your value. A Timer waits and then presses a key for a while, a Logic Gate combines two keys, and a Toggle Switch latches on and off. They can press real keys or channels (Ch 1 to Ch 8) that only parts and other logic blocks hear: set a parachute to Ch 1 and a sensor to press Ch 1 when below 300 m, and it opens by itself. The Auto Rocket in the library shows how.</p>
+  <span class="lab">Driving</span>
+  <p>${K('build')} or Drive takes you from the builder to the world, at the place picked under Spawn at, and back again; going back clears away the vehicle you were driving. Park &amp; build leaves it out in the world instead, and Vehicles lists everything you have left out so you can drive it again. Hard hits knock parts loose; fuel tanks and explosives blow up.</p>`,
+    terra: `<p>Terra is 10 km in radius and turns once every 10 minutes. Highways run out from the launch pad to the city of Grand Metro and to towns, villages and farms all round the planet, over long bridges and through tunnels with the hills over them. Near the pad are Liftoff and Rocket City, an airport, a harbor, a race track that times your laps (drive through the start line, then every orange gate) and a stunt park with jumps, a half-pipe and a loop. Buildings are solid, but cones, barrels and crates go flying. Under Landmarks, Summit Station sits on the highest peak and the Deep Sea Base on the deepest sea floor. The wider world is built as you come near it, so far-off places appear as you travel.</p>
+  <span class="lab">Railways</span>
+  <p>Three railway lines link eight stations, and a train runs on each by itself, stopping at every station. Drive up a station's ramp onto a flat car, or pick a ride under Spawn at, Railways: whatever stands on a train is carried along. The rails stand up from the ground, so crossing them is a bump.</p>
+  <p>Build your own train with Rail Bogies (Land). Drive one from a station (pick it under Spawn at, Railways) and it is set down on the nearest track; Powered Rail Bogies pull it and plain ones just roll. Take a bend too fast and it comes off the rails: a chip under the gauges warns of bends ahead and the speed to take them at. ${K('respawn')} puts it back. The Locomotive in the library is one to start from.</p>
+  <span class="lab">Graphics</span>
+  <p>Balanced and Sharp have a painted sky with sunsets, waves on the sea, trees, finer ground and reflections on vehicles; Sharp reaches furthest and adds tree shadows. Drive into a tree fast and it falls over. Fast keeps things light for Chromebooks. Settings changes it.</p>`,
+    space: `<p>Terra's air thins out by 5 km; above that only rockets work. Low orbit needs about 260 m/s sideways: watch the periapsis in the orbit panel climb above 5 km. Launch east, because Terra's spin carries you east at about 105 m/s. The Moon circles 42 km out over Terra's equator, with one-sixth gravity, so landing legs help.</p>
+  <p>${K('sas')} turns SAS on. It uses gyroscopes, RCS blocks and control flaps to hold the craft where you leave it. The buttons under the gauges point it instead: prograde (where you're going), retrograde (for braking burns), normal and anti-normal (to tilt an orbit), radial out and in, at your target, or level with the ground. Steering keys still work while it's on.</p>
+  <span class="lab">Map and targets</span>
+  <p>${K('map')} opens the map with your orbit line. ${Click} a world, a moon or a vehicle to centre the map on it, and the map stays on it as you zoom out. Double-${click} one to make it your target: the orbit panel then shows how close you will pass, and SAS can point at it. Drag to turn the map, Shift-drag (or two fingers) to move it, and the buttons at its top take you back to your vehicle or clear the target.</p>
+  <span class="lab">Further out</span>
+  <p>Time warp (${K2('warp_dn', 'warp_up')}) goes up to ×5 in air or near the ground, ×100 with engines firing in space, ×10,000 coasting, and ×1,000,000 out between the stars.</p>
+  <p>The Sun is about 6,800 km away, and seven more worlds circle it: lava-flooded Cinder, desert Dune, jungle Mire, icy Frost, tiny Shard, and the gas giants Tempest and Azure, with ten more moons between them. From low orbit about 150 m/s more breaks free of Terra; open the map, zoom out, and burn until your path reaches another world's orbit.</p>
+  <p>Four more stars lie far beyond the Sun. Ruby is a dim red dwarf; its world Iris always shows it the same face, scorched on the day side, frozen on the night side, with a ring of purple life in between. Duet is two suns circling each other, so the desert world Mirage gets two shadows. Sapphire is a blazing blue giant with Lagoon, a world of islands and palms, and Crown, a ringed giant. Maw is a black hole: its glowing disk bends round it and is the only light on dark Gloom. Get too close and it pulls you apart. To get there, break free of the Sun (about 750 m/s more than leaving Terra) and coast out past the edge of its system, or take the Starfarer. Every world is also under Spawn at.</p>
+  <p>The Space Elevator in the library is 50 Sky Trusses on a Ground Anchor, reaching 10.75 km up. ${K('stage')} lets the climber go, then hold ${K('fwd')} to drive up; at the top ${K('stage')} again lets the rocket float free, already in orbit. For a Skyhook, spawn it at Skyhook orbit and catch its grapple with the Skylark's docking port.</p>`,
+    bases: `<p>Storage Modules (Space) carry crates of base parts: 12 in a Storage Module, 40 in a Big Storage Module. Build them onto a truck, a lander or a rocket and take them anywhere: the Moon, Iris, Gloom.</p>
+  <p>Land, stop, and Base mode appears under the gauges. Pick a piece along the bottom and ${click} the ground to set it down; each one uses up crates. Turn spins the piece, and Take back picks one up again, its crates going back aboard. The pieces are a Habitat, a Greenhouse, Corridors, a Solar Array, a Landing Pad, a Hangar, a Fuel Tank, a Comms Mast, a Light Mast, a Supply Depot and Walls.</p>
+  <p>A base with a habitat, a greenhouse and solar power becomes a colony. Every base is under Spawn at, Your bases (on its landing pad if it has one) and shows on the map. The Base Hauler in the library is a truck with 24 crates to start with.</p>`,
+    saves: `<p>Save in the builder keeps the vehicle you are working on, and the library holds your saved vehicles beside the examples. Vehicles you leave out in the world and your bases stay where they are when you close the game.</p>
+  <p>Cloud saves: played here in Claude while you are signed in, your saved vehicles and bases go to your Claude account, so they are there on any device where you open Scrapline signed in. On the Scrapline website, turn on cloud saves in the library to get a save code, and type that code on your other devices.</p>
+  <p>Export and Import in the library move vehicles as a block of text you can paste anywhere, to a friend or to another copy of the game.</p>`
+  };
+  const t = P[tab] ? tab : 'keys';
+  openModal(`<h2>How to play</h2>
+  <div class="seg htabs" role="tablist">${TABS.map(([k, l]) => `<button type="button" role="tab" data-ht="${k}" class="${k === t ? 'on' : ''}">${l}</button>`).join('')}</div>
+  <div class="hpane">${P[t]}</div>
   <div class="mfoot"><button type="button" class="btn primary" data-close="1">Got it</button></div>`, true);
-  $('modal').onclick = e => { const t = e.target.closest('button'); if (!t) return; if (t.dataset.close) closeModal(); if (t.dataset.keys) openControls(); };
+  $('modal').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.close) closeModal(); if (b.dataset.keys) openControls(); if (b.dataset.ht) openHelp(b.dataset.ht); };
 }
 function openSettings() {
   const s = G.settings;
   const seg = (k, opts) => `<div class="seg" data-set="${k}">${opts.map(o => `<button type="button" data-v="${o[0]}" class="${s[k] === o[0] ? 'on' : ''}">${o[1]}</button>`).join('')}</div>`;
   openModal(`<h2>Settings</h2>
     <div class="setrow"><span>Graphics</span>${seg('quality', [['low', 'Fast'], ['balanced', 'Balanced'], ['high', 'Sharp']])}</div>
-    <p style="font-size:13px">Fast turns shadows off, keeps trees close by only, and leaves the sea, the ground and vehicles plain. Use it if a Chromebook stutters. Sharp shows trees furthest out and gives them shadows.</p>
+    <p style="font-size:13px" id="setQNote"></p>
     <label class="toggle"><input type="checkbox" id="setShadows" ${s.shadows ? 'checked' : ''}> Shadows</label>
     <div class="setrow"><span>Sound</span><span class="rng"><input type="range" id="setVol" min="0" max="1" step="0.05" value="${s.volume}" aria-label="Volume"><b id="setVolT">${Math.round(s.volume * 100)}%</b></span></div>
     <label class="toggle"><input type="checkbox" id="setMute" ${s.mute ? 'checked' : ''}> Mute</label>
     <label class="toggle"><input type="checkbox" id="setInvert" ${s.invertPitch ? 'checked' : ''}> Invert pitch (nose-down and nose-up keys swap)</label>
     <div class="setrow"><span>Keys</span><button type="button" class="btn" data-keys="1">Change keys</button></div>
     <div class="mfoot"><button type="button" class="btn primary" data-close="1">Done</button></div>`);
-  const save = () => { LS.set('scrapline.settings', G.settings); applyQuality(); SND.applyVolume(); };
+  // what each Graphics setting does; Fast has no shadows at all, so the Shadows box is greyed out with it
+  const qNote = () => {
+    const q = G.settings.quality, sh = $('setShadows');
+    $('setQNote').textContent = q === 'low' ? 'Fast: no shadows, trees close by only, a plain sea, ground and vehicles, and a simple black hole. Use it if a Chromebook stutters.'
+      : q === 'high' ? 'Sharp: the most detail. Trees reach furthest and cast shadows, shadows are crisper, and the black hole is drawn with the finest light-bending.'
+      : 'Balanced: a painted sky, waves, trees, shiny vehicles and a black hole that bends light, at a speed most computers keep up with.';
+    sh.disabled = q === 'low'; sh.closest('label').classList.toggle('dim', q === 'low');
+  };
+  const save = () => { LS.set('scrapline.settings', G.settings); applyQuality(); SND.applyVolume(); qNote(); };
   $('modal').onclick = e => {
     const t = e.target.closest('button'); if (!t) return;
     if (t.dataset.close) return closeModal();
@@ -12034,6 +13397,7 @@ function openSettings() {
     const sg = t.closest('[data-set]');
     if (sg) { G.settings[sg.dataset.set] = t.dataset.v; for (const b of sg.querySelectorAll('button')) b.classList.toggle('on', b === t); save(); }
   };
+  qNote();
   $('setShadows').onchange = e => { G.settings.shadows = e.target.checked; save(); };
   $('setInvert').onchange = e => { G.settings.invertPitch = e.target.checked; save(); bindsChanged(false); renderKeys(); };
   $('setMute').onchange = e => { G.settings.mute = e.target.checked; SND.unlock(); save(); };
@@ -12083,7 +13447,7 @@ function setWaterStyle(fancy) {
 }
 function applyQuality() {
   const q = G.settings.quality;
-  setWaterStyle(q !== 'low'); setGroundDetail(q === 'low' ? 0 : q === 'high' ? 2 : 1); setFloraQuality(q); setShine(q);
+  setWaterStyle(q !== 'low'); setGroundDetail(q === 'low' ? 0 : q === 'high' ? 2 : 1); setFloraQuality(q); setShine(q); sky.hole.setQuality(q);
   renderer.setPixelRatio(q === 'low' ? 1 : Math.min(window.devicePixelRatio || 1, q === 'high' ? 1.75 : 1.25));
   const sh = G.settings.shadows && q !== 'low', stype = q === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
   if (renderer.shadowMap.enabled !== sh || renderer.shadowMap.type !== stype) {
@@ -12122,6 +13486,15 @@ function buildUI() {
     else if (b.id === 'tbUndo') bUndo(); else if (b.id === 'tbRedo') bRedo();
   };
   ctxEvents();
+  $('btnBase').onclick = e => { e.currentTarget.blur(); enterBaseMode(); };
+  $('mapBar').onclick = e => {
+    const t = e.target.closest('button'); if (!t) return; t.blur();
+    const a = t.dataset.mb;
+    if (a === 'me' && G.player && !G.player.dead) mapSetFocus({ body: G.player });
+    else if (a === 'home') mapSetFocus(null);
+    else if (a === 'clear') setTarget(null);
+    else if (a === 'pick') openTargetPicker();
+  };
   $('sasRow').onclick = e => { const b = e.target.closest('button'); if (!b) return; b.blur(); if (b.dataset.sas === 'toggle') toggleSAS(); else setSASMode(b.dataset.sas); SND.play(SAS.on ? 'beep' : 'boop'); };
   $('designName').oninput = e => { B.design.name = e.target.value.slice(0, 40) || 'Vehicle'; saveCurrent(); };
   $('btnNew').onclick = openNew; $('btnSave').onclick = openSave; $('btnLibrary').onclick = () => openLibrary(false);
@@ -12131,19 +13504,28 @@ function buildUI() {
   $('btnSpawnVeh').onclick = () => openLibrary(true);
   $('btnVehicles').onclick = openVehicles;
   $('btnPark').onclick = () => { if (G.mode === 'drive') setMode('build', false, null, true); };
-  $('btnHelp').onclick = openHelp; $('btnSettings').onclick = openSettings;
+  // Settings and How to play live in the Menu (top left)
+  $('keys').onclick = toggleKeys;
+  // the top bar wraps onto two rows on narrow screens: the panels under it follow its real height
+  { const tb = $('topbar'), setH = () => document.documentElement.style.setProperty('--topH', Math.round(tb.getBoundingClientRect().height) + 'px');
+    setH(); if (window.ResizeObserver) new ResizeObserver(setH).observe(tb); else window.addEventListener('resize', setH); }
   $('toolsToggle').onclick = () => $('toolsPanel').classList.toggle('open');
   $('modalWrap').addEventListener('pointerdown', e => { if (e.target === $('modalWrap')) { CAPTURE = null; closeModal(); } });
   const sel = $('spawnSel');
-  const groups = {};
-  for (const [k, v] of Object.entries(WORLD.locs)) (groups[v.group] = groups[v.group] || []).push(`<option value="${k}">${esc(v.name)}</option>`);
-  sel.innerHTML = Object.entries(groups).map(([g, o]) => `<optgroup label="${g}">${o.join('')}</optgroup>`).join('');
-  sel.value = G.spawnLoc;
+  fillSpawnSel();
   sel.onchange = () => { G.spawnLoc = sel.value; sel.blur(); if (G.mode === 'drive') { spawnPlayer(true); toast(`Spawned at ${WORLD.locs[G.spawnLoc].name}`); } };
   // what the menu shows is always where you spawn
   sel.addEventListener('focus', () => { sel.value = G.spawnLoc; });
   window.addEventListener('resize', onResize);
   syncTools();
+}
+/* the Spawn at list, grouped (your own bases appear in it as you build them) */
+function fillSpawnSel() {
+  const sel = $('spawnSel'), groups = {};
+  for (const [k, v] of Object.entries(WORLD.locs)) (groups[v.group] = groups[v.group] || []).push(`<option value="${k}">${esc(v.name)}</option>`);
+  sel.innerHTML = Object.entries(groups).map(([g, o]) => `<optgroup label="${esc(g)}">${o.join('')}</optgroup>`).join('');
+  if (!WORLD.locs[G.spawnLoc]) G.spawnLoc = 'pad';
+  sel.value = G.spawnLoc;
 }
 /* ---------------- main loop ---------------- */
 let last = 0, acc = 0;
@@ -12173,7 +13555,8 @@ function frame(now) {
   requestAnimationFrame(frame);
   let dt = (now - last) / 1000; last = now;
   if (!(dt > 0)) dt = 0.016; if (dt > 0.1) dt = 0.1;
-  if (G.mode === 'drive') {
+  if (TITLE.on) titleStep(dt);
+  else if (G.mode === 'drive' && !TITLE.pause) {
     driveControls(dt);
     if (G.warp > 1) {
       const [lim, why] = warpLimit();
@@ -12197,12 +13580,13 @@ function frame(now) {
   for (const b of W.bodies) {
     b.updateVisual(dt);
     // keep the garage clear: parked vehicles near the pad are hidden while you build
-    b.group.visible = !(G.mode === 'build' && b.x.distanceTo(B.padPoint) < 30 + b.radius) && !(b.loose && b.x.distanceTo(camera.position) > 450);
+    b.group.visible = !(G.mode === 'build' && !TITLE.on && b.x.distanceTo(B.padPoint) < 30 + b.radius) && !(b.loose && b.x.distanceTo(camera.position) > 450);
   }
   for (const pr of W.props) if (pr.mesh) { fromSpin(pr.cel, pr.c, pr.mesh.position).add(pr.cel.center); pr.mesh.quaternion.copy(pr.cel.spinQ); }
   updateSites(dt); updateRace();
-  if (G.mode === 'build') { nearFar(); bCamera(dt); }
-  else if (G.map) mapCamera();
+  if (TITLE.on) { }
+  else if (G.mode === 'build') { nearFar(); bCamera(dt); }
+  else if (G.map) mapCamera(dt);
   else { nearFar(); driveCamera(dt); }
   G.shake *= Math.exp(-dt * 5);
   const focus = G.map && G.player && !G.player.dead ? G.player.x : camera.position;
@@ -12210,7 +13594,7 @@ function frame(now) {
   sky.update(camera.position, stage, stage.fog, sunLight, ambient, G.map);
   if (G.mode === 'build' && sunLight.intensity < 0.7) ambient.intensity = Math.max(ambient.intensity, 1.0 - sunLight.intensity * 0.8);
   updateLights();
-  const st = G.mode === 'drive' && G.player && !G.player.dead ? G.player.x : B.group.position;
+  const st = TITLE.on && TITLE.focus && !TITLE.focus.dead ? TITLE.focus.x : G.mode === 'drive' && G.player && !G.player.dead ? G.player.x : B.group.position;
   sunLight.target.position.copy(st); sunLight.position.copy(st).addScaledVector(SUN_DIR, 160);
   // the sky's own light (from above) and moonlight
   { const ss = sky.state; hemi.intensity = ss.hemi; hemi.position.copy(ss.up); hemi.color.copy(sky.domeU.zen.value).lerp(_wh, 0.45); hemi.groundColor.copy(sky.fogCol).multiplyScalar(0.42);
@@ -12221,7 +13605,7 @@ function frame(now) {
   if (want2) { sun2.intensity = s2; sun2.color.setHex(sky.state.light2Col); sun2.target.position.copy(st); sun2.position.copy(st).addScaledVector(SUN2_DIR, 160); }
   FX.frame(camera.position);
   FX.update(dt);
-  if (G.mode === 'build' && B.needsHover) bHover();
+  if (G.mode === 'build' && B.needsHover && !TITLE.on) bHover();
   G.hudT -= dt;
   if (G.mode === 'drive' && G.hudT <= 0) { G.hudT = 0.1; updateHUD(); }
   if (G.mode === 'drive' && G.player && !G.player.dead) {
@@ -12302,7 +13686,7 @@ async function init() {
     for (const k of ['veh', 'hl', 'paint', 'move', 'sel', 'locked']) { shine(MAT[k], 'veh', 0.2); MAT[k].userData.glossy = true; }
     shine(MAT.glass, 'glass', 0.85, { glass: true }); shine(MAT.strut, 'strut', 0.3);
     initLights();
-    buildWorld();
+    buildWorld(); initBases();
     FX.init();
     initMapObjects();
     applyQuality();
@@ -12342,15 +13726,29 @@ function start(data) {
   G.spawnLoc = 'pad'; $('spawnSel').value = 'pad';
   setMode('build', true);
   uiRot();
+  initTitle(); showTitle();
   $('loading').hidden = true;
   last = performance.now();
   requestAnimationFrame(frame);
-  if (restored) setTimeout(() => toast(`Welcome back: ${restored} vehicle${restored === 1 ? ' is' : 's are'} still out in the world. Open Vehicles to drive one.`, 4200), 700);
-  setInterval(() => { if (G.mode === 'drive') worldSave(); }, 10000);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) worldSave(); });
-  window.addEventListener('pagehide', worldSave);
-  if (!LS.get('scrapline.seenHelp', false)) { LS.set('scrapline.seenHelp', true); setTimeout(() => toast(`Pick a part on the left, click the vehicle to attach it, then press ${keyName(actKeys('build')[0])} to drive`, 5200), 600); }
-  else if (!LS.get('scrapline.seenV15', false)) { for (const v of ['V11', 'V12', 'V13', 'V15']) LS.set('scrapline.seen' + v, true); setTimeout(() => toast('New: four more stars to fly to: a red dwarf, twin suns, a blue giant and a black hole, each with worlds to land on (Spawn at, or fly the Starfarer). Between the stars time warp goes to ×1,000,000. Plus a painted sky, waves, trees and shinier vehicles. Help has more.', 8000), 800); }
+  cloudInit();
+  TITLE.after = () => afterTitle(restored);
+}
+/* the first things said once you leave the title screen */
+function afterTitle(restored) {
+  let wait = 600;
+  if (restored) { setTimeout(() => toast(`Welcome back: ${restored} vehicle${restored === 1 ? ' is' : 's are'} still out in the world. Open Vehicles to drive one.`, 4200), wait); wait += 4600; }
+  if (TITLE.saving) return; TITLE.saving = true;
+  setInterval(() => { if (G.mode === 'drive' && !TITLE.on) worldSave(); }, 10000);
+  document.addEventListener('visibilitychange', () => { if (document.hidden && !TITLE.on) worldSave(); });
+  window.addEventListener('pagehide', () => { if (!TITLE.on) worldSave(); });
+  const touch = COARSE;
+  if (!LS.get('scrapline.seenHelp', false)) {
+    for (const v of ['Help', 'V11', 'V12', 'V13', 'V15', 'V16']) LS.set('scrapline.seen' + v, true);
+    setTimeout(() => toast(touch ? 'Pick a part, tap the vehicle to attach it, then tap Drive' : `Pick a part, click the vehicle to attach it, then press ${keyName(actKeys('build')[0])} to drive`, 5200), wait);
+  } else if (!LS.get('scrapline.seenV16', false)) {
+    for (const v of ['V11', 'V12', 'V13', 'V15', 'V16']) LS.set('scrapline.seen' + v, true);
+    setTimeout(() => toast('New: trains you build with rail bogies, bases you build from crates wherever you land, and your vehicles on every device with cloud saves. Help has more.', 7000), wait);
+  }
 }
 init();
 

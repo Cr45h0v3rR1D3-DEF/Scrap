@@ -593,6 +593,35 @@ trackDef('track', 'Track', 1.25, .6, .9, .25, [-1.25, -.42, .42, 1.25], cellsBox
   'A tank track with a 30 kW motor. Goes almost anywhere, slowly. The steering keys turn by driving the two sides at different speeds. Mount one on each side.');
 trackDef('track_s', 'Small Track', .8, .45, .45, 0, [-.8, 0, .8], cellsBox(-2, 2, 0, 0, -1, 1), 70, 12000, 9, 140,
   'A narrow track with a 12 kW motor, for small diggers and robots. Turns like a tank.');
+// Storage Modules: crates of base parts to set down as a base once you land (Base mode, in drive)
+function storageGeo(g, P, w, h, d) {
+  g.chamfer(w, h, d, .06, P, 0, h / 2 - .25, 0);
+  for (const s of [-1, 1]) { g.box(w * .98, h * .12, .04, 0, h * .5 - .25, s * (d / 2 + .01), COL.dark); g.box(.04, h * .12, d * .98, s * (w / 2 + .01), h * .5 - .25, 0, COL.dark); }
+  g.box(w * .5, .03, d * .5, 0, h - .24, 0, COL.haz);
+}
+defPart({ id: 'storage', name: 'Storage Module', cat: 'Space', mass: 700, hp: 220, buoy: 0.35, cells: cellsBox(-1, 1, 0, 1, -1, 1), storage: 12, dc: 5,
+  desc: 'Holds 12 crates of base parts. Land with it, stop, and press Base mode to build a base: habitats, domes, pads, hangars and more.',
+  build(g, P) { storageGeo(g, P, 1.46, 0.96, 1.46); } });
+defPart({ id: 'storage_big', name: 'Big Storage Module', cat: 'Space', mass: 2200, hp: 520, buoy: 0.35, cells: cellsBox(-2, 2, 0, 2, -2, 2), storage: 40, dc: 5,
+  desc: 'Holds 40 crates of base parts: enough for a whole colony. Heavy: it needs a big rocket.',
+  build(g, P) { storageGeo(g, P, 2.46, 1.46, 2.46); } });
+// rail bogies: four flanged wheels on a frame, mounted under a deck. Near a railway they lock onto the track and steer
+// themselves along it; take a bend too fast and they jump off
+function bogieGeo(g, P) {
+  for (const x of [-.98, .98]) { g.box(.12, .26, 2.3, x, .5, 0, COL.dark); g.box(.14, .1, 2.0, x, .66, 0, P); }
+  g.box(2.0, .2, .5, 0, .35, 0, COL.dark); g.box(.7, .25, .7, 0, .15, 0, P);
+  for (const z of [-.9, .9]) g.cyl(.07, .07, 1.62, 10, 0, .62, z, COL.metal, 0, 0, Math.PI / 2);
+  for (const z of [-.55, .55]) for (const x of [-.98, .98]) g.cyl(.08, .08, .3, 8, x, .42, z, COL.haz);
+}
+function bogieDef(id, name, power, vmax, mass, desc) {
+  const r = .42, hubY = .62, xs = [[-.75, -.9], [-.75, .9], [.75, -.9], [.75, .9]];
+  defPart({ id, name, cat: 'Land', mass, hp: 160, buoy: 0.05, attach: 'base', kind: 'wheel', cells: cellsBox(-1, 1, 0, 1, -2, 2),
+    wheel: { r, w: .14, hubY, power, vmax, L: .18, steer: 0, grip: 1.1, stiff: 1.4, bogie: { xs } }, desc,
+    build: bogieGeo,
+    dyn: xs.map(([x, z], wi) => ({ type: 'wheel', wi, pivot: [x, hubY, z], build(g, P) { g.cyl(r, r, .14, 20, 0, 0, 0, COL.metal); g.cyl(r + .05, r + .05, .03, 20, 0, -.06, 0, COL.dark); g.cyl(.12, .12, .17, 10, 0, 0, 0, power ? COL.amber : COL.dark); } })) });
+}
+bogieDef('bogie', 'Rail Bogie', 0, 45, 120, 'Four flanged train wheels on a frame, with no motor. Mount it under a deck: on a railway it locks onto the track and steers itself. Too fast round a bend and it jumps the rails.');
+bogieDef('bogie_drive', 'Powered Rail Bogie', 60000, 34, 190, 'A rail bogie with a 60 kW motor in it. Two make a locomotive. Space drives, S brakes. Too fast round a bend and it jumps the rails.');
 // more wheels
 wheelDef('wheel_tiny', 'Tiny Wheel', .18, .14, [[0, 0, 0]], 0, 5, 2500, 22, .12, 0, 25, { desc: 'A little 2.5 kW wheel for karts, robots and toys.' });
 wheelDef('wheel_tiny_steer', 'Tiny Steering Wheel', .18, .14, [[0, 0, 0]], 0, 5, 2500, 22, .12, .6, 25, { hub: COL.amber, desc: 'A little steering wheel for karts, robots and toys.' });

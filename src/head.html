@@ -42,6 +42,8 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .seg{display:inline-flex;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
 .seg button{background:none;border:0;border-radius:6px;padding:6px 14px;cursor:pointer;color:var(--muted);font-weight:600;font-family:var(--f-cond);letter-spacing:.04em}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
+.htabs{display:flex;flex-wrap:wrap;margin:0 0 14px}.htabs button{flex:1 1 auto;min-height:34px}
+.hpane{display:flex;flex-direction:column;gap:10px}.hpane p{max-width:76ch}.hpane .lab{margin-top:6px}
 .lab{font-family:var(--f-cond);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 
 /* loading */
@@ -59,10 +61,10 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .brand span{color:var(--accent)}
 .top-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .field{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px 4px 3px 10px}
-.field select{background:var(--panel-hi);border:1px solid var(--line-hi);border-radius:6px;padding:4px 6px}
+.field select{background:var(--panel-hi);border:1px solid var(--line-hi);border-radius:6px;padding:4px 6px;max-width:230px;text-overflow:ellipsis}
 
 /* build: parts rail */
-#partsPanel{position:absolute;left:16px;top:68px;bottom:16px;width:292px;z-index:5;display:flex;flex-direction:column;overflow:hidden}
+#partsPanel{position:absolute;left:16px;top:calc(var(--topH,58px) + 10px);bottom:16px;width:292px;z-index:5;display:flex;flex-direction:column;overflow:hidden}
 #catTabs{display:flex;flex-wrap:wrap;gap:0;padding:6px 6px 0}
 #catTabs button{flex:1 1 30%;min-width:0;background:none;border:0;border-bottom:2px solid transparent;padding:6px 2px 7px;cursor:pointer;font-family:var(--f-cond);font-weight:600;font-size:12.5px;color:var(--muted);letter-spacing:0;white-space:nowrap}
 #catTabs button.on{color:var(--text);border-bottom-color:var(--accent)}
@@ -78,7 +80,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 #partInfo p{margin:0;font-size:13px;line-height:1.4;color:#c3d0d5}
 
 /* build: tools rail */
-#toolsPanel{position:absolute;right:16px;top:68px;width:286px;max-height:calc(100% - 84px);overflow-y:auto;z-index:5;display:flex;flex-direction:column}
+#toolsPanel{position:absolute;right:16px;top:calc(var(--topH,58px) + 10px);width:286px;max-height:calc(100% - var(--topH,58px) - 26px);overflow-y:auto;z-index:5;display:flex;flex-direction:column}
 #toolsPanel section{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
 #toolsPanel section+section{border-top:1px solid var(--line)}
 #toolsPanel .seg{width:100%}
@@ -86,6 +88,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
 .toggle input{accent-color:var(--accent);width:16px;height:16px;margin:0}
 .toggle kbd{margin-left:auto}
+.toggle.dim{opacity:.45;cursor:default}
 .swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .sw{aspect-ratio:1;border-radius:6px;border:2px solid rgba(255,255,255,.12);cursor:pointer;padding:0;position:relative}
 .sw.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(240,163,43,.25)}
@@ -102,7 +105,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 
 
 /* build: tool strip (Trailmakers-style tools and building views) */
-#toolbar{position:absolute;right:312px;top:68px;z-index:5;display:flex;flex-direction:column;gap:2px;padding:5px;width:70px;max-height:calc(100% - 84px);overflow-y:auto}
+#toolbar{position:absolute;right:312px;top:calc(var(--topH,58px) + 10px);z-index:5;display:flex;flex-direction:column;gap:2px;padding:5px;width:70px;max-height:calc(100% - var(--topH,58px) - 26px);overflow-y:auto}
 #toolbar button{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:1px solid transparent;border-radius:8px;padding:6px 1px 5px;cursor:pointer;color:#c3d0d5;font-family:var(--f-cond);font-size:11px;font-weight:600;letter-spacing:0}
 #toolbar button:hover{background:rgba(255,255,255,.06)}
 #toolbar button.on{background:rgba(240,163,43,.16);border-color:rgba(240,163,43,.6);color:#ffd08a}
@@ -154,7 +157,7 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .mini{background:none;border:1px solid var(--line-hi);border-radius:5px;color:var(--muted);cursor:pointer;padding:2px 6px}
 #hint{position:absolute;left:calc(50% - 44px);transform:translateX(-50%);bottom:16px;z-index:4;display:flex;gap:6px 14px;flex-wrap:wrap;justify-content:center;padding:8px 14px;max-width:min(760px,calc(100% - 700px));font-size:12.5px;color:#cbd6da}
 #hint span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
-#rotInfo{position:absolute;left:calc(50% - 44px);transform:translateX(-50%);top:68px;max-width:calc(100% - 700px);text-align:center;z-index:4;padding:6px 12px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+#rotInfo{position:absolute;left:calc(50% - 44px);transform:translateX(-50%);top:calc(var(--topH,58px) + 10px);max-width:calc(100% - 700px);text-align:center;z-index:4;padding:6px 12px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 
 /* drive HUD */
 #hud{position:absolute;inset:0;z-index:4;pointer-events:none}
@@ -177,7 +180,8 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font-family:var(--f-cond);font-weight:600;font-size:12px;letter-spacing:.04em;padding:3px 8px;border-radius:999px;border:1px solid var(--line-hi);color:var(--muted)}
 .chip.on{background:rgba(240,163,43,.16);border-color:rgba(240,163,43,.55);color:#ffd08a}
-#orbitBox{position:absolute;right:16px;top:68px;padding:12px 14px;min-width:230px;display:flex;flex-direction:column;gap:6px}
+.chip.warn{background:rgba(255,106,78,.2);border-color:rgba(255,106,78,.7);color:#ffc2b4}
+#orbitBox{position:absolute;right:16px;top:calc(var(--topH,58px) + 10px);padding:12px 14px;min-width:230px;display:flex;flex-direction:column;gap:6px}
 #orbitBox .row{display:flex;justify-content:space-between;gap:14px;font-size:13px}
 #orbitBox .row b{font-family:var(--f-mono);font-weight:500;font-variant-numeric:tabular-nums}
 #orbitBox .ttl{font-family:var(--f-cond);font-weight:700;font-size:15px}
@@ -188,8 +192,9 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 #keys{position:absolute;right:16px;bottom:16px;padding:9px 12px;display:grid;grid-template-columns:auto auto;gap:3px 10px;font-size:12px;align-items:center;max-width:calc(100% - 360px)}
 #keys span:nth-child(odd){display:flex;gap:3px;justify-content:flex-end;flex-wrap:wrap}
 #keys span:nth-child(even){color:#c3d0d5}
-#keys.min{grid-template-columns:auto auto}
-#keys.min span:nth-child(n+3){display:none}
+#keys{cursor:pointer;pointer-events:auto}
+#keys span.kmin,#keys.min span{display:none}
+#keys.min span.kmin{display:flex}
 #mapLabels{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .mapLabel{position:absolute;left:0;top:0;font-family:var(--f-mono);font-size:11.5px;line-height:1;white-space:nowrap;padding:3px 6px;border-radius:5px;background:rgba(8,14,19,.72);border:1px solid rgba(127,208,255,.35);color:#cfeaff;will-change:transform}
 .mapLabel[data-kind="stage"]{border-color:rgba(185,166,255,.4);color:#e2dbff}
@@ -204,8 +209,67 @@ kbd{font-family:var(--f-mono);font-size:11px;line-height:1;padding:2px 5px;borde
 #hookRow span{color:#ffd08a}
 #hookRow b{font-family:var(--f-mono);font-weight:500;font-size:12px;text-align:right}
 .mapLabel[data-kind="ghost"]{border-style:dashed;border-color:rgba(255,255,255,.5);color:#fff}
-#raceBox{position:absolute;left:50%;top:68px;transform:translateX(-50%);display:flex;gap:18px;padding:8px 16px;font-family:var(--f-cond);font-size:15px;font-weight:600;white-space:nowrap}
+#raceBox{position:absolute;left:50%;top:calc(var(--topH,58px) + 10px);transform:translateX(-50%);display:flex;gap:18px;padding:8px 16px;font-family:var(--f-cond);font-size:15px;font-weight:600;white-space:nowrap}
 #raceBox b{font-family:var(--f-mono);font-weight:500;color:#ffd08a;margin-left:4px}
+/* map: what it is centred on, the target, how to move */
+#mapBar{position:absolute;left:50%;top:calc(var(--topH,58px) + 10px);transform:translateX(-50%);z-index:5;pointer-events:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px;padding:8px 14px;max-width:min(720px,calc(100% - 32px))}
+#mapBar .mbrow{display:flex;align-items:center;gap:8px;font-size:14px}
+#mapBar .mbrow b{font-family:var(--f-cond);font-weight:700;font-size:15px}
+#mapBar .mbrow b.tg{color:#ff9fe6}
+#mapBar .btn{padding:6px 11px;font-size:13px}
+#mapBar .mbhint{flex-basis:100%;text-align:center;font-size:12px;color:var(--muted)}
+body.map #banner{top:156px}
+.mapLabel.tgt{border-color:#ff6fd8;color:#ffd6f4;background:rgba(60,8,48,.75)}
+.mapLabel.tgt::before{content:'◎ ';color:#ff6fd8}
+#orbitBox .row.tg span,#orbitBox .row.tg b{color:#ff9fe6}
+/* Base mode: the palette of pieces along the bottom */
+#basePanel{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:6;pointer-events:auto;width:min(860px,calc(100% - 32px));padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+#basePanel .bphead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#basePanel .bphead b{font-family:var(--f-cond);font-size:17px;font-weight:700}
+#basePanel .crates{font-family:var(--f-mono);font-size:12.5px;color:#ffd08a;padding:3px 8px;border-radius:999px;background:rgba(240,163,43,.14)}
+#basePanel .grow{flex:1}
+#basePanel .btn.on{border-color:#ffa040;background:rgba(255,160,64,.2)}
+.bplist{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:6px}
+.bpc{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 9px;border-radius:8px;border:1px solid var(--line-hi);background:rgba(255,255,255,.04);cursor:pointer;min-height:44px;text-align:left}
+.bpc span{font-family:var(--f-cond);font-weight:600;font-size:14px}
+.bpc em{font-style:normal;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.bpc.on{border-color:var(--good);background:rgba(111,207,161,.16)}
+.bpc.poor{opacity:.5}
+.bphint{font-size:13px;color:#cbd6da;min-height:18px}
+#baseRow{pointer-events:auto}
+#baseRow .btn{width:100%;border-color:rgba(111,207,161,.6);background:rgba(111,207,161,.14)}
+body.basemode #keys,body.basemode #hint,body.basemode .cluster,body.basemode #orbitBox{display:none}
+body.basemode #toast{bottom:250px}
+.mapLabel[data-kind="base"]{background:rgba(8,30,20,.7);border-color:rgba(111,207,161,.6);color:#c8f5dc}
+/* title screen and menu */
+#title{position:absolute;inset:0;z-index:20;display:flex;align-items:stretch;padding:calc(24px + env(safe-area-inset-top,0px)) 24px 24px;background:linear-gradient(90deg,rgba(6,11,15,.82) 0%,rgba(6,11,15,.55) 34%,rgba(6,11,15,0) 62%)}
+#title.paused{background:rgba(5,9,12,.62);align-items:center;justify-content:center}
+.tmenu{align-self:center;display:flex;flex-direction:column;gap:14px;padding:26px 26px 22px;width:min(380px,100%);background:rgba(10,17,23,.78)}
+.tmark{font-family:var(--f-mark);font-size:clamp(40px,6vw,64px);letter-spacing:.06em;line-height:1}
+.tmark span{color:var(--accent)}
+.ttag{margin:0;color:#c3d0d5;font-size:15px;line-height:1.4}
+.tbtns{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.tbtn{font-family:var(--f-cond);font-weight:700;font-size:20px;letter-spacing:.02em;text-align:left;padding:12px 18px;border-radius:10px;border:1px solid var(--line-hi);background:rgba(255,255,255,.05);color:var(--text);cursor:pointer;min-height:50px}
+.tbtn:hover,.tbtn:focus-visible{border-color:var(--accent);background:rgba(240,163,43,.12);outline:none}
+.tbtn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent;font-size:24px}
+.tbtn.primary:hover,.tbtn.primary:focus-visible{background:#ffb64a;box-shadow:0 0 0 3px rgba(240,163,43,.35)}
+.tnote{margin:0;font-size:12.5px;color:var(--muted)}
+.tcap{position:absolute;right:24px;bottom:calc(20px + env(safe-area-inset-bottom,0px));font-family:var(--f-cond);font-weight:600;font-size:15px;letter-spacing:.04em;color:#e7edef;text-shadow:0 1px 6px rgba(0,0,0,.8);padding:6px 12px;border-radius:8px;background:rgba(6,11,15,.45)}
+#title.paused .tcap{display:none}
+#titleFade{position:absolute;inset:0;z-index:19;background:#05090c;opacity:0;pointer-events:none;transition:opacity .6s}
+body.title #topbar,body.title #hud,body.title .build-only,body.title #toast{visibility:hidden}
+.menubtn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px}
+.menubtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+@media (max-width:760px){.menubtn span{display:none}#title{padding:16px;background:rgba(6,11,15,.6)}.tmenu{align-self:flex-end}}
+@media (orientation:portrait) and (min-width:761px){#title:not(.paused){background:linear-gradient(0deg,rgba(6,11,15,.85) 0%,rgba(6,11,15,.5) 36%,rgba(6,11,15,0) 60%)}#title:not(.paused) .tmenu{align-self:flex-end}}
+/* cloud saves line in the vehicle library */
+.cloudrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(127,208,255,.35);border-radius:9px;background:rgba(127,208,255,.07);flex-wrap:wrap}
+.cloudrow .grow{flex:1;min-width:180px;display:flex;flex-direction:column;gap:2px}
+.cloudrow b{font-family:var(--f-cond);font-weight:700;font-size:15px}
+.cloudrow code{font-family:var(--f-mono);font-size:13px;color:#cfeaff;user-select:all;-webkit-user-select:all}
+.cloudrow .meta{font-size:12.5px;color:var(--muted)}
+.cloudic{font-size:22px;color:#9fd4ff}
+.cloudslot:empty{display:none}
 #crosshairNote{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-size:12px;color:var(--muted);padding:6px 12px}
 
 /* modal + toast */
@@ -238,7 +302,9 @@ body.map #keys,body.map .cluster{opacity:.85}
 
 @media (max-width:1180px){
   #hint{display:none}
-  #raceBox{top:108px}
+}
+@media (max-width:1000px){
+  #mapBar{left:16px;transform:none;max-width:calc(100% - 290px)}
 }
 @media (max-width:980px){
   #keys{display:none}
@@ -260,7 +326,9 @@ body.map #keys,body.map .cluster{opacity:.85}
   #toolsToggle{display:inline-block}
   #rotInfo{display:none}
   .cluster{left:8px;right:8px;bottom:8px;min-width:0}
-  #orbitBox{right:8px;top:112px}
+  #orbitBox{right:8px}
+  #mapBar{left:8px;max-width:calc(100% - 16px)}
+  body.map #orbitBox{top:calc(var(--topH,58px) + 96px)}
   #cols2{grid-template-columns:1fr}
   .cols{grid-template-columns:1fr}
 }
@@ -277,6 +345,7 @@ body.map #keys,body.map .cluster{opacity:.85}
   </div>
 
   <header id="topbar">
+    <button id="btnMenu" type="button" class="btn menubtn" title="Menu (Esc)" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span>Menu</span></button>
     <div class="brand">SCRAP<span>LINE</span></div>
     <div class="seg" id="modeSeg" role="tablist" aria-label="Mode">
       <button id="btnBuild" class="on" type="button" role="tab" title="Build mode (B)">Build</button>
@@ -288,8 +357,6 @@ body.map #keys,body.map .cluster{opacity:.85}
       <button id="btnVehicles" type="button" class="btn">Vehicles</button>
       <button id="btnSpawnVeh" type="button" class="btn drive-only">Spawn vehicle</button>
       <button id="toolsToggle" type="button" class="btn build-only">Tools</button>
-      <button id="btnSettings" type="button" class="btn">Settings</button>
-      <button id="btnHelp" type="button" class="btn">Help</button>
     </div>
   </header>
 
@@ -353,13 +420,18 @@ body.map #keys,body.map .cluster{opacity:.85}
       <div id="hookRow" hidden></div>
       <div class="chips" id="hChips"></div>
       <div id="sasRow" hidden></div>
+      <div id="baseRow" hidden><button type="button" class="btn" id="btnBase">Base mode</button></div>
     </div>
     <div id="orbitBox" class="panel" hidden></div>
+    <div id="mapBar" class="panel" hidden></div>
+    <div id="basePanel" class="panel" hidden></div>
     <div id="banner" class="panel" hidden></div>
     <div id="raceBox" class="panel" hidden></div>
     <div id="keys" class="panel"></div>
   </div>
 
+  <div id="title" hidden></div>
+  <div id="titleFade"></div>
   <div id="modalWrap" hidden><div class="modal panel" id="modal" role="dialog" aria-modal="true"></div></div>
   <div id="toast" role="status"></div>
 </div>

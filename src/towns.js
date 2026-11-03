@@ -129,7 +129,7 @@ function sleepersD(s, pts, side, i0, i1, col, skip) {
       const f = (k + 0.5) / 4, h = lerp(p.h, q.h, f);
       u.copy(p.d).lerp(q.d, f).normalize(); sd.copy(side[i]).lerp(side[i + 1], f).normalize();
       t.subVectors(q.d, p.d).normalize().multiplyScalar(0.16);
-      p0.copy(u).multiplyScalar(R + h + 0.13);
+      p0.copy(u).multiplyScalar(R + h + 0.1);
       a.copy(p0).addScaledVector(sd, -1.3).sub(t).sub(O); b.copy(p0).addScaledVector(sd, 1.3).sub(t).sub(O);
       c.copy(p0).addScaledVector(sd, 1.3).add(t).sub(O); d.copy(p0).addScaledVector(sd, -1.3).add(t).sub(O);
       s.decal.quad(a, b, c, d, col, u);
@@ -167,9 +167,10 @@ function pathSolids(s, pts, side, i0, i1, o) {
       if (!pts[i - 1] || !pts[i - 1].tunnel || !pts[i + 2] || !pts[i + 2].tunnel) piece(i, -o.tun - 1.6, o.tun + 1.6, o.tunH, o.tunH + 2.4, 0x6f6d68);
     }
   }
+  tunnelCover(s, pts, side, i0, i1, o);
 }
-const HW_SOLID = { deck: ROAD_W + 0.5, par: 1, tun: ROAD_W + 2, tunH: 6.8 };
-const RAIL_SOLID = { deck: 2.7, par: 0.8, tun: 3.3, tunH: 6.6, deckCol: 0xa8a49a };
+const HW_SOLID = { deck: ROAD_W + 0.5, par: 1, tun: ROAD_W + 2, tunH: 6.8, half: ROAD_FLAT + ROAD_BLEND };
+const RAIL_SOLID = { deck: 2.7, par: 0.8, tun: 3.3, tunH: 6.6, deckCol: 0xa8a49a, half: 3.6 + 10 };
 const CHUNK = 60;
 function roadChunk(r, ri, i0, i1) {
   const asph = rgb(0x34363a), line = rgb(0xe9e6dc), yel = rgb(0xe8b83a), pts = r.pts, side = r.side;
@@ -180,6 +181,21 @@ function roadChunk(r, ri, i0, i1) {
   pathSolids(s, pts, side, i0, i1, HW_SOLID);
   s.finish();
 }
+/* the rails are solid: a low ridge with sloping sides under each one, so wheels bump over them rather than hit a wall.
+   Two path steps per piece; none where the line crosses a road (the rails sit flush in the road there) */
+const RAIL_GAUGE = 0.75, RAIL_TOP = 0.2;
+function railBumps(pts, side, i0, i1) {
+  const R = PLANET.R, at = (i, sd, y) => pts[i].d.clone().multiplyScalar(R + pts[i].h + y).addScaledVector(side[i], sd);
+  for (let i = i0; i < i1; i += 2) {
+    const j = Math.min(i + 2, i1, pts.length - 1); if (j <= i) break;
+    if (pts[i].cross || pts[j].cross) continue;
+    for (const g of [-RAIL_GAUGE, RAIL_GAUGE]) {
+      const V = [];
+      for (let m = 0; m < 8; m++) { const top = m & 2, w = top ? 0.05 : 0.5; V.push(at(m & 4 ? j : i, g + (m & 1 ? w : -w), top ? RAIL_TOP : -0.02)); }
+      makeCollider(V, BOX_F, PLANET, 'rail', [0, 1]);
+    }
+  }
+}
 function railChunk(L, li, i0, i1) {
   const ballast = rgb(0x6f6760), sleeper = rgb(0x4a3a2c), steel = rgb(0xa7aeb5), steelD = rgb(0x5d636a), pts = L.pts, side = L.side;
   const onRoad = i => pts[i].cross && !pts[i].bridge;
@@ -187,9 +203,10 @@ function railChunk(L, li, i0, i1) {
   bandD(s, pts, side, i0, i1, 0, 3.4, ballast, 0.07, onRoad);
   sleepersD(s, pts, side, i0, i1, sleeper, onRoad);
   for (const g of [-0.75, 0.75]) {
-    bandD(s, pts, side, i0, i1, g, 0.1, steel, 0.27);
-    wallD(s, pts, side, i0, i1, g + Math.sign(g) * 0.05, 0.12, 0.27, steelD, Math.sign(g));
+    bandD(s, pts, side, i0, i1, g, 0.1, steel, RAIL_TOP);
+    for (const sg of [-1, 1]) wallD(s, pts, side, i0, i1, g + sg * 0.05, 0.08, RAIL_TOP, steelD, sg);
   }
+  railBumps(pts, side, i0, i1);
   pathSolids(s, pts, side, i0, i1, RAIL_SOLID);
   s.finish();
 }
@@ -588,7 +605,7 @@ function buildTrains() {
   GLOBE.rails.forEach((L, li) => {
     const pts = L.pts, n = pts.length;
     const P = new Float64Array(n * 3), S = new Float64Array(n);
-    for (let i = 0; i < n; i++) { const r = R + pts[i].h + 0.27; P[i * 3] = pts[i].d.x * r; P[i * 3 + 1] = pts[i].d.y * r; P[i * 3 + 2] = pts[i].d.z * r; if (i) S[i] = S[i - 1] + Math.hypot(P[i * 3] - P[i * 3 - 3], P[i * 3 + 1] - P[i * 3 - 2], P[i * 3 + 2] - P[i * 3 - 1]); }
+    for (let i = 0; i < n; i++) { const r = R + pts[i].h + RAIL_TOP; P[i * 3] = pts[i].d.x * r; P[i * 3 + 1] = pts[i].d.y * r; P[i * 3 + 2] = pts[i].d.z * r; if (i) S[i] = S[i - 1] + Math.hypot(P[i * 3] - P[i * 3 - 3], P[i * 3 + 1] - P[i * 3 - 2], P[i * 3 + 2] - P[i * 3 - 1]); }
     // where each station's middle is along the line
     const stops = L.stations.map(st => {
       const u = st.uses.find(x => x.line.name === L.name), D = expDir(st.C, st.E1, st.E3, R, 0, u.off, new V3());
@@ -602,13 +619,14 @@ function buildTrains() {
       const k = Math.acos(clamp(t1.normalize().dot(t2.normalize()), -1, 1)) / (l || 1);
       if (k > 1e-6) vlim[i] = Math.min(TRAIN.VMAX, Math.sqrt(TRAIN.ALAT / k));
     }
+    // an engine at each end, both cabs facing out (a car's cab is at its +X end; the first car is turned round)
     const kinds = ['loco', 'flat', 'coach', 'flat', 'loco'];
     let len = 0; const offs = kinds.map(k => { const o = len + CAR_SPEC[k].L / 2; len += CAR_SPEC[k].L + CAR_GAP; return o; }); len -= CAR_GAP;
     const tr = { line: L, P, S, n, stops, vlim, k: 0, tgt: 1, dir: 1, s: stops[0], v: 0, dwell: 30 + li * 25, len, cars: [], idx: li };
     tr.cars = kinds.map((k, j) => {
       const spec = CAR_SPEC[k], hx = spec.L / 2, hy = (spec.h1 - spec.h0) / 2, hz = TRAIN_W / 2;
       const pr = { c: new V3(), r: Math.hypot(hx, hy, hz), planes: [0, 1, 2, 3, 4, 5].map(() => ({ nx: 0, ny: 0, nz: 0, d: 0, int: 0 })), cel: PLANET, tag: 'train', mu: 0.9, _s: 0, mover: true,
-        mv: new V3(), mw: new V3(), base: new V3(), X: new V3(1, 0, 0), Y: new V3(0, 1, 0), Z: new V3(0, 0, 1), hx, hy, hz, h0: spec.h0, spec, kind: k, off: offs[j] - len / 2, flip: j === kinds.length - 1, prevC: null, prevX: new V3() };
+        mv: new V3(), mw: new V3(), base: new V3(), X: new V3(1, 0, 0), Y: new V3(0, 1, 0), Z: new V3(0, 0, 1), hx, hy, hz, h0: spec.h0, spec, kind: k, off: offs[j] - len / 2, flip: j === 0, prevC: null, prevX: new V3() };
       W.movers.push(pr);
       return pr;
     });

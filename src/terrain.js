@@ -376,15 +376,78 @@ void main(){
   rx.fillStyle = rg; rx.fillRect(0, 0, 256, 256);
   H.ring = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(rk), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false }));
   H.ring.scale.setScalar(R * 2.6 / 0.7 * 2);
-  // starlight bent round the hole: a sphere that shows the stars behind it, each ray turned toward the hole
+  /* starlight bent round the hole: a sphere that shows what lies behind it, seen along bent rays.
+     Fast: each ray is turned once toward the hole (cheap), and the disk above is a flat ring.
+     Balanced and Sharp: each ray is followed step by step as the hole bends it, picking up the disk wherever it
+     crosses it. So the far side of the disk shows bent up over the top of the hole and down under it, the side
+     spinning toward you is brighter and whiter, and a thin ring of light that went right round the hole hugs
+     the shadow. Lengths in the shader are in horizon radii. */
   H.lensR = R * 20;
   H.lensMat = new THREE.ShaderMaterial({
-    uniforms: { tStars: { value: null }, hole: { value: new V3() }, rs: { value: R }, rl: { value: H.lensR }, op: { value: 1 } },
+    defines: { MARCH: 0, STEPS: 48, STEPK: '0.13' },
+    uniforms: { tStars: { value: null }, hole: { value: new V3() }, rs: { value: R }, rl: { value: H.lensR }, op: { value: 1 },
+      time: H.diskMat.uniforms.time, nrm: H.diskMat.uniforms.nrm, e1: { value: new V3(1, 0, 0) }, e2: { value: new V3(0, 0, 1) }, r0: { value: r0 }, r1: { value: r1 } },
     vertexShader: LOGV + 'varying vec3 vW;\nvoid main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w;\n#include <logdepthbuf_vertex>\n}',
-    fragmentShader: LOGF + `uniform samplerCube tStars; uniform vec3 hole; uniform float rs; uniform float rl; uniform float op; varying vec3 vW;
+    fragmentShader: LOGF + `uniform samplerCube tStars; uniform vec3 hole; uniform float rs; uniform float rl; uniform float op;
+uniform float time; uniform vec3 nrm; uniform vec3 e1; uniform vec3 e2; uniform float r0; uniform float r1; varying vec3 vW;` + GLSL_NOISE + `
+#if MARCH
+/* the disk where a ray crosses it at q: colour (premultiplied) and how much it hides what lies behind */
+vec4 disk(vec3 q, vec3 v) {
+  float R0 = r0 / rs, R1 = r1 / rs, r = length(q), t = (r - R0) / (R1 - R0);
+  if (t < 0.0 || t > 1.0) return vec4(0.0);
+  float a0 = atan(dot(q, e2), dot(q, e1)), lr = log(r / R0), w = pow(R0 / r, 1.5);
+  // two copies of the swirl, each wound up over a minute then faded out as the other comes in, so it never winds tight
+  float P = 60.0, ta = mod(time, P), tb = mod(time + P * 0.5, P), fa = abs(ta / P * 2.0 - 1.0);
+  float aa = a0 + ta * 0.9 * w, ab = a0 + tb * 0.9 * w;
+  float na = vnoise(vec3(cos(aa) * 3.0, sin(aa) * 3.0, lr * 9.0)) * 0.6 + vnoise(vec3(cos(aa) * 10.0, sin(aa) * 10.0, lr * 34.0)) * 0.4;
+  float nb = vnoise(vec3(cos(ab) * 3.0, sin(ab) * 3.0, lr * 9.0 + 7.0)) * 0.6 + vnoise(vec3(cos(ab) * 10.0, sin(ab) * 10.0, lr * 34.0 + 7.0)) * 0.4;
+  float n = mix(na, nb, fa);
+  // hotter inside; the side coming toward you brighter and bluer, the side going away dimmer and redder
+  float beta = sqrt(0.5 / r);
+  vec3 vel = normalize(cross(nrm, q));
+  float g = sqrt(1.0 - beta * beta) / (1.0 - beta * dot(vel, -v)) * sqrt(max(0.0, 1.0 - 1.0 / r));
+  float heat = clamp(1.0 - t * 1.25 + (g - 1.0) * 0.6, 0.0, 1.0);
+  vec3 c = mix(vec3(0.55, 0.1, 0.03), vec3(1.0, 0.5, 0.16), smoothstep(0.0, 0.45, heat));
+  c = mix(c, vec3(1.0, 0.93, 0.82), smoothstep(0.45, 0.85, heat));
+  c = mix(c, vec3(0.86, 0.92, 1.0), smoothstep(0.85, 1.0, heat));
+  float edge = smoothstep(0.0, 0.03, t) * (1.0 - smoothstep(0.7, 1.0, t));
+  float b = pow(1.0 - t, 1.3) * (0.35 + 1.0 * n) * edge * clamp(pow(g, 3.0), 0.12, 4.0);
+  float al = clamp(edge * (0.55 + 0.45 * n) * (1.0 - t * 0.6), 0.0, 0.97);
+  return vec4(c * b * 1.7, al);
+}
+#endif
 void main(){
 #include <logdepthbuf_fragment>
   vec3 d = normalize(vW - cameraPosition);
+#if MARCH
+  vec3 p = (cameraPosition - hole) / rs; float RL = rl / rs;
+  float bq = dot(p, d), cq = dot(p, p) - RL * RL, disc = bq * bq - cq;
+  if (disc <= 0.0) discard;
+  p += d * max(0.0, -bq - sqrt(disc));   // start where the ray comes into the sphere (or at the camera, inside it)
+  vec3 v = d, L = cross(p, v); float h2 = dot(L, L);
+  float bimp = sqrt(h2);                 // how near the ray would pass if nothing bent it
+  vec3 col = vec3(0.0); float tr = 1.0; bool lost = false;
+  float s0 = dot(p, nrm);
+  for (int i = 0; i < STEPS; i++) {
+    float r = length(p);
+    if (r < 1.0) { lost = true; break; }
+    if (r > RL && dot(p, v) > 0.0) break;
+    float dt = STEPK * r;
+    vec3 acc = -1.5 * h2 * p / pow(r, 5.0);
+    v += acc * dt;
+    vec3 p1 = p + v * dt;
+    float s1 = dot(p1, nrm);
+    if (s0 * s1 < 0.0) {
+      vec4 e = disk(mix(p, p1, s0 / (s0 - s1)), normalize(v));
+      col += tr * e.rgb * e.a; tr *= 1.0 - e.a;
+      if (tr < 0.02) break;
+    }
+    p = p1; s0 = s1;
+    if (i == STEPS - 1 && length(p) < 3.0) lost = true;
+  }
+  vec3 bg = lost ? vec3(0.0) : textureCube(tStars, normalize(v)).rgb;
+  gl_FragColor = vec4(col + tr * bg, op * (1.0 - smoothstep(RL * 0.9, RL, bimp)));
+#else
   vec3 h = hole - cameraPosition;
   float along = dot(h, d);
   vec3 perp = h - d * along;
@@ -396,9 +459,16 @@ void main(){
   vec3 nd = normalize(d * cos(ang) + toward * sin(ang));
   vec3 c = textureCube(tStars, nd).rgb;
   gl_FragColor = vec4(c, op * (1.0 - smoothstep(rl * 0.9, rl, b)));
+#endif
 }`,
     transparent: true, depthWrite: false, side: THREE.BackSide, fog: false
   });
+  /* how hard the hole is drawn: follows the Graphics setting */
+  H.setQuality = function (q) {
+    const m = q === 'low' ? 0 : 1, s = q === 'high' ? 96 : 48, k = q === 'high' ? '0.085' : '0.13', D = H.lensMat.defines;
+    if (D.MARCH === m && D.STEPS === s && D.STEPK === k) return;
+    D.MARCH = m; D.STEPS = s; D.STEPK = k; H.lensMat.needsUpdate = true; H.march = !!m;
+  };
   H.lens = new THREE.Mesh(new THREE.SphereGeometry(H.lensR, 64, 48), H.lensMat);
   H.lens.renderOrder = -1.5; H.lens.frustumCulled = false;
   scene.add(H.horizon, H.disk, H.ring, H.lens);
@@ -441,6 +511,7 @@ function makeSky(scene) {
   // the disk lies in the plane its world circles in
   const hn = new V3().crossVectors(GLOOM.e1, GLOOM.e2).normalize();
   sky.hole.disk.quaternion.setFromUnitVectors(new V3(0, 1, 0), hn); sky.hole.diskMat.uniforms.nrm.value.copy(hn);
+  { const u = sky.hole.lensMat.uniforms; u.e1.value.copy(GLOOM.e1).addScaledVector(hn, -GLOOM.e1.dot(hn)).normalize(); u.e2.value.crossVectors(hn, u.e1.value); }
   /* the stars as seen from anywhere (they are infinitely far), drawn once into a cube for the black hole to bend */
   sky.makeStarCube = function (renderer) {
     const rt = new THREE.WebGLCubeRenderTarget(512, { format: THREE.RGBFormat, generateMipmaps: false, minFilter: THREE.LinearFilter });
@@ -621,6 +692,8 @@ void main(){
         H.diskMat.uniforms.time.value = (W.time % 100000);
         H.lensMat.uniforms.hole.value.subVectors(MAW.center, cam);   // drawn with the camera at the origin
         H.lens.visible = !!H.lensMat.uniforms.tStars.value && d < 4e8;
+        // the followed rays draw the shadow, the disk and the ring themselves
+        if (H.march && H.lens.visible) H.horizon.visible = H.disk.visible = H.ring.visible = false;
       }
     }
     for (const o of sky.suns) {

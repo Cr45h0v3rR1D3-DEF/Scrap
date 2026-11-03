@@ -199,6 +199,95 @@ function arcSlabs(site, M, cx, cy, r, a0, a1, n, w, th, col, zf) {
   site.put(g, M);
 }
 
+/* ---------- ground over tunnels ----------
+   The terrain makes room for a tunnel by cutting a trench (it is a height map, it cannot hold a hole), so a tunnel is
+   walls and a roof down in that cut. Over it goes a sheet of hillside at the land's own height and colour, solid earth
+   under that sheet so you can drive over the top, and a concrete headwall at each mouth. pts/side: the path and its
+   sideways directions; o.tun: the walls' half spacing, o.tunH: the roof's underside, o.half: how wide the cut is. */
+function tunnelCover(site, pts, side, i0, i1, o) {
+  const isT = i => pts[i] && pts[i + 1] && pts[i].tunnel && pts[i + 1].tunnel;
+  for (let i = i0; i < i1; i++) {
+    if (!isT(i)) continue;
+    let j = i; while (j < i1 && isT(j)) j++;
+    coverRun(site, pts, side, i, j, o, !isT(i - 1), !isT(j));
+    i = j;
+  }
+}
+function coverRun(site, pts, side, i, j, o, mouthA, mouthB) {
+  const R = PLANET.R, O = site.O, half = o.half + 1.5, roof = o.tun + 1, top = o.tunH + 1;
+  // across the cut: finer for the sheet you see, and the walls' line, the roof's edges and the middle for the solid earth
+  // the sheet reaches a little past the cut, a hand's width over the land there (the land right at a cut's edge is
+  // coloured as bare rock), then tucks under it
+  const ext = half + 6, NL = 16, offs = []; for (let k = 0; k <= NL; k++) offs.push(-ext + 2 * ext * k / NL);
+  const colOffs = [-half, -(half + roof) / 2, -roof, 0, roof, (half + roof) / 2, half];
+  const at = (r, sd, y, out = new V3()) => out.copy(pts[r].d).multiplyScalar(R + pts[r].h + y).addScaledVector(side[r], sd);
+  const dir = new V3();
+  // the land's own height there, and never lower than just over the roof above the tunnel itself
+  const coverH = (r, sd) => {
+    at(r, sd, 0, dir).normalize();
+    const hn = planetHeightRaw(dir.x, dir.y, dir.z), floor = pts[r].h + top + 0.4;
+    return Math.abs(sd) <= roof + 0.5 ? Math.max(hn, floor) : Math.max(hn, Math.min(floor, pts[r].h + 0.5)) + (Math.abs(sd) > half - 2 ? 0.15 : 0);
+  };
+  const rows = j - i + 1, W = NL + 3;   // each row: a skirt, the samples, a skirt
+  const P = new Float32Array(rows * W * 3), C = new Float32Array(rows * W * 3), TL = new Float32Array(rows * W * 3), Hs = [];
+  const ws = PLANET.ws, wasOn = ws && ws.on; if (ws) ws.on = false;   // the land's own colours, not the road's
+  const oc = [0, 0, 0], q = new V3();
+  for (let r = 0; r < rows; r++) {
+    const pr = i + r, hr = offs.map(sd => coverH(pr, sd)); Hs.push(hr);
+    for (let k = 0; k < W; k++) {
+      // the outermost samples on each side tuck just under the land, so the sheet's edge never shows as a lip
+      const kk = clamp(k - 1, 0, NL), rim = k === 0 || k === W - 1, sd = rim ? Math.sign(offs[kk]) * (ext + 4) : offs[kk];
+      at(pr, sd, 0, dir).normalize();
+      q.copy(dir).multiplyScalar(R + (rim ? planetHeightRaw(dir.x, dir.y, dir.z) - 0.7 : hr[kk]));
+      const v = (r * W + k) * 3;
+      TL[v] = q.x; TL[v + 1] = q.y; TL[v + 2] = q.z; P[v] = q.x - O.x; P[v + 1] = q.y - O.y; P[v + 2] = q.z - O.z;
+      const sl = kk > 0 && kk < NL ? Math.abs(hr[kk + 1] - hr[kk - 1]) / (offs[kk + 1] - offs[kk - 1]) : 0;
+      planetColor(hr[kk], clamp(sl * 0.6, 0, 1), dir.x, dir.y, dir.z, oc);
+      C[v] = oc[0]; C[v + 1] = oc[1]; C[v + 2] = oc[2];
+    }
+  }
+  if (ws) ws.on = wasOn;
+  const idx = [];
+  for (let r = 0; r < rows - 1; r++) for (let k = 0; k < W - 1; k++) { const a = r * W + k, b = a + 1, c = a + W, d = c + 1; idx.push(a, c, b, b, c, d); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(P, 3)); g.setAttribute('color', new THREE.BufferAttribute(C, 3)); g.setAttribute('tl', new THREE.BufferAttribute(TL, 3));
+  g.setIndex(idx); g.computeVertexNormals();
+  // make sure the sheet faces up (its winding depends on which way the path runs)
+  { const N = g.attributes.normal, k = (Math.floor(rows / 2) * W + (W >> 1)) * 3; at(i + (rows >> 1), 0, 0, dir).normalize();
+    if (N.array[k] * dir.x + N.array[k + 1] * dir.y + N.array[k + 2] * dir.z < 0) { for (let t = 0; t < idx.length; t += 3) { const x = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = x; } g.setIndex(idx); g.computeVertexNormals(); } }
+  g.computeBoundingSphere();
+  const mesh = new THREE.Mesh(g, MAT.terrain); mesh.position.copy(O); mesh.receiveShadow = true;
+  (site.extra || (site.extra = [])).push(mesh);
+  // solid earth under the sheet, two path steps at a time: over the roof down to the roof, beside it well into the hill
+  const ci = colOffs.map(sd => offs.reduce((b, x, k) => Math.abs(x - sd) < Math.abs(offs[b] - sd) ? k : b, 0));
+  for (let r = 0; r < rows - 1; r += 2) {
+    const r2 = Math.min(rows - 1, r + 2);
+    for (let k = 0; k < colOffs.length - 1; k++) {
+      const s0 = colOffs[k], s1 = colOffs[k + 1], overRoof = Math.abs(s0) <= roof + 0.01 && Math.abs(s1) <= roof + 0.01;
+      const tops = [[r, k], [r, k + 1], [r2, k], [r2, k + 1]].map(([rr, kk]) => Hs[rr][ci[kk]] - pts[i + rr].h);
+      const y0 = overRoof ? top : Math.min(...tops) - 5;
+      const V = [];
+      for (let m = 0; m < 8; m++) { const rr = m & 4 ? r2 : r, kk = m & 1 ? k + 1 : k; V.push(at(i + rr, colOffs[kk], m & 2 ? Math.max(Hs[rr][ci[kk]] - pts[i + rr].h, y0 + 0.3) : y0)); }
+      makeCollider(V, BOX_F, PLANET, null, [0, 1]);
+    }
+  }
+  // headwalls: concrete across the cut at each mouth, from the track up to the hillside, open over the tunnel itself
+  const wall = (r, toward) => {
+    const r2 = r + toward, f = 1.2 / Math.max(1, at(r, 0, 0).distanceTo(at(r2, 0, 0)));
+    const lerpAt = (sd, y) => at(r, sd, y).lerp(at(r2, sd, y), f);
+    for (let k = 0; k < colOffs.length - 1; k++) {
+      const s0 = colOffs[k], s1 = colOffs[k + 1], overRoof = Math.abs(s0) <= roof + 0.01 && Math.abs(s1) <= roof + 0.01;
+      // its top follows the hillside across the cut
+      const t0 = Hs[r - i][ci[k]] - pts[r].h + 0.3, t1 = Hs[r - i][ci[k + 1]] - pts[r].h + 0.3;
+      const y0 = overRoof ? o.tunH : -0.5;
+      if (Math.max(t0, t1) <= y0 + 0.3) continue;
+      const V = []; for (let m = 0; m < 8; m++) { const sd = m & 1 ? s1 : s0, y = m & 2 ? Math.max(m & 1 ? t1 : t0, y0 + 0.3) : y0; V.push(m & 4 ? lerpAt(sd, y) : at(r, sd, y)); }
+      site.hex(V, 0x8a8880, false, true, [0, 1]);
+    }
+  };
+  if (mouthA) wall(i, 1);
+  if (mouthB) wall(j, -1);
+}
 /* ---------- roads ---------- */
 const IDENT4 = new THREE.Matrix4();
 function buildRoads() {
@@ -246,6 +335,7 @@ function buildRoads() {
         if (i % 3 === 0) piece(i, -0.3, 0.3, 6.6, 6.8, 0xfff1c4, true);
       }
     }
+    tunnelCover(site, pts, side, 0, n - 1, { tun: TW, tunH: 6.8, half: ROAD_FLAT + ROAD_BLEND });
   }
   site.finish();
 }
@@ -395,7 +485,7 @@ function buildTown(name, label, style) {
   // street lights
   for (const k of ST) for (let t = -120; t <= 120; t += 30) { lamp(s, t, k + 6.5, -Math.PI / 2); lamp(s, k - 6.5, t, Math.PI); }
   for (let i = 0; i < 6; i++) s.loose('cone', -60 + i * 4, -84);
-  if (!WP.spawns[name]) WP.spawns[name] = { name: label, u: 0, v: -70, ang: Math.PI / 2, site: s };
+  if (!WP.spawns[name]) WP.spawns[name] = { name: label, u: 0, v: -70, ang: Math.PI / 2, site: s, group: 'Towns' };
   s.finish();
 }
 /* ---------- the race and stunt park ---------- */
@@ -635,7 +725,7 @@ function buildWorld() {
   MAT.site = shine(new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 12, specular: 0x111111 }), 'site', 0.5, { windows: true, ao: true });
   MAT.decal = new THREE.MeshLambertMaterial({ vertexColors: true });
   MAT.glow = new THREE.MeshBasicMaterial({ vertexColors: true });
-  buildSpacePort(); buildRoads(); buildAirport(); buildTown('town1', 'Town', 'small'); buildTown('town2', 'City', 'big'); buildRace(); buildHarbor(); buildMoonBase();
+  buildSpacePort(); buildRoads(); buildAirport(); buildTown('town1', 'Liftoff', 'small'); buildTown('town2', 'Rocket City', 'big'); buildRace(); buildHarbor(); buildMoonBase();
   buildGlobe();
   // the lighthouse beam and the windmill sails turn (their matrices are in the world's own frame)
   for (const a of SITES.anim) {

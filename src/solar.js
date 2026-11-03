@@ -392,7 +392,8 @@ function initSolar() {
   const moonPlan = [[PIP, DUNE, 22000], [KETTLE, DUNE, 40000], [LANTERN, MIRE, 52000], [SLEET, FROST, 30000],
     [EMBER, TEMPEST, 150000], [VANE, TEMPEST, 260000], [TUMBLE, TEMPEST, 420000], [HALO, TEMPEST, 700000], [SHIVER, AZURE, 120000], [DRIFT, AZURE, 300000]];
   for (const [m, p, a] of moonPlan) setOrbit(m, p, a, rnd() * TAU, tilt((rnd() - 0.5) * 0.2), homeRef);
-  // days: Terra turns every 10 minutes about an axis through its poles that keeps the pad on the equator
+  // days: Terra turns every 10 minutes about an axis through its poles that keeps the pad on the equator; with the Sun
+  // set in the equator's plane (see setupWorld) that axis stands straight up out of the planets' plane: no tilt
   const up = WORLD.padUp, ax = nEcl.clone().addScaledVector(up, -nEcl.dot(up));
   if (ax.lengthSq() < 1e-6) ax.copy(WORLD.padRight);
   setSpin(PLANET, ax.normalize(), TERRA_DAY);
