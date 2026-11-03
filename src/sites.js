@@ -144,6 +144,7 @@ function winRows(g, glow, w, d, h, floors, col, lit, rng, x0 = 0, z0 = 0) {
   }
 }
 function building(site, u, v, ang, w, d, h, opt = {}) {
+  const mk = structMark(site);
   const M = site.frame(u, v, ang), g = new GB(), gl = new GB(), rng = site.rng;
   const wall = opt.wall ?? 0xd8d2c4, floors = opt.floors || Math.max(1, Math.round(h / 3.4));
   g.box(w, h, d, 0, h / 2, 0, wall);
@@ -162,6 +163,8 @@ function building(site, u, v, ang, w, d, h, opt = {}) {
   if (opt.awning) { g.box(w * 0.9, 0.2, 2.2, 0, 3.6, d / 2 + 1.1, opt.awning); g.box(w * 0.7, 1.2, 0.2, 0, h - 1.2, d / 2 + 0.12, opt.sign ?? 0xc8432f); }
   winRows(gl, gl, w, d, h, floors, wall, opt.lit ?? 0.35, rng);
   site.put(g, M); site.put(gl, M, true);
+  // it can be knocked down (wreck.js)
+  structAdd(site, mk, M, [{ w, h, d, x: 0, y: h / 2, z: 0 }], { wall, top: opt.roof === 'gable' ? wall : (opt.trim ?? 0x8a8f93), roof: opt.roof === 'gable' ? { rh: opt.rh || Math.min(w, d) * 0.35, col: opt.roofCol ?? COLS.roof } : null });
   return M;
 }
 function tree(site, u, v, s = 1) {
@@ -172,10 +175,12 @@ function tree(site, u, v, s = 1) {
   site.put(g, M); site.boxCol(M, 0.5 * s, 3 * s * k, 0.5 * s, 0, 1.5 * s * k, 0);
 }
 function lamp(site, u, v, ang, h = 7) {
+  const mk = structMark(site);
   const M = site.frame(u, v, ang), g = new GB(), gl = new GB();
   g.cyl(0.1, 0.14, h, 6, 0, h / 2, 0, 0x5a636a); g.box(1.4, 0.12, 0.12, 0.6, h, 0, 0x5a636a);
   gl.box(0.5, 0.15, 0.3, 1.2, h - 0.12, 0, 0xfff1c4);
   site.put(g, M); site.put(gl, M, true); site.boxCol(M, 0.3, h, 0.3, 0, h / 2, 0);
+  structAdd(site, mk, M, [{ w: 0.3, h, d: 0.3, x: 0, y: h / 2, z: 0 }], { pole: true, wall: 0x5a636a });
 }
 /* a ramp (wedge) rising along x from 0 to height h over length L, width w */
 function wedge(site, M, L, w, h, col, x0 = 0) {
@@ -447,9 +452,10 @@ function buildTown(name, label, style) {
       const ang = Math.round(face / (Math.PI / 2)) * Math.PI / 2;
       const r = rng();
       if (kind === 'house') {
-        if (r < 0.15) { tree(s, u, v); tree(s, u + 5, v - 4, 0.8); continue; }
-        building(s, u, v, ang, 9 + rng() * 3, 8 + rng() * 2, 3.4 + (rng() < 0.3 ? 3.4 : 0), { roof: 'gable', wall: [0xe6dcc8, 0xd9c7a8, 0xc9d6dc, 0xe0c3b0, 0xf0ead8][Math.floor(rng() * 5)], roofCol: [0x6b3a2a, 0x4a4f55, 0x7a3b30][Math.floor(rng() * 3)], chimney: rng() < 0.5, lit: 0.4 });
-        tree(s, u + 7, v + 6, 0.7);
+        if (r < 0.15) { tree(s, u, v); tree(s, u + 3, v - 3, 0.8); continue; }
+        // sized to leave a gap to the next house (the plots are about 10.7 m apart)
+        building(s, u, v, ang, 7.6 + rng() * 1.6, 7 + rng() * 1.4, 3.4 + (rng() < 0.3 ? 3.4 : 0), { roof: 'gable', wall: [0xe6dcc8, 0xd9c7a8, 0xc9d6dc, 0xe0c3b0, 0xf0ead8][Math.floor(rng() * 5)], roofCol: [0x6b3a2a, 0x4a4f55, 0x7a3b30][Math.floor(rng() * 3)], chimney: rng() < 0.5, lit: 0.4 });
+        tree(s, u + 5.3, v + 5.3, 0.6);
       } else if (kind === 'shop') {
         building(s, u, v, ang, 16, 12, 5 + rng() * 2, { wall: [0xd8d2c4, 0xcfb08a, 0xb9c9c4][Math.floor(rng() * 3)], awning: [0xc8432f, 0x2f8f86, 0xe8a33d][Math.floor(rng() * 3)], floors: 1, lit: 0.8 });
       } else {

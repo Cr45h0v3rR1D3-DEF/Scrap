@@ -215,6 +215,7 @@ function gsite(gs, cull) { const s = new Site(gs.name, PLANET, gs.C, gs.E1, gs.E
 function lampPost(s, u, v, ang, h = 7) { lamp(s, u, v, ang, h); }
 /* a tower block in tiers, each narrower than the one below, with ribbon windows */
 function tower(s, u, v, ang, w, d, h, o = {}) {
+  const mk = structMark(s), parts = [];
   const M = s.frame(u, v, ang), g = new GB(), gl = new GB(), rng = s.rng, fh = o.fh || 3.6;
   const body = o.col ?? 0x7d93a6, trim = o.trim ?? 0x4d5a66, dark = o.dark ?? 0x22313d;
   const tiers = o.tiers || (h > 90 ? 3 : h > 45 ? 2 : 1);
@@ -225,6 +226,7 @@ function tower(s, u, v, ang, w, d, h, o = {}) {
     fbox(g, tw + 0.4, 0.6, td + 0.4, 0, y + th + 0.3, 0, trim);
     ribbons(gl, tw, td, y + (t ? 0.6 : 3.5), y + th, fh, o.lit ?? 0.4, rng, 0, 0, dark);
     s.boxCol(M, tw, th + 0.6, td, 0, y + (th + 0.6) / 2, 0);
+    parts.push({ w: tw, h: th + 0.6, d: td, x: 0, y: y + (th + 0.6) / 2, z: 0 });
     y += th + 0.6; tw *= 0.78; td *= 0.78;
   }
   // ground floor: a darker lobby with a door
@@ -243,13 +245,16 @@ function tower(s, u, v, ang, w, d, h, o = {}) {
     for (const sg of [-1, 1]) { fbox(g, tw, 1, 0.4, 0, y + 0.5, sg * (td / 2 - 0.2), trim); fbox(g, 0.4, 1, td, sg * (tw / 2 - 0.2), y + 0.5, 0, trim); s.boxCol(M, tw, 1, 0.4, 0, y + 0.5, sg * (td / 2 - 0.2)); s.boxCol(M, 0.4, 1, td, sg * (tw / 2 - 0.2), y + 0.5, 0); }
   }
   s.put(g, M); s.put(gl, M, true);
+  structAdd(s, mk, M, parts, { wall: body, top: trim, low: o.lobby ?? 0x3c4650 });
   return { M, top: y };
 }
 function trafficLight(s, u, v, ang) {
+  const mk = structMark(s);
   const M = s.frame(u, v, ang), g = new GB(), gl = new GB();
   fbox(g, 0.25, 5, 0.25, 0, 2.5, 0, 0x3a4148); fbox(g, 0.5, 1.4, 0.4, 0, 4.6, 0.3, 0x2b3137);
   fbox(gl, 0.3, 0.3, 0.05, 0, 5.0, 0.52, 0xff3b2b); fbox(gl, 0.3, 0.3, 0.05, 0, 4.6, 0.52, 0x3a2a10); fbox(gl, 0.3, 0.3, 0.05, 0, 4.2, 0.52, 0x52ff7a);
   s.put(g, M); s.put(gl, M, true); s.boxCol(M, 0.3, 5, 0.3, 0, 2.5, 0);
+  structAdd(s, mk, M, [{ w: 0.3, h: 5, d: 0.3, x: 0, y: 2.5, z: 0 }], { pole: true, wall: 0x3a4148 });
 }
 function buildCity(gs) {
   const s = gsite(gs, 16000), rng = s.rng;
@@ -630,6 +635,7 @@ function buildTrains() {
       W.movers.push(pr);
       return pr;
     });
+    for (const c of tr.cars) c.tr = tr;
     trainPose(tr, 0);
     trainMeshes(tr);
     TRAIN.list.push(tr);
@@ -677,6 +683,7 @@ function moverVel(pr, p, out) { const r = _mvr.subVectors(p, pr.c); return out.c
 const _mvr = new V3(), _mvw = new V3();
 function trainsStep(dt) {
   for (const tr of TRAIN.list) {
+    if (tr.off) continue;   // off the rails: wreck.js moves its cars
     if (tr.dwell > 0) {
       tr.dwell -= dt; tr.v = 0;
       if (tr.dwell <= 0) {

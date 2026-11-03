@@ -8,7 +8,7 @@ const COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 const G = {
   mode: 'build', player: null, seatUid: null, spawnLoc: 'pad', warp: 1, map: false, chase: true, shake: 0, initialParts: 1,
   throttle: 0, reversing: false, noSeat: false, wrecked: false, budget: 4.5, hudT: 0, mapYaw: 0.4, mapPitch: 0.55, mapZoom: 1, keysMin: false, fuelWarned: false, predT: 0,
-  settings: { quality: 'balanced', shadows: true, invertPitch: false, volume: 0.7, mute: false, views: { com: true, forces: false, air: false, keys: false } },
+  settings: { quality: 'balanced', shadows: true, invertPitch: false, volume: 0.7, mute: false, views: { com: true, forces: true, air: false, keys: false } },
   live: [], braking: 0
 };
 const DC = { yaw: 0, pitch: 0.3, dist: 14, ref: new V3(1, 0, 0), dragging: false, lastDrag: 0 };
@@ -1948,6 +1948,8 @@ function uiStats() {
   }
   if (G.settings.views.forces && B.forces) w.push(...B.forces.warn);
   $('warnings').textContent = w.join(' ');
+  // what the Forces view's coloured balls and arrows mean
+  { const fl = $('fLegend'), on = !!(G.settings.views.forces && B.insts.length); if (fl.hidden === on) fl.hidden = !on; }
   if (typeof syncUndo === 'function') syncUndo();
 }
 function syncUndo() { const u = $('tbUndo'), r = $('tbRedo'); if (u) { u.disabled = !B.undo.length && !B.pasting; r.disabled = !B.redo.length; } }
@@ -2268,14 +2270,16 @@ function openHelp(tab) {
   <div class="mfoot" style="justify-content:flex-start"><button type="button" class="btn" data-keys="1">Change keys</button></div>`,
     build: `<p>Pick a part on the left and ${click} a face of your vehicle to stick it on. The tool strip next to the right panel switches tools and building views. Select grabs groups of parts: drag a box around them, Shift-click to add, or double-click a part to take it with everything built onto it. Then move it, turn it, copy it, mirror it to the other side, paint it or delete it. Undo and redo go back and forth through every change.</p>
   <p>Configure is where each part gets its own keys and settings, like in Trailmakers: wheel power, top speed and steering, engine power, flap swing, hinge angle limits and speed, piston stroke, which key fires each rocket or decoupler, and more. A grey key follows your Controls settings; set one of its own and it turns orange. The Keys view labels every part with the keys it answers to.</p>
-  <p>Forces shows the centre of mass (orange), centre of thrust with its push (red), centre of lift (blue) and of buoyancy (teal), and warns when they would make the craft turn or flip. Air drag paints every face the wind hits head-on red and tells you the drag at 100 km/h.</p>
+  <p>Forces (on to start with, the Forces button in the tool strip turns it off) shows the centre of mass (orange), centre of thrust with its push (red), centre of lift (blue) and of buoyancy (teal), and warns when they would make the craft turn or flip. Air drag paints every face the wind hits head-on red and tells you the drag at 100 km/h.</p>
   <span class="lab">Parts</span>
   <p>Blocks and Shapes make the frame, from small wedges to 215 m Sky Trusses. Land has wheels from Tiny to Giant, Tracks that turn on the spot, Hover Pads, an Engine, Landing Gear and Rail Bogies. Air has propellers, jets, wings, flaps, helicopter rotors that hold their height, balloons and parachutes. Sea has floats, hulls, propellers, a rudder and an Outboard Motor. Space has rocket engines, tanks, decouplers, docking ports, RCS, the Plasma Thruster, the Star Drive and Storage Modules. Gadgets has claws, a winch, a magnet, a horn and a bumper. Weapons fire from their top face with ${K('fire')}, and their shots fly through your own vehicle. Decor has number plates, signs, flags and lights; Control has seats, a cabin and headlights.</p>
   <p>Moving has hinges, rotors, pistons, servos, ball joints, couplers, detachers, drills and spinners. They split a vehicle into pieces: whatever you build on a moving part's top face moves. If it also touches the rest of the vehicle the part is stuck, and the builder shows it glowing red.</p>
   <p>Logic blocks press keys for you. A Sensor watches height, speed, climb, tilt, distance ahead or fuel and presses a key while the reading is past your value. A Timer waits and then presses a key for a while, a Logic Gate combines two keys, and a Toggle Switch latches on and off. They can press real keys or channels (Ch 1 to Ch 8) that only parts and other logic blocks hear: set a parachute to Ch 1 and a sensor to press Ch 1 when below 300 m, and it opens by itself. The Auto Rocket in the library shows how.</p>
   <span class="lab">Driving</span>
   <p>${K('build')} or Drive takes you from the builder to the world, at the place picked under Spawn at, and back again; going back clears away the vehicle you were driving. Park &amp; build leaves it out in the world instead, and Vehicles lists everything you have left out so you can drive it again. Hard hits knock parts loose; fuel tanks and explosives blow up.</p>`,
-    terra: `<p>Terra is 10 km in radius and turns once every 10 minutes. Highways run out from the launch pad to the city of Grand Metro and to towns, villages and farms all round the planet, over long bridges and through tunnels with the hills over them. Near the pad are Liftoff and Rocket City, an airport, a harbor, a race track that times your laps (drive through the start line, then every orange gate) and a stunt park with jumps, a half-pipe and a loop. Buildings are solid, but cones, barrels and crates go flying. Under Landmarks, Summit Station sits on the highest peak and the Deep Sea Base on the deepest sea floor. The wider world is built as you come near it, so far-off places appear as you travel.</p>
+    terra: `<p>Terra is 10 km in radius and turns once every 10 minutes. Highways run out from the launch pad to the city of Grand Metro and to towns, villages and farms all round the planet, over long bridges and through tunnels with the hills over them. Near the pad are Liftoff and Rocket City, an airport, a harbor, a race track that times your laps (drive through the start line, then every orange gate) and a stunt park with jumps, a half-pipe and a loop. Cones, barrels and crates go flying. Under Landmarks, Summit Station sits on the highest peak and the Deep Sea Base on the deepest sea floor. The wider world is built as you come near it, so far-off places appear as you travel.</p>
+  <span class="lab">Wrecking</span>
+  <p>Buildings, street lights and traffic lights can be knocked down. Crash into one hard, or hit it with cannons, missiles, bombs or bullets, and chunks break off where you hit it; take out enough, or most of what it stands on, and the rest comes down in a heap of rubble. Trains come off their rails if you ram them hard, blast them, or leave something big on the track. A few minutes later, once you are well away, everything is put back and a fresh train sets out from the last station.</p>
   <span class="lab">Railways</span>
   <p>Three railway lines link eight stations, and a train runs on each by itself, stopping at every station. Drive up a station's ramp onto a flat car, or pick a ride under Spawn at, Railways: whatever stands on a train is carried along. The rails stand up from the ground, so crossing them is a bump.</p>
   <p>Build your own train with Rail Bogies (Land). Drive one from a station (pick it under Spawn at, Railways) and it is set down on the nearest track; Powered Rail Bogies pull it and plain ones just roll. Take a bend too fast and it comes off the rails: a chip under the gauges warns of bends ahead and the speed to take them at. ${K('respawn')} puts it back. The Locomotive in the library is one to start from.</p>
@@ -2518,7 +2522,7 @@ function frame(now) {
     b.group.visible = !(G.mode === 'build' && !TITLE.on && b.x.distanceTo(B.padPoint) < 30 + b.radius) && !(b.loose && b.x.distanceTo(camera.position) > 450);
   }
   for (const pr of W.props) if (pr.mesh) { fromSpin(pr.cel, pr.c, pr.mesh.position).add(pr.cel.center); pr.mesh.quaternion.copy(pr.cel.spinQ); }
-  updateSites(dt); updateRace();
+  updateSites(dt); updateRace(); wreckFrame(dt);
   if (TITLE.on) { }
   else if (G.mode === 'build') { nearFar(); bCamera(dt); }
   else if (G.map) mapCamera(dt);
@@ -2580,6 +2584,8 @@ async function init() {
     WORLD.L = { up: WORLD.padUp.clone(), fwd: WORLD.padFwd.clone(), right: WORLD.padRight.clone(), east: WORLD.padEast.clone() };
     const ss = LS.get('scrapline.settings', {}) || {}, views = { ...G.settings.views, ...(ss.views || {}) };
     if (ss.showCom === false && !ss.views) views.com = false;
+    // Forces is on by default since V17; turn it on once for players who had it off without knowing it was there
+    if (!ss.forcesOn) { views.forces = true; ss.forcesOn = true; }
     Object.assign(G.settings, ss); G.settings.views = views; delete G.settings.showCom;
     loadBinds();
     setLoad(0.14, 'Starting the renderer');
@@ -2678,11 +2684,13 @@ function afterTitle(restored) {
   window.addEventListener('pagehide', () => { if (!TITLE.on) worldSave(); });
   const touch = COARSE;
   if (!LS.get('scrapline.seenHelp', false)) {
-    for (const v of ['Help', 'V11', 'V12', 'V13', 'V15', 'V16']) LS.set('scrapline.seen' + v, true);
+    for (const v of ['Help', 'V11', 'V12', 'V13', 'V15', 'V16', 'V17']) LS.set('scrapline.seen' + v, true);
     setTimeout(() => toast(touch ? 'Pick a part, tap the vehicle to attach it, then tap Drive' : `Pick a part, click the vehicle to attach it, then press ${keyName(actKeys('build')[0])} to drive`, 5200), wait);
-  } else if (!LS.get('scrapline.seenV16', false)) {
-    for (const v of ['V11', 'V12', 'V13', 'V15', 'V16']) LS.set('scrapline.seen' + v, true);
-    setTimeout(() => toast('New: trains you build with rail bogies, bases you build from crates wherever you land, and your vehicles on every device with cloud saves. Help has more.', 7000), wait);
+  } else if (!LS.get('scrapline.seenV17', false)) {
+    const v16 = LS.get('scrapline.seenV16', false);
+    for (const v of ['V11', 'V12', 'V13', 'V15', 'V16', 'V17']) LS.set('scrapline.seen' + v, true);
+    setTimeout(() => toast(v16 ? 'New: knock buildings down and throw trains off their rails (it all comes back a few minutes later). The builder now shows Forces from the start.'
+      : 'New: trains you build with rail bogies, bases built from crates wherever you land, cloud saves, and buildings and trains you can wreck. Help has more.', 7000), wait);
   }
 }
 init();

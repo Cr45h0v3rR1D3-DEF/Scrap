@@ -1050,7 +1050,7 @@ function rayCel(cel, ox, oy, oz, d, maxT) {
   return lo + (hi - lo) * flo / (flo - fhi);
 }
 /* flanged (rail) wheels: a rail's sloping sides do not push them off it, their flanges hold them on */
-function groundRay(o, d, maxT, flanged) {
+function groundRay(o, d, maxT, flanged, noMovers) {
   let bt = 1e9, bc = null, bp = null;
   for (const cel of ROCKY) {
     const ox = o.x - cel.center.x, oy = o.y - cel.center.y, oz = o.z - cel.center.z;
@@ -1069,14 +1069,14 @@ function groundRay(o, d, maxT, flanged) {
       if (t !== null && t < bt) { bt = t; bp = pr; bc = null; fromSpin(pr.cel, _pn, _hit.n); }
     });
     // train cars
-    for (const pr of W.movers) {
+    if (!noMovers) for (const pr of W.movers) {
       if (pr.cel !== cel || _pl.distanceToSquared(pr.c) > (pr.r + maxT) * (pr.r + maxT)) continue;
       const t = rayConvex(pr, _pl, _pd, maxT, _pn);
       if (t !== null && t < bt) { bt = t; bp = pr; bc = null; fromSpin(pr.cel, _pn, _hit.n); _hit.lp.copy(_pl).addScaledVector(_pd, t); }
     }
   }
   if (!bc && !bp) return null;
-  _hit.t = bt;
+  _hit.t = bt; _hit.pr = bp;
   if (bc) {
     const px = o.x + d.x * bt - bc.center.x, py = o.y + d.y * bt - bc.center.y, pz = o.z + d.z * bt - bc.center.z;
     const r = Math.hypot(px, py, pz), ux = px / r, uy = py / r, uz = pz / r;
@@ -1384,6 +1384,9 @@ function propPoints(b, pr, dt) {
       fromSpin(pr.cel, _n, _n);
       surfaceVel(pr.cel, _p, _sv);
       if (pr.mover) _sv.add(fromSpin(pr.cel, moverVel(pr, _pl, _mvp), _mvp));
+      // hard knocks break buildings and throw trains off their rails (wreck.js)
+      if (pr.st) structTouch(b, pr, _p, _pl, _n, _sv);
+      else if (pr.tr) trainTouch(b, pr, _p, _n, _sv);
       contact(b, null, _p.x, _p.y, _p.z, _n.x, _n.y, _n.z, d, pt.part, null, _sv, pr.mu || 0.7, null, dt);
     }
   }
@@ -1838,6 +1841,7 @@ function physicsStep(dt) {
     for (const r of W.ropes) solveRope(r, dt);
   }
   contactDamage();
+  if (typeof wreckStep === 'function') wreckStep(dt);
   for (const b of L) { if (!b.asleep && !b.dock) { integratePos(b, dt); b.updR(); } }
   shotsMove(dt);
   for (const c of ORBITERS) { c.pc.copy(c.center); c.pv.copy(c.vel); }
@@ -1921,6 +1925,7 @@ function processExplosions(dt) {
 function explode(e) {
   if (typeof FX !== 'undefined') FX.explosion(e.pos, e.radius, e.vel);
   if (typeof onExplosion === 'function') onExplosion(e);
+  if (typeof wreckBlast === 'function') wreckBlast(e);
   for (const b of W.bodies.slice()) {
     if (b.dead) continue;
     if (b.x.distanceTo(e.pos) > e.radius + b.radius) continue;

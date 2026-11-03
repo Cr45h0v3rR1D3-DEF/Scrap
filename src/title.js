@@ -33,6 +33,7 @@ function titleHTML(paused) {
 }
 /* first thing on screen: the title, with the scenes behind it */
 function showTitle() {
+  wreckResetAll();
   TITLE.on = true; TITLE.pause = false; TITLE.i = -1; TITLE.t = SCENE_T; document.body.classList.add('title');
   const el = $('title'); el.innerHTML = titleHTML(false); el.hidden = false; el.classList.remove('paused');
   B.group.visible = false;

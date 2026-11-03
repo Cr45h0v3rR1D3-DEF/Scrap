@@ -266,7 +266,14 @@ function planWorld() {
     // (the same handedness as the pad's own frame: along x, up, then z = x × up)
     const e1 = wpDir(s.cx + ca, s.cz + sa, new V3()).sub(C).normalize(), e3 = new V3().crossVectors(e1, C).normalize();
     s.C = C; s.E1 = e1; s.E3 = e3;
-    s.zone = wsZone(ws, C, e1, e3, s.a, s.b, s.h, s.name === 'harbor' ? 22 : 45, s.name === 'harbor' ? [0.6, 0.6, 0.58] : SURF[s.name]);
+    // (the airport's terminal and hangars stand along its far edge: its flat ground reaches past them)
+    s.zone = wsZone(ws, C, e1, e3, s.a, s.name === 'airport' ? s.b + 34 : s.b, s.h, s.name === 'harbor' ? 22 : 45, s.name === 'harbor' ? [0.6, 0.6, 0.58] : SURF[s.name]);
+  }
+  // the space port's big assembly building stands out past the pad's round flat ground: level the ground under it too
+  {
+    const ang = Math.atan2(75, 85) + Math.PI / 2, D = expDir(WP.up, WP.X, WP.Z, PLANET.R, -85, -75, new V3());
+    const X = WP.X.clone().multiplyScalar(Math.cos(ang)).addScaledVector(WP.Z, Math.sin(ang)); X.addScaledVector(D, -X.dot(D)).normalize();
+    wsZone(ws, D, X, new V3().crossVectors(X, D).normalize(), 31, 28, WORLD.padH, 35, null);
   }
   ws.on = true;
   // roads: a tree from the pad, each new site joining the nearest road already built
@@ -318,6 +325,13 @@ function planWorld() {
         if (bp) cut = k;
       }
       if (bp) pts = [...dense.slice(0, Math.max(2, cut)), [bp.p.x, bp.p.z]];
+      else {
+        // the route ran to where the older road was planned, but smoothing moved that road a little way off:
+        // carry this one on to the nearest point of it, so it never stops just short
+        const [x, z] = dense[dense.length - 1]; let nb = null;
+        for (const r of WP.roads) for (const p of r.pts) { const dd = Math.hypot(p.x - x, p.z - z); if (dd < 160 && (!nb || dd < nb.dd)) nb = { p, dd }; }
+        if (nb) pts = [...dense, [nb.p.x, nb.p.z]];
+      }
     }
     addRoad(pts, s.name, leadA * 0.6, leadB);
     for (const k of best.path) net.add(k);

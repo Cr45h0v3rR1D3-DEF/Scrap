@@ -104,7 +104,7 @@ function shotTrace(s) {
   let bt = L, hit = null;
   // the ground, buildings and other fixed things
   const g = groundRay(s.p0, _wdr, L);
-  if (g && g.t < bt) { bt = g.t; hit = { pos: s.p0.clone().addScaledVector(_wdr, g.t), body: null, part: null, ground: true }; }
+  if (g && g.t < bt) { bt = g.t; hit = { pos: s.p0.clone().addScaledVector(_wdr, g.t), body: null, part: null, ground: true, pr: g.pr }; }
   // vehicles and loose things, but not the machine that fired it
   for (const o of W.bodies) {
     if (o.dead || o.asmId === s.asm) continue;
@@ -133,6 +133,7 @@ function shotTrace(s) {
 function shotImpact(s, h) {
   const d = s.d;
   if (s.k === 'bullet') {
+    if (h.pr && h.pr.st && typeof wreckChip === 'function') wreckChip(h.pr, h.pos, d.dmg);
     if (h.body) { addDmg(h.part, d.dmg); h.body.wake(); _wvv.subVectors(s.vel, h.body.velAt(h.pos, _wk)).multiplyScalar(0.35); h.body.impulseAt(_wvv.x, _wvv.y, _wvv.z, h.pos); }
     if (typeof FX !== 'undefined') { if (h.sea) FX.splash(h.pos, 0.25, h.sea); else FX.sparks(h.pos.x, h.pos.y, h.pos.z, 4); }
     return;

@@ -135,6 +135,7 @@ const SND = {
       case 'nope': this.tone('square', 190, 170, 0.07, 0.06 * v, t); this.tone('square', 150, 140, 0.08, 0.06 * v, t + 0.09); break;
       case 'boom': this.burst('lowpass', 1400, 90, 1.6, 0.9 * v, t, true, 0.6, 0.01); this.tone('sine', 80, 34, 0.9, 0.7 * v, t, 0.01); this.burst('bandpass', 2500, 600, 0.35, 0.25 * v, t, false, 0.6); break;
       case 'crash': this.burst('bandpass', 900, 260, 0.22 + v * 0.2, 0.5 * v, t, false, 0.9); this.tone('sine', 120, 55, 0.18, 0.4 * v, t); if (v > 0.5) this.burst('highpass', 3500, 2000, 0.25, 0.15 * v, t + 0.02); break;
+      case 'rubble': this.burst('lowpass', 900, 120, 1.4 + v * 0.8, 0.55 * v, t, true, 0.7, 0.05); this.burst('bandpass', 1600, 500, 0.5, 0.25 * v, t + 0.05, false, 0.8); this.tone('sine', 70, 40, 0.8, 0.35 * v, t, 0.02); break;
       case 'splash': this.burst('highpass', 900, 2600, 0.7, 0.35 * v, t, false, 0.5, 0.02); this.burst('lowpass', 500, 200, 0.4, 0.25 * v, t, true); break;
       case 'decouple': this.burst('bandpass', 1800, 500, 0.25, 0.4 * v, t, false, 1.2); this.tone('square', 320, 300, 0.12, 0.08 * v, t); this.tone('square', 470, 440, 0.1, 0.06 * v, t + 0.01); break;
       case 'dock': this.tone('sine', 140, 90, 0.25, 0.4 * v, t); this.tone('square', 600, 560, 0.05, 0.07 * v, t + 0.02); break;

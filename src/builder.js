@@ -519,7 +519,7 @@ function setTool(t) {
 const VIEW_NAMES = { forces: 'Forces view', air: 'Air drag view', keys: 'Part keys view', com: 'Centre of mass', mirror: 'Mirror' };
 function toggleView(v) {
   if (v === 'mirror') { B.mirror = !B.mirror; B.needsHover = true; B.ghostKey = ''; refreshHighlights(); }
-  else { G.settings.views[v] = !G.settings.views[v]; LS.set('scrapline.settings', G.settings); bOverlays(); }
+  else { G.settings.views[v] = !G.settings.views[v]; LS.set('scrapline.settings', G.settings); bOverlays(); if (typeof uiStats === 'function') uiStats(); }
   const on = v === 'mirror' ? B.mirror : G.settings.views[v];
   toast(`${VIEW_NAMES[v]} ${on ? 'on' : 'off'}`, 1000); sfx('tick');
   if (typeof syncTools === 'function') syncTools();
