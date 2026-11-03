@@ -155,7 +155,8 @@ const AZURE = { name: 'Azure', kind: 'gas', R: 32000, g: 12, maxH: 0, beacon: 0x
 /* ================= other stars ================= */
 /* Each sits still, far out in the galaxy, with worlds of its own on rails round it. lux is the distance at which a star
    lights things as the Sun lights Terra (lumK scales that), sysR how far out its worlds reach: past that, between the
-   stars, time warp goes much higher. hole: a black hole (R is its horizon, tidal where it starts tearing things apart) */
+   stars, time warp goes much higher. hole: a black hole (R is its horizon: its tides only tear things apart once they fall in past it;
+   slowR is how near time warp is held down, so nothing warps straight in) */
 Object.assign(SUN, { lux: 6.8e6, lumK: 1, light: 0xfff2de, sysR: 6e7, call: 'the Sun', title: 'The Sun', sys: 'Sun', glowIn: 'rgba(255,248,226,1)', glowOut: 'rgba(255,190,110,0)', glowK: 7 });
 const RUBY = { name: 'Ruby', kind: 'star', R: 1.1e5, mu: 6e12, heatStart: 7e5, heatEnd: 1.5e5, color: 0xff6a3a, light: 0xffb08c, lux: 1.8e6, lumK: 0.8, beacon: 0xff8a5c,
   sysR: 1.2e7, sys: 'Ruby', glowIn: 'rgba(255,150,100,1)', glowOut: 'rgba(255,60,20,0)', glowK: 8, blurb: 'A dim red dwarf.' };
@@ -165,8 +166,8 @@ const DUET_B = { name: 'Duet B', kind: 'star', R: 1.3e5, mu: 7e12, heatStart: 8e
   sysR: 0, sys: 'Duet', glowIn: 'rgba(255,190,120,1)', glowOut: 'rgba(255,110,40,0)', glowK: 7, blurb: 'The smaller, orange one of two suns.' };
 const SAPPHIRE = { name: 'Sapphire', kind: 'star', R: 9e5, mu: 9e13, heatStart: 8e6, heatEnd: 1.3e6, color: 0xd6e4ff, light: 0xe2ebff, lux: 2.1e7, lumK: 1.15, beacon: 0xa8c8ff,
   sysR: 6e7, sys: 'Sapphire', glowIn: 'rgba(225,236,255,1)', glowOut: 'rgba(110,150,255,0)', glowK: 8, blurb: 'A huge, blazing blue-white giant.' };
-const MAW = { name: 'Maw', kind: 'star', hole: true, R: 3e4, mu: 4e13, tidal: 2.4e5, heatStart: 0, heatEnd: 0, color: 0x000000, light: 0xffb878, lux: 2.6e6, lumK: 0.5, beacon: 0xffa060,
-  sysR: 2.6e7, sys: 'Maw', disk: [5.5e4, 3.2e5], blurb: 'A black hole. Its glowing disk lights the dark; fall too close and it pulls you apart.' };
+const MAW = { name: 'Maw', kind: 'star', hole: true, R: 3e4, mu: 4e13, slowR: 3.84e5, heatStart: 0, heatEnd: 0, color: 0x000000, light: 0xffb878, lux: 2.6e6, lumK: 0.5, beacon: 0xffa060,
+  sysR: 2.6e7, sys: 'Maw', disk: [5.5e4, 3.2e5], blurb: 'A black hole. Its glowing disk lights the dark; fall in past its horizon and nothing comes back out.' };
 const STARS = [SUN, RUBY, DUET_A, DUET_B, SAPPHIRE, MAW];
 
 /* Iris: always the same face to Ruby (sub is the point right under it, in Iris's own frame). Day side a scorched
@@ -359,10 +360,11 @@ function sunHeat(p) {
   }
   return h;
 }
-/* how hard a black hole's tides are pulling at a point: 0 outside, 1 at the point where nothing holds together */
+/* how hard a black hole's tides are pulling at a point: 0 anywhere outside its horizon, then, once you have
+   fallen in, rising fast to 1, where nothing holds together */
 function tidalPull(p) {
-  const r = p.distanceTo(MAW.center); if (r >= MAW.tidal) return 0;
-  return clamp((MAW.tidal - r) / (MAW.tidal - MAW.R * 2.2), 0, 1);
+  const r = p.distanceTo(MAW.center); if (r >= MAW.R) return 0;
+  return clamp((MAW.R - r) / (MAW.R * 0.35), 0, 1);
 }
 /* out between the stars: past every star's worlds */
 function inDeepSpace(p) { for (const s of STARS) if (s.sysR && p.distanceToSquared(s.center) < s.sysR * s.sysR) return false; return true; }

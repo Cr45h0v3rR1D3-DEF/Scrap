@@ -963,7 +963,8 @@ const AZURE = { name: 'Azure', kind: 'gas', R: 32000, g: 12, maxH: 0, beacon: 0x
 /* ================= other stars ================= */
 /* Each sits still, far out in the galaxy, with worlds of its own on rails round it. lux is the distance at which a star
    lights things as the Sun lights Terra (lumK scales that), sysR how far out its worlds reach: past that, between the
-   stars, time warp goes much higher. hole: a black hole (R is its horizon, tidal where it starts tearing things apart) */
+   stars, time warp goes much higher. hole: a black hole (R is its horizon: its tides only tear things apart once they fall in past it;
+   slowR is how near time warp is held down, so nothing warps straight in) */
 Object.assign(SUN, { lux: 6.8e6, lumK: 1, light: 0xfff2de, sysR: 6e7, call: 'the Sun', title: 'The Sun', sys: 'Sun', glowIn: 'rgba(255,248,226,1)', glowOut: 'rgba(255,190,110,0)', glowK: 7 });
 const RUBY = { name: 'Ruby', kind: 'star', R: 1.1e5, mu: 6e12, heatStart: 7e5, heatEnd: 1.5e5, color: 0xff6a3a, light: 0xffb08c, lux: 1.8e6, lumK: 0.8, beacon: 0xff8a5c,
   sysR: 1.2e7, sys: 'Ruby', glowIn: 'rgba(255,150,100,1)', glowOut: 'rgba(255,60,20,0)', glowK: 8, blurb: 'A dim red dwarf.' };
@@ -973,8 +974,8 @@ const DUET_B = { name: 'Duet B', kind: 'star', R: 1.3e5, mu: 7e12, heatStart: 8e
   sysR: 0, sys: 'Duet', glowIn: 'rgba(255,190,120,1)', glowOut: 'rgba(255,110,40,0)', glowK: 7, blurb: 'The smaller, orange one of two suns.' };
 const SAPPHIRE = { name: 'Sapphire', kind: 'star', R: 9e5, mu: 9e13, heatStart: 8e6, heatEnd: 1.3e6, color: 0xd6e4ff, light: 0xe2ebff, lux: 2.1e7, lumK: 1.15, beacon: 0xa8c8ff,
   sysR: 6e7, sys: 'Sapphire', glowIn: 'rgba(225,236,255,1)', glowOut: 'rgba(110,150,255,0)', glowK: 8, blurb: 'A huge, blazing blue-white giant.' };
-const MAW = { name: 'Maw', kind: 'star', hole: true, R: 3e4, mu: 4e13, tidal: 2.4e5, heatStart: 0, heatEnd: 0, color: 0x000000, light: 0xffb878, lux: 2.6e6, lumK: 0.5, beacon: 0xffa060,
-  sysR: 2.6e7, sys: 'Maw', disk: [5.5e4, 3.2e5], blurb: 'A black hole. Its glowing disk lights the dark; fall too close and it pulls you apart.' };
+const MAW = { name: 'Maw', kind: 'star', hole: true, R: 3e4, mu: 4e13, slowR: 3.84e5, heatStart: 0, heatEnd: 0, color: 0x000000, light: 0xffb878, lux: 2.6e6, lumK: 0.5, beacon: 0xffa060,
+  sysR: 2.6e7, sys: 'Maw', disk: [5.5e4, 3.2e5], blurb: 'A black hole. Its glowing disk lights the dark; fall in past its horizon and nothing comes back out.' };
 const STARS = [SUN, RUBY, DUET_A, DUET_B, SAPPHIRE, MAW];
 
 /* Iris: always the same face to Ruby (sub is the point right under it, in Iris's own frame). Day side a scorched
@@ -1167,10 +1168,11 @@ function sunHeat(p) {
   }
   return h;
 }
-/* how hard a black hole's tides are pulling at a point: 0 outside, 1 at the point where nothing holds together */
+/* how hard a black hole's tides are pulling at a point: 0 anywhere outside its horizon, then, once you have
+   fallen in, rising fast to 1, where nothing holds together */
 function tidalPull(p) {
-  const r = p.distanceTo(MAW.center); if (r >= MAW.tidal) return 0;
-  return clamp((MAW.tidal - r) / (MAW.tidal - MAW.R * 2.2), 0, 1);
+  const r = p.distanceTo(MAW.center); if (r >= MAW.R) return 0;
+  return clamp((MAW.R - r) / (MAW.R * 0.35), 0, 1);
 }
 /* out between the stars: past every star's worlds */
 function inDeepSpace(p) { for (const s of STARS) if (s.sysR && p.distanceToSquared(s.center) < s.sysR * s.sysR) return false; return true; }
@@ -11497,7 +11499,7 @@ function predictOrbit(b, draw = true) {
     let hitI = -1;
     for (let i = 0; i < NCEL; i++) {
       const c = CELS[i], k = i * 3, d = Math.hypot(px - CPOS[k], py - CPOS[k + 1], pz - CPOS[k + 2]);
-      const lim = c.kind === 'star' ? (c.hole ? c.R * 2.2 : c.heatEnd) : c.R + (c.kind === 'gas' ? -c.R * 0.05 : 0);
+      const lim = c.kind === 'star' ? (c.hole ? c.R : c.heatEnd) : c.R + (c.kind === 'gas' ? -c.R * 0.05 : 0);
       if (i === tgi && d - c.R < pred.tgt.min) { pred.tgt.min = d - c.R; pred.tgt.t = t - W.time; }
       if (d < lim) { hitI = i; break; }
       if (enc && i === enc.i) enc.min = Math.min(enc.min, d - c.R);
@@ -12039,7 +12041,7 @@ function warpLimit() {
     if (alt < lc) { cap(5, c.air ? `In ${c.name}'s air, time warp tops out at ×5` : `Close to ${c.name}, time warp tops out at ×5`); break; }
   }
   if (sunHeat(b.x) > 0) cap(10, `${celTitle(HOT)}'s heat zone limits warp to ×10`);
-  if (tidalPull(b.x) > 0 || b.x.distanceTo(MAW.center) < MAW.tidal * 1.6) cap(10, 'Near the black hole, time warp tops out at ×10');
+  if (b.x.distanceTo(MAW.center) < MAW.slowR) cap(10, 'Near the black hole, time warp tops out at ×10');
   // only out between the stars does warp go past ×10,000
   if (!inDeepSpace(b.x)) cap(10000, 'Time warp goes past ×10,000 only out between the stars');
   if (mach.some(o => o.dock && o.dock.carrier.radius > 300)) cap(25, 'Riding a skyhook limits warp to ×25');
@@ -12087,7 +12089,7 @@ function railsStopWith(near, edges) {
       let m;
       if (c.kind === 'star') {
         // a star's heat zone (a black hole's tides); and under deep-space warp, the edge of its system
-        m = d - (c.hole ? c.tidal * 1.6 : c.heatStart || c.R * 2);
+        m = d - (c.hole ? c.slowR : c.heatStart || c.R * 2);
         if (deepWarp && c.sysR) { const me = d - c.sysR; if (me < RAILM) RAILM = me; if (me < 0 && hit < 0) hit = i; }
       } else m = d - c.R - near(c);
       if (m < RAILM) RAILM = m;
@@ -12694,11 +12696,11 @@ function updateHUD() {
     else if (oi.escape) html += `<div class="row"><span>Eccentricity</span><b>${oi.e.toFixed(2)}</b></div>`;
     else {
       html += `<div class="row"><span>Apoapsis</span><b>${fmtDist(oi.ap)}</b></div>`;
-      html += `<div class="row"><span>Periapsis</span><b>${oi.pe < 0 ? (cel.kind === 'gas' ? 'in the clouds' : 'below surface') : fmtDist(oi.pe)}</b></div>`;
+      html += `<div class="row"><span>Periapsis</span><b>${oi.pe < 0 ? (cel.kind === 'gas' ? 'in the clouds' : cel.hole ? 'inside the horizon' : 'below surface') : fmtDist(oi.pe)}</b></div>`;
       if (oi.pe > 0) html += `<div class="row"><span>Period</span><b>${fmtTime(oi.T)}</b></div>`;
     }
     if (cel.kind === 'star' && cel.heatStart && oi.pe + cel.R < cel.heatStart) html += `<div class="row warn"><span>Heat zone</span><b>${oi.pe + cel.R < cel.heatEnd ? 'fatal' : 'on this path'}</b></div>`;
-    if (cel.hole && oi.pe + cel.R < cel.tidal) html += `<div class="row warn"><span>Tides</span><b>${oi.pe + cel.R < cel.R * 2.2 ? 'fatal' : 'tearing on this path'}</b></div>`;
+    if (cel.hole && !oi.escape && oi.pe < 0) html += `<div class="row warn"><span>Horizon</span><b>falling in on this path</b></div>`;
     // out between the stars: how far to the nearest one
     if (inDeepSpace(b.x)) { let ns = null, nsd = Infinity; for (const sc of STARS) { const d = b.x.distanceTo(sc.center); if (d < nsd && sc.sysR) { nsd = d; ns = sc; } } html += `<div class="row hi"><span>Nearest star · ${ns.name}</span><b>${fmtDist(nsd)}</b></div>`; }
     // nearest other world
@@ -12750,7 +12752,7 @@ function updateHUD() {
   if (G.wrecked) { bn.innerHTML = `Your pilot was thrown clear<small>${esc(keyName(actKeys('respawn')[0]))} respawns, ${esc(keyName(actKeys('build')[0]))} goes back to the builder</small>`; bn.hidden = false; }
   else if (G.noSeat) { bn.innerHTML = 'No seat aboard<small>This vehicle won\'t respond to controls. Add a seat in the builder.</small>'; bn.hidden = false; }
   else if (b.heat > 0.12) { const hs = celCall(HOT || SUN); bn.innerHTML = `${b.heat > 0.6 ? 'Melting down' : 'Too close to ' + hs}<small>Parts are cooking. Burn away from ${hs}.</small>`; bn.hidden = false; }
-  else if (b.tidal > 0.05) { bn.innerHTML = `${b.tidal > 0.6 ? 'Spaghettification' : 'Black hole tides'}<small>The pull is stronger on one end than the other and it is tearing the craft apart. Burn away!</small>`; bn.hidden = false; }
+  else if (b.tidal > 0.02) { bn.innerHTML = `Inside the black hole<small>Past the horizon nothing gets back out, and the tides are pulling the craft apart.</small>`; bn.hidden = false; }
   else if (b.crush > 0) { bn.innerHTML = 'Crushing pressure<small>Climb out of the clouds before the hull gives way</small>'; bn.hidden = false; }
   else if (b.lava > 0) { bn.innerHTML = 'Burning in lava<small>Get out before it eats through</small>'; bn.hidden = false; }
   else bn.hidden = true;
@@ -13353,7 +13355,7 @@ function openHelp(tab) {
   <span class="lab">Further out</span>
   <p>Time warp (${K2('warp_dn', 'warp_up')}) goes up to ×5 in air or near the ground, ×100 with engines firing in space, ×10,000 coasting, and ×1,000,000 out between the stars.</p>
   <p>The Sun is about 6,800 km away, and seven more worlds circle it: lava-flooded Cinder, desert Dune, jungle Mire, icy Frost, tiny Shard, and the gas giants Tempest and Azure, with ten more moons between them. From low orbit about 150 m/s more breaks free of Terra; open the map, zoom out, and burn until your path reaches another world's orbit.</p>
-  <p>Four more stars lie far beyond the Sun. Ruby is a dim red dwarf; its world Iris always shows it the same face, scorched on the day side, frozen on the night side, with a ring of purple life in between. Duet is two suns circling each other, so the desert world Mirage gets two shadows. Sapphire is a blazing blue giant with Lagoon, a world of islands and palms, and Crown, a ringed giant. Maw is a black hole: its glowing disk bends round it and is the only light on dark Gloom. Get too close and it pulls you apart. To get there, break free of the Sun (about 750 m/s more than leaving Terra) and coast out past the edge of its system, or take the Starfarer. Every world is also under Spawn at.</p>
+  <p>Four more stars lie far beyond the Sun. Ruby is a dim red dwarf; its world Iris always shows it the same face, scorched on the day side, frozen on the night side, with a ring of purple life in between. Duet is two suns circling each other, so the desert world Mirage gets two shadows. Sapphire is a blazing blue giant with Lagoon, a world of islands and palms, and Crown, a ringed giant. Maw is a black hole: its glowing disk bends round it and is the only light on dark Gloom. You can fly right through the disk and skim past the hole, but fall in past its black horizon and its tides tear you apart. To get there, break free of the Sun (about 750 m/s more than leaving Terra) and coast out past the edge of its system, or take the Starfarer. Every world is also under Spawn at.</p>
   <p>The Space Elevator in the library is 50 Sky Trusses on a Ground Anchor, reaching 10.75 km up. ${K('stage')} lets the climber go, then hold ${K('fwd')} to drive up; at the top ${K('stage')} again lets the rocket float free, already in orbit. For a Skyhook, spawn it at Skyhook orbit and catch its grapple with the Skylark's docking port.</p>`,
     bases: `<p>Storage Modules (Space) carry crates of base parts: 12 in a Storage Module, 40 in a Big Storage Module. Build them onto a truck, a lander or a rocket and take them anywhere: the Moon, Iris, Gloom.</p>
   <p>Land, stop, and Base mode appears under the gauges. Pick a piece along the bottom and ${click} the ground to set it down; each one uses up crates. Turn spins the piece, and Take back picks one up again, its crates going back aboard. The pieces are a Habitat, a Greenhouse, Corridors, a Solar Array, a Landing Pad, a Hangar, a Fuel Tank, a Comms Mast, a Light Mast, a Supply Depot and Walls.</p>
